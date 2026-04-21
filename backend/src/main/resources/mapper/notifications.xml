@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+	수정일          	수정자           수정내용
+  ===========      =========    =================
+ *2025.02.00		rainend		 공지사항
+-->
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.academy.mapper.NotificationMapper">
+
+	<!-- 공지사항 리스트 -->
+	<select id="selectNotificationList">
+		SELECT BOARD_ID, BOARD_TITLE, BOARD_MEMO, IS_USE, REG_DT, REG_ID, UPD_DT, UPD_ID
+		FROM acm_notifications
+		order by board_id desc
+		LIMIT #{recordCountPerPage} OFFSET #{firstIndex}
+	</select>
+
+	<!-- 공지사항 게시물 수 -->
+	<select id="selectNotificationListTotCnt">
+		SELECT COUNT(*) TOTAL_CNT
+		FROM acm_notifications
+	</select>
+
+	<!-- 공지사항 하나 가져오기 -->
+	<select id="getNotificationDetail">
+		SELECT BOARD_ID, BOARD_TITLE, BOARD_MEMO, IS_USE, REG_DT, REG_ID, UPD_DT, UPD_ID
+		FROM acm_notifications an
+		WHERE an.BOARD_ID = #{boardId}
+	</select>
+
+	<!-- 공지사항 등록 -->
+	<insert id="insertNotification">
+		INSERT INTO acm_notifications (
+			BOARD_TITLE, BOARD_MEMO, IS_USE, REG_DT, REG_ID, UPD_DT, UPD_ID
+		) VALUES (
+			#{boardTitle}, #{boardMemo}, #{isUse}, now(), #{regId}, now(), #{regId}
+		)
+	</insert>
+
+	<!-- 공지사항 수정 -->
+	<update id="updateNotification">
+		UPDATE acm_notifications
+		SET 
+			BOARD_TITLE = #{boardTitle}, 
+			BOARD_MEMO = #{boardMemo}, 
+			UPD_DT = now(), 
+			UPD_ID = #{updId}
+		WHERE BOARD_ID = #{boardId}
+	</update>
+
+	<!-- 공지사항 비활성화 -->
+	<update id="deleteNotification">
+		UPDATE acm_notifications
+		SET 
+			IS_USE = 'N',
+			UPD_DT = now(), 
+			UPD_ID = #{updId}
+		WHERE BOARD_ID = #{boardId}
+	</update>
+
+</mapper>

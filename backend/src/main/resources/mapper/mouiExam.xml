@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.academy.mapper.MouiExamMapper">
+
+    <select id="selectMouiExamList" parameterType="com.academy.mocktest.mouigosa.exam.service.MouiExamVO" resultType="com.academy.mocktest.mouigosa.exam.service.MouiExamVO">
+        SELECT A.EXAM_SEQ AS examSeq, A.EXAM_CD AS examCd, A.EXAM_NM AS examNm, A.EXAM_TYPE AS examType,
+               CASE A.EXAM_TYPE WHEN 'ONLINE' THEN '온라인' WHEN 'OFFLINE' THEN '오프라인' ELSE A.EXAM_TYPE END AS examTypeNm,
+               A.EXAM_YEAR AS examYear, A.EXAM_ROUND AS examRound, A.EXAM_DATE AS examDate,
+               A.STATUS AS status,
+               CASE A.STATUS WHEN 'READY' THEN '준비' WHEN 'OPEN' THEN '접수중' WHEN 'CLOSE' THEN '마감' WHEN 'FINISH' THEN '완료' ELSE A.STATUS END AS statusNm,
+               A.CATEGORY_CD AS categoryCd, C.CATEGORY_NM AS categoryNm,
+               (SELECT COUNT(*) FROM TB_MOUI_APPLY WHERE EXAM_SEQ = A.EXAM_SEQ) AS applyCnt,
+               DATE_FORMAT(A.REG_DATE, '%Y-%m-%d') AS regDate
+          FROM TB_MOUI_EXAM A LEFT JOIN TB_CATEGORY C ON A.CATEGORY_CD = C.CATEGORY_CD
+         WHERE A.ISUSE = 'Y'
+        <if test="searchExamYear != null and searchExamYear != ''">AND A.EXAM_YEAR = #{searchExamYear}</if>
+        <if test="searchExamType != null and searchExamType != ''">AND A.EXAM_TYPE = #{searchExamType}</if>
+        <if test="searchStatus != null and searchStatus != ''">AND A.STATUS = #{searchStatus}</if>
+        <if test="searchCategoryCd != null and searchCategoryCd != ''">AND A.CATEGORY_CD = #{searchCategoryCd}</if>
+         ORDER BY A.EXAM_YEAR DESC, A.EXAM_DATE DESC
+         LIMIT #{recordCountPerPage} OFFSET #{firstIndex}
+    </select>
+
+    <select id="selectMouiExamListCount" parameterType="com.academy.mocktest.mouigosa.exam.service.MouiExamVO" resultType="int">
+        SELECT COUNT(*) FROM TB_MOUI_EXAM A WHERE A.ISUSE = 'Y'
+        <if test="searchExamYear != null and searchExamYear != ''">AND A.EXAM_YEAR = #{searchExamYear}</if>
+        <if test="searchExamType != null and searchExamType != ''">AND A.EXAM_TYPE = #{searchExamType}</if>
+        <if test="searchStatus != null and searchStatus != ''">AND A.STATUS = #{searchStatus}</if>
+        <if test="searchCategoryCd != null and searchCategoryCd != ''">AND A.CATEGORY_CD = #{searchCategoryCd}</if>
+    </select>
+
+    <select id="selectMouiExamDetail" parameterType="com.academy.mocktest.mouigosa.exam.service.MouiExamVO" resultType="com.academy.mocktest.mouigosa.exam.service.MouiExamVO">
+        SELECT EXAM_SEQ AS examSeq, EXAM_CD AS examCd, EXAM_NM AS examNm, EXAM_TYPE AS examType,
+               EXAM_YEAR AS examYear, EXAM_ROUND AS examRound, EXAM_DATE AS examDate,
+               EXAM_START_TIME AS examStartTime, EXAM_END_TIME AS examEndTime, EXAM_MINUTE AS examMinute,
+               REG_START_DATE AS regStartDate, REG_END_DATE AS regEndDate, RESULT_DATE AS resultDate,
+               CATEGORY_CD AS categoryCd, SUBJECT_CD AS subjectCd, QUESTION_CNT AS questionCnt,
+               TOTAL_SCORE AS totalScore, PASS_SCORE AS passScore, EXAM_PLACE AS examPlace,
+               EXAM_ADDR AS examAddr, MAX_APPLY_CNT AS maxApplyCnt, STATUS AS status, ISUSE AS isuse,
+               REG_ID AS regId, DATE_FORMAT(REG_DATE, '%Y-%m-%d %H:%i:%s') AS regDate
+          FROM TB_MOUI_EXAM WHERE EXAM_SEQ = #{examSeq}
+    </select>
+
+    <insert id="insertMouiExam" parameterType="com.academy.mocktest.mouigosa.exam.service.MouiExamVO">
+        INSERT INTO TB_MOUI_EXAM (EXAM_CD, EXAM_NM, EXAM_TYPE, EXAM_YEAR, EXAM_ROUND, EXAM_DATE,
+            EXAM_START_TIME, EXAM_END_TIME, EXAM_MINUTE, REG_START_DATE, REG_END_DATE, RESULT_DATE,
+            CATEGORY_CD, SUBJECT_CD, QUESTION_CNT, TOTAL_SCORE, PASS_SCORE, EXAM_PLACE, EXAM_ADDR,
+            MAX_APPLY_CNT, STATUS, ISUSE, REG_ID, REG_DATE)
+        VALUES (#{examCd}, #{examNm}, #{examType}, #{examYear}, #{examRound}, #{examDate},
+            #{examStartTime}, #{examEndTime}, #{examMinute}, #{regStartDate}, #{regEndDate}, #{resultDate},
+            #{categoryCd}, #{subjectCd}, #{questionCnt}, #{totalScore}, #{passScore}, #{examPlace}, #{examAddr},
+            #{maxApplyCnt}, IFNULL(#{status}, 'READY'), 'Y', #{regId}, NOW())
+    </insert>
+
+    <update id="updateMouiExam" parameterType="com.academy.mocktest.mouigosa.exam.service.MouiExamVO">
+        UPDATE TB_MOUI_EXAM SET EXAM_NM = #{examNm}, EXAM_TYPE = #{examType}, EXAM_YEAR = #{examYear},
+               EXAM_ROUND = #{examRound}, EXAM_DATE = #{examDate}, EXAM_START_TIME = #{examStartTime},
+               EXAM_END_TIME = #{examEndTime}, EXAM_MINUTE = #{examMinute}, REG_START_DATE = #{regStartDate},
+               REG_END_DATE = #{regEndDate}, RESULT_DATE = #{resultDate}, CATEGORY_CD = #{categoryCd},
+               SUBJECT_CD = #{subjectCd}, QUESTION_CNT = #{questionCnt}, TOTAL_SCORE = #{totalScore},
+               PASS_SCORE = #{passScore}, EXAM_PLACE = #{examPlace}, EXAM_ADDR = #{examAddr},
+               MAX_APPLY_CNT = #{maxApplyCnt}, MOD_ID = #{modId}, MOD_DATE = NOW()
+         WHERE EXAM_SEQ = #{examSeq}
+    </update>
+
+    <update id="deleteMouiExam" parameterType="com.academy.mocktest.mouigosa.exam.service.MouiExamVO">
+        UPDATE TB_MOUI_EXAM SET ISUSE = 'N', MOD_ID = #{modId}, MOD_DATE = NOW() WHERE EXAM_SEQ = #{examSeq}
+    </update>
+
+    <update id="updateExamStatus" parameterType="com.academy.mocktest.mouigosa.exam.service.MouiExamVO">
+        UPDATE TB_MOUI_EXAM SET STATUS = #{status}, MOD_ID = #{modId}, MOD_DATE = NOW() WHERE EXAM_SEQ = #{examSeq}
+    </update>
+
+    <select id="selectExamYearList" parameterType="com.academy.mocktest.mouigosa.exam.service.MouiExamVO" resultType="com.academy.mocktest.mouigosa.exam.service.MouiExamVO">
+        SELECT DISTINCT EXAM_YEAR AS examYear FROM TB_MOUI_EXAM WHERE ISUSE = 'Y' ORDER BY EXAM_YEAR DESC
+    </select>
+
+</mapper>

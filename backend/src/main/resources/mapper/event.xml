@@ -1,0 +1,740 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+    수정일              수정자           수정내용
+  ===========      =========    =================
+ *2025.12.11       system       이벤트 관리 매퍼 신규 생성 (MySQL 버전)
+-->
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.academy.mapper.EventMapper">
+
+    <!-- =====================================================
+         이벤트 정보 (TB_EVENT_INFO) 관련
+         ===================================================== -->
+
+    <!-- 이벤트 목록 조회 -->
+    <select id="selectEventList" parameterType="com.academy.event.service.EventVO" resultType="org.json.simple.JSONObject">
+        SELECT
+            EVENT_NO,
+            ONOFF_DIV,
+            CATEGORY_CODE,
+            (SELECT NAME FROM TB_CATEGORY_INFO WHERE ISUSE = 'Y' AND CODE = A.CATEGORY_CODE) AS CATEGORY_NAME,
+            NOTICE_GUBUN,
+            OPEN_YN,
+            MEMBER_GUBUN,
+            HIT,
+            START_DATE,
+            START_TIME,
+            END_DATE,
+            END_TIME,
+            CASE
+                WHEN START_DATE > DATE_FORMAT(NOW(), '%Y%m%d') THEN '대기중'
+                WHEN START_DATE &lt;= DATE_FORMAT(NOW(), '%Y%m%d')
+                     AND CONCAT(END_DATE, END_TIME) >= DATE_FORMAT(NOW(), '%Y%m%d%H') THEN '진행중'
+                WHEN CONCAT(END_DATE, END_TIME) &lt; DATE_FORMAT(NOW(), '%Y%m%d%H') THEN '완료'
+            END AS STATUS,
+            TITLE,
+            CONTENTS_TEXT,
+            CONTENTS_IMG,
+            LIST_THUMBNAIL,
+            ISSUE_THUMBNAIL,
+            REG_ID,
+            DATE_FORMAT(REG_DT, '%Y-%m-%d') AS REG_DT,
+            UPD_ID,
+            DATE_FORMAT(UPD_DT, '%Y-%m-%d') AS UPD_DT,
+            OPTION1_YN,
+            OPTION2_YN,
+            (SELECT COUNT(EVENT_NO) FROM TB_EVENT_FILE WHERE EVENT_NO = A.EVENT_NO) AS ATTACH_FILE,
+            (SELECT COUNT(EVENT_NO) FROM TB_EVENT_OPTION2 WHERE EVENT_NO = A.EVENT_NO) AS OPTION2_CNT,
+            (SELECT COUNT(*) FROM TB_EVENT_RESULT WHERE EVENT_NO = A.EVENT_NO) AS PEOPLE_CNT
+        FROM TB_EVENT_INFO A
+        WHERE 1=1
+        <choose>
+            <when test='onoffDiv != null and onoffDiv == "L"'>
+                AND ONOFF_DIV = 'L'
+            </when>
+            <otherwise>
+                <if test='menuType != null and menuType == "FM_ROOT"'>
+                    AND ONOFF_DIV = 'F'
+                </if>
+                <if test='menuType != null and menuType == "OM_ROOT"'>
+                    AND ONOFF_DIV = 'O'
+                </if>
+            </otherwise>
+        </choose>
+        <if test="searchCategory != null and searchCategory != ''">
+            AND CATEGORY_CODE = #{searchCategory}
+        </if>
+        <if test="searchKeyword != null and searchKeyword != ''">
+            <choose>
+                <when test='searchType == "TITLE"'>
+                    AND TITLE LIKE CONCAT('%', #{searchKeyword}, '%')
+                </when>
+                <when test='searchType == "CONTENTS_TEXT"'>
+                    AND CONTENTS_TEXT LIKE CONCAT('%', #{searchKeyword}, '%')
+                </when>
+            </choose>
+        </if>
+        ORDER BY CAST(EVENT_NO AS UNSIGNED) DESC
+        LIMIT #{recordCountPerPage} OFFSET #{firstIndex}
+    </select>
+
+    <!-- 이벤트 목록 건수 조회 -->
+    <select id="selectEventListCount" parameterType="com.academy.event.service.EventVO" resultType="int">
+        SELECT COUNT(*) AS CNT
+        FROM TB_EVENT_INFO
+        WHERE 1=1
+        <choose>
+            <when test='onoffDiv != null and onoffDiv == "L"'>
+                AND ONOFF_DIV = 'L'
+            </when>
+            <otherwise>
+                <if test='menuType != null and menuType == "FM_ROOT"'>
+                    AND ONOFF_DIV = 'F'
+                </if>
+                <if test='menuType != null and menuType == "OM_ROOT"'>
+                    AND ONOFF_DIV = 'O'
+                </if>
+            </otherwise>
+        </choose>
+        <if test="searchCategory != null and searchCategory != ''">
+            AND CATEGORY_CODE = #{searchCategory}
+        </if>
+        <if test="searchKeyword != null and searchKeyword != ''">
+            <choose>
+                <when test='searchType == "TITLE"'>
+                    AND TITLE LIKE CONCAT('%', #{searchKeyword}, '%')
+                </when>
+                <when test='searchType == "CONTENTS_TEXT"'>
+                    AND CONTENTS_TEXT LIKE CONCAT('%', #{searchKeyword}, '%')
+                </when>
+            </choose>
+        </if>
+    </select>
+
+    <!-- 이벤트 상세 조회 -->
+    <select id="selectEventDetail" parameterType="com.academy.event.service.EventVO" resultType="org.json.simple.JSONObject">
+        SELECT
+            A.EVENT_NO,
+            ONOFF_DIV,
+            CATEGORY_CODE,
+            (SELECT NAME FROM TB_CATEGORY_INFO WHERE ISUSE = 'Y' AND CODE = A.CATEGORY_CODE) AS CATEGORY_NAME,
+            NOTICE_GUBUN,
+            OPEN_YN,
+            MEMBER_GUBUN,
+            HIT,
+            START_DATE,
+            START_TIME,
+            END_DATE,
+            END_TIME,
+            CASE
+                WHEN START_DATE > DATE_FORMAT(NOW(), '%Y%m%d') THEN '대기중'
+                WHEN START_DATE &lt;= DATE_FORMAT(NOW(), '%Y%m%d')
+                     AND CONCAT(END_DATE, END_TIME) >= DATE_FORMAT(NOW(), '%Y%m%d%H') THEN '진행중'
+                WHEN CONCAT(END_DATE, END_TIME) &lt; DATE_FORMAT(NOW(), '%Y%m%d%H') THEN '완료'
+            END AS STATUS,
+            TITLE,
+            CONTENTS_TEXT,
+            CONTENTS_IMG,
+            LIST_THUMBNAIL,
+            ISSUE_THUMBNAIL,
+            A.REG_ID,
+            DATE_FORMAT(A.REG_DT, '%Y-%m-%d') AS REG_DT,
+            A.UPD_ID,
+            DATE_FORMAT(A.UPD_DT, '%Y-%m-%d') AS UPD_DT,
+            OPTION1_YN,
+            OPTION2_YN,
+            OPTION3_YN,
+            OPTION4_YN,
+            OPTION2_HIDDEN,
+            OPTION2_EVENT,
+            OPTION2_POPUP,
+            (SELECT SMS_MESSAGE_BOX FROM TB_EVENT_OPTION3 WHERE EVENT_NO = #{eventNo}) AS SMS_MESSAGE_BOX,
+            (SELECT SMS_NUM FROM TB_EVENT_OPTION3 WHERE EVENT_NO = #{eventNo}) AS SMS_NUM,
+            (SELECT POPUP_TITLE FROM TB_EVENT_OPTION4 WHERE EVENT_NO = #{eventNo}) AS POPUP_TITLE,
+            (SELECT POPUP_LINK FROM TB_EVENT_OPTION4 WHERE EVENT_NO = #{eventNo}) AS POPUP_LINK,
+            (SELECT COUNT(EVENT_NO) FROM TB_EVENT_FILE WHERE EVENT_NO = A.EVENT_NO) AS ATTACH_FILE_CNT
+        FROM TB_EVENT_INFO A
+        WHERE EVENT_NO = #{eventNo}
+    </select>
+
+    <!-- 이벤트 등록 -->
+    <insert id="insertEvent" parameterType="com.academy.event.service.EventVO">
+        INSERT INTO TB_EVENT_INFO (
+            EVENT_NO,
+            ONOFF_DIV,
+            CATEGORY_CODE,
+            NOTICE_GUBUN,
+            OPEN_YN,
+            MEMBER_GUBUN,
+            HIT,
+            START_DATE,
+            START_TIME,
+            END_DATE,
+            END_TIME,
+            TITLE,
+            <if test="contentsText != null and contentsText != ''">
+            CONTENTS_TEXT,
+            </if>
+            <if test="contentsImg != null and contentsImg != ''">
+            CONTENTS_IMG,
+            </if>
+            <if test="listThumbnail != null and listThumbnail != ''">
+            LIST_THUMBNAIL,
+            </if>
+            <if test="issueThumbnail != null and issueThumbnail != ''">
+            ISSUE_THUMBNAIL,
+            </if>
+            REG_ID,
+            REG_DT,
+            UPD_ID,
+            UPD_DT,
+            OPTION1_YN,
+            OPTION2_YN,
+            OPTION2_HIDDEN,
+            OPTION3_YN,
+            OPTION4_YN,
+            OPTION2_EVENT,
+            OPTION2_POPUP
+        ) VALUES (
+            (SELECT IFNULL(MAX(CAST(EVENT_NO AS UNSIGNED)), 0) + 1 FROM TB_EVENT_INFO AS T),
+            #{onoffDiv},
+            #{categoryCode},
+            #{noticeGubun},
+            #{openYn},
+            #{memberGubun},
+            0,
+            #{startDate},
+            #{startTime},
+            #{endDate},
+            #{endTime},
+            #{title},
+            <if test="contentsText != null and contentsText != ''">
+            #{contentsText},
+            </if>
+            <if test="contentsImg != null and contentsImg != ''">
+            #{contentsImg},
+            </if>
+            <if test="listThumbnail != null and listThumbnail != ''">
+            #{listThumbnail},
+            </if>
+            <if test="issueThumbnail != null and issueThumbnail != ''">
+            #{issueThumbnail},
+            </if>
+            #{regId},
+            NOW(),
+            #{regId},
+            NOW(),
+            #{option1Yn},
+            #{option2Yn},
+            #{option2Hidden},
+            #{option3Yn},
+            #{option4Yn},
+            #{option2Event},
+            #{option2Popup}
+        )
+    </insert>
+
+    <!-- 이벤트 수정 -->
+    <update id="updateEvent" parameterType="com.academy.event.service.EventVO">
+        UPDATE TB_EVENT_INFO
+        SET
+            NOTICE_GUBUN = #{noticeGubun},
+            OPEN_YN = #{openYn},
+            MEMBER_GUBUN = #{memberGubun},
+            START_DATE = #{startDate},
+            START_TIME = #{startTime},
+            END_DATE = #{endDate},
+            END_TIME = #{endTime},
+            TITLE = #{title},
+            CONTENTS_TEXT = #{contentsText},
+            CONTENTS_IMG = #{contentsImg},
+            LIST_THUMBNAIL = #{listThumbnail},
+            ISSUE_THUMBNAIL = #{issueThumbnail},
+            UPD_ID = #{updId},
+            UPD_DT = NOW(),
+            OPTION1_YN = #{option1Yn},
+            OPTION2_YN = #{option2Yn},
+            OPTION3_YN = #{option3Yn},
+            OPTION4_YN = #{option4Yn},
+            OPTION2_EVENT = #{option2Event},
+            OPTION2_POPUP = #{option2Popup},
+            OPTION2_HIDDEN = #{option2Hidden}
+        WHERE EVENT_NO = #{eventNo}
+    </update>
+
+    <!-- 이벤트 삭제 -->
+    <delete id="deleteEvent" parameterType="com.academy.event.service.EventVO">
+        DELETE FROM TB_EVENT_INFO WHERE EVENT_NO = #{eventNo}
+    </delete>
+
+    <!-- =====================================================
+         이벤트 파일 (TB_EVENT_FILE) 관련
+         ===================================================== -->
+
+    <!-- 이벤트 파일 목록 조회 -->
+    <select id="selectEventFileList" parameterType="com.academy.event.service.EventFileVO" resultType="org.json.simple.JSONObject">
+        SELECT EVENT_NO, FILE_NO, FILE_NAME, FILE_PATH, REG_ID, REG_DT, UPD_ID, UPD_DT
+        FROM TB_EVENT_FILE
+        WHERE EVENT_NO = #{eventNo}
+        <if test="fileNo != null and fileNo != ''">
+            AND FILE_NO = #{fileNo}
+        </if>
+        ORDER BY REG_DT
+    </select>
+
+    <!-- 이벤트 파일 등록 -->
+    <insert id="insertEventFile" parameterType="com.academy.event.service.EventFileVO">
+        INSERT INTO TB_EVENT_FILE (
+            EVENT_NO,
+            FILE_NO,
+            FILE_NAME,
+            FILE_PATH,
+            REG_ID,
+            REG_DT,
+            UPD_ID,
+            UPD_DT
+        ) VALUES (
+            #{eventNo},
+            (SELECT IFNULL(MAX(CAST(FILE_NO AS UNSIGNED)), 0) + 1 FROM TB_EVENT_FILE AS T),
+            #{fileName},
+            #{filePath},
+            #{regId},
+            NOW(),
+            #{regId},
+            NOW()
+        )
+    </insert>
+
+    <!-- 이벤트 파일 삭제 -->
+    <delete id="deleteEventFile" parameterType="com.academy.event.service.EventFileVO">
+        DELETE FROM TB_EVENT_FILE
+        WHERE EVENT_NO = #{eventNo}
+        <if test="fileNo != null and fileNo != ''">
+            AND FILE_NO = #{fileNo}
+        </if>
+    </delete>
+
+    <!-- =====================================================
+         이벤트 옵션1 (TB_EVENT_OPTION1) 관련
+         ===================================================== -->
+
+    <!-- 이벤트 옵션1 목록 조회 -->
+    <select id="selectEventOption1List" parameterType="com.academy.event.service.EventOptionVO" resultType="org.json.simple.JSONObject">
+        SELECT
+            EVENT_NO,
+            OPTION_NO,
+            OPTION_NAME,
+            PEOPLE_GUBUN,
+            PEOPLE_CNT,
+            MULTI_SELECT_YN,
+            REG_ID,
+            REG_DT,
+            UPD_ID,
+            UPD_DT
+        FROM TB_EVENT_OPTION1
+        WHERE EVENT_NO = #{eventNo}
+        ORDER BY CAST(OPTION_NO AS UNSIGNED) ASC
+    </select>
+
+    <!-- 이벤트 옵션1 등록 -->
+    <insert id="insertEventOption1" parameterType="com.academy.event.service.EventOptionVO">
+        INSERT INTO TB_EVENT_OPTION1 (
+            EVENT_NO,
+            OPTION_NO,
+            OPTION_NAME,
+            PEOPLE_GUBUN,
+            PEOPLE_CNT,
+            MULTI_SELECT_YN,
+            REG_ID,
+            REG_DT,
+            UPD_ID,
+            UPD_DT
+        ) VALUES (
+            #{eventNo},
+            (SELECT IFNULL(MAX(CAST(OPTION_NO AS UNSIGNED)), 0) + 1 FROM TB_EVENT_OPTION1 AS T WHERE EVENT_NO = #{eventNo}),
+            #{optionName},
+            #{peopleGubun},
+            #{peopleCnt},
+            #{multiSelectYn},
+            #{regId},
+            NOW(),
+            #{regId},
+            NOW()
+        )
+    </insert>
+
+    <!-- 이벤트 옵션1 삭제 -->
+    <delete id="deleteEventOption1" parameterType="com.academy.event.service.EventOptionVO">
+        DELETE FROM TB_EVENT_OPTION1
+        WHERE EVENT_NO = #{eventNo}
+        <if test="optionNo != null and optionNo != ''">
+            AND OPTION_NO = #{optionNo}
+        </if>
+    </delete>
+
+    <!-- =====================================================
+         이벤트 옵션2 (TB_EVENT_OPTION2) - 댓글 관련
+         ===================================================== -->
+
+    <!-- 이벤트 옵션2(댓글) 목록 조회 -->
+    <select id="selectEventOption2List" parameterType="com.academy.event.service.EventOptionVO" resultType="org.json.simple.JSONObject">
+        SELECT
+            TE.EVENT_NO,
+            TE.NO,
+            TE.USER_ID,
+            TE.USER_NM,
+            TE.TXT,
+            TE.REG_DT
+        FROM TB_EVENT_OPTION2 TE
+        WHERE TE.EVENT_NO = #{eventNo}
+        ORDER BY TE.REG_DT DESC
+        LIMIT #{recordCountPerPage} OFFSET #{firstIndex}
+    </select>
+
+    <!-- 이벤트 옵션2(댓글) 전체 목록 조회 -->
+    <select id="selectEventOption2ListAll" parameterType="com.academy.event.service.EventOptionVO" resultType="org.json.simple.JSONObject">
+        SELECT
+            TE.EVENT_NO,
+            TE.NO,
+            IFNULL(TE.USER_ID, 'guest') AS USER_ID,
+            IFNULL(TE.USER_NM, '수강생') AS USER_NM,
+            IFNULL(TM.PHONE_NO, '') AS PHONE_NO,
+            IFNULL(TE.TXT, '내용없음') AS TXT,
+            TE.REG_DT
+        FROM TB_EVENT_OPTION2 TE
+        LEFT JOIN TB_MA_MEMBER TM ON TE.USER_ID = TM.USER_ID
+        WHERE TE.EVENT_NO = #{eventNo}
+        ORDER BY TE.REG_DT DESC
+    </select>
+
+    <!-- 이벤트 옵션2(댓글) 목록 건수 조회 -->
+    <select id="selectEventOption2ListCount" parameterType="com.academy.event.service.EventOptionVO" resultType="int">
+        SELECT COUNT(*) AS CNT
+        FROM TB_EVENT_OPTION2
+        WHERE EVENT_NO = #{eventNo}
+    </select>
+
+    <!-- 이벤트 옵션2(댓글) 등록 -->
+    <insert id="insertEventOption2" parameterType="com.academy.event.service.EventOptionVO">
+        INSERT INTO TB_EVENT_OPTION2 (
+            EVENT_NO,
+            NO,
+            USER_ID,
+            USER_NM,
+            TXT,
+            REG_DT
+        ) VALUES (
+            #{eventNo},
+            (SELECT IFNULL(MAX(NO), 0) + 1 FROM TB_EVENT_OPTION2 AS T WHERE EVENT_NO = #{eventNo}),
+            #{regId},
+            #{userNm},
+            #{txt},
+            NOW()
+        )
+    </insert>
+
+    <!-- 이벤트 옵션2(댓글) 삭제 -->
+    <delete id="deleteEventOption2" parameterType="com.academy.event.service.EventOptionVO">
+        DELETE FROM TB_EVENT_OPTION2
+        WHERE EVENT_NO = #{eventNo}
+        <if test="no != null">
+            AND NO = #{no}
+        </if>
+    </delete>
+
+    <!-- =====================================================
+         이벤트 옵션3 (TB_EVENT_OPTION3) - SMS 관련
+         ===================================================== -->
+
+    <!-- 이벤트 옵션3(SMS) 등록 -->
+    <insert id="insertEventOption3" parameterType="com.academy.event.service.EventOptionVO">
+        INSERT INTO TB_EVENT_OPTION3 (
+            EVENT_NO,
+            SMS_MESSAGE_BOX,
+            SMS_NUM,
+            REG_ID,
+            REG_DT,
+            UPD_ID,
+            UPD_DT
+        ) VALUES (
+            #{eventNo},
+            #{smsMessageBox},
+            #{smsNum},
+            #{regId},
+            NOW(),
+            #{regId},
+            NOW()
+        )
+    </insert>
+
+    <!-- 이벤트 옵션3(SMS) 삭제 -->
+    <delete id="deleteEventOption3" parameterType="com.academy.event.service.EventOptionVO">
+        DELETE FROM TB_EVENT_OPTION3 WHERE EVENT_NO = #{eventNo}
+    </delete>
+
+    <!-- =====================================================
+         이벤트 옵션4 (TB_EVENT_OPTION4) - 팝업 관련
+         ===================================================== -->
+
+    <!-- 이벤트 옵션4(팝업) 등록 -->
+    <insert id="insertEventOption4" parameterType="com.academy.event.service.EventOptionVO">
+        INSERT INTO TB_EVENT_OPTION4 (
+            EVENT_NO,
+            POPUP_TITLE,
+            POPUP_LINK,
+            REG_ID,
+            REG_DT,
+            UPD_ID,
+            UPD_DT
+        ) VALUES (
+            #{eventNo},
+            #{popupTitle},
+            #{popupLink},
+            #{regId},
+            NOW(),
+            #{regId},
+            NOW()
+        )
+    </insert>
+
+    <!-- 이벤트 옵션4(팝업) 삭제 -->
+    <delete id="deleteEventOption4" parameterType="com.academy.event.service.EventOptionVO">
+        DELETE FROM TB_EVENT_OPTION4 WHERE EVENT_NO = #{eventNo}
+    </delete>
+
+    <!-- =====================================================
+         이벤트 결과/참여자 (TB_EVENT_RESULT) 관련
+         ===================================================== -->
+
+    <!-- 이벤트 참여자 목록 조회 -->
+    <select id="selectEventResultList" parameterType="com.academy.event.service.EventResultVO" resultType="org.json.simple.JSONObject">
+        SELECT
+            EVENT_NO,
+            OPTION_NO,
+            IFNULL(A.USER_ID, B.USER_ID) AS USER_ID,
+            IFNULL(A.USER_NAME, B.USER_NM) AS USER_NAME,
+            IFNULL(A.PHONE_NO, B.PHONE_NO) AS PHONE_NO,
+            IFNULL(A.EMAIL, B.EMAIL) AS EMAIL,
+            A.REG_DT,
+            CATEGORY_INFO
+        FROM TB_EVENT_RESULT A
+        LEFT JOIN TB_MA_MEMBER B ON A.USER_ID = B.USER_ID
+        WHERE A.EVENT_NO = #{eventNo}
+        <if test="searchOptionNo != null and searchOptionNo != ''">
+            AND A.OPTION_NO = #{searchOptionNo}
+        </if>
+        ORDER BY A.REG_DT DESC
+        LIMIT #{rsltEndNo} OFFSET #{rsltStartNo}
+    </select>
+
+    <!-- 이벤트 참여자 목록 건수 조회 -->
+    <select id="selectEventResultListCount" parameterType="com.academy.event.service.EventResultVO" resultType="int">
+        SELECT COUNT(*) AS CNT
+        FROM TB_EVENT_RESULT
+        WHERE EVENT_NO = #{eventNo}
+        <if test="searchOptionNo != null and searchOptionNo != ''">
+            AND OPTION_NO = #{searchOptionNo}
+        </if>
+    </select>
+
+    <!-- =====================================================
+         강의 이벤트 (TB_LECTURE_EVENT_INFO) 관련
+         ===================================================== -->
+
+    <!-- 강의 이벤트 목록 조회 -->
+    <select id="selectLecEventList" parameterType="com.academy.event.service.LecEventVO" resultType="org.json.simple.JSONObject">
+        SELECT
+            EVENT_NO,
+            START_DATE,
+            END_DATE,
+            TITLE,
+            CONTENTS,
+            REG_ID,
+            REG_DT
+        FROM TB_LECTURE_EVENT_INFO
+        WHERE 1=1
+        <if test="searchKeyword != null and searchKeyword != ''">
+            <choose>
+                <when test='searchType == "TITLE"'>
+                    AND TITLE LIKE CONCAT('%', #{searchKeyword}, '%')
+                </when>
+                <when test='searchType == "CONTENTS_TEXT"'>
+                    AND CONTENTS LIKE CONCAT('%', #{searchKeyword}, '%')
+                </when>
+            </choose>
+        </if>
+        ORDER BY EVENT_NO DESC
+        LIMIT #{recordCountPerPage} OFFSET #{firstIndex}
+    </select>
+
+    <!-- 강의 이벤트 목록 건수 조회 -->
+    <select id="selectLecEventListCount" parameterType="com.academy.event.service.LecEventVO" resultType="int">
+        SELECT COUNT(*) AS CNT
+        FROM TB_LECTURE_EVENT_INFO
+        WHERE 1=1
+        <if test="searchKeyword != null and searchKeyword != ''">
+            <choose>
+                <when test='searchType == "TITLE"'>
+                    AND TITLE LIKE CONCAT('%', #{searchKeyword}, '%')
+                </when>
+                <when test='searchType == "CONTENTS_TEXT"'>
+                    AND CONTENTS LIKE CONCAT('%', #{searchKeyword}, '%')
+                </when>
+            </choose>
+        </if>
+    </select>
+
+    <!-- 강의 이벤트 상세 조회 -->
+    <select id="selectLecEventDetail" parameterType="com.academy.event.service.LecEventVO" resultType="org.json.simple.JSONObject">
+        SELECT EVENT_NO, START_DATE, END_DATE, TITLE, CONTENTS, REG_ID, REG_DT
+        FROM TB_LECTURE_EVENT_INFO
+        WHERE EVENT_NO = #{eventNo}
+    </select>
+
+    <!-- 강의 이벤트 등록 -->
+    <insert id="insertLecEvent" parameterType="com.academy.event.service.LecEventVO">
+        INSERT INTO TB_LECTURE_EVENT_INFO (
+            EVENT_NO,
+            START_DATE,
+            END_DATE,
+            TITLE,
+            CONTENTS,
+            REG_ID,
+            REG_DT
+        ) VALUES (
+            (SELECT IFNULL(MAX(CAST(EVENT_NO AS UNSIGNED)), 0) + 1 FROM TB_LECTURE_EVENT_INFO AS T),
+            #{startDate},
+            #{endDate},
+            #{title},
+            #{contents},
+            #{regId},
+            NOW()
+        )
+    </insert>
+
+    <!-- 강의 이벤트 수정 -->
+    <update id="updateLecEvent" parameterType="com.academy.event.service.LecEventVO">
+        UPDATE TB_LECTURE_EVENT_INFO
+        SET
+            START_DATE = #{startDate},
+            END_DATE = #{endDate},
+            TITLE = #{title},
+            CONTENTS = #{contents}
+        WHERE EVENT_NO = #{eventNo}
+    </update>
+
+    <!-- 강의 이벤트 삭제 -->
+    <delete id="deleteLecEvent" parameterType="com.academy.event.service.LecEventVO">
+        DELETE FROM TB_LECTURE_EVENT_INFO WHERE EVENT_NO = #{eventNo}
+    </delete>
+
+    <!-- 강의 이벤트 강좌 목록 조회 -->
+    <select id="selectLecEventLectureList" parameterType="com.academy.event.service.LecEventVO" resultType="org.json.simple.JSONObject">
+        SELECT
+            A.EVENT_NO,
+            B.LECCODE,
+            C.SUBJECT_TITLE,
+            C.CATEGORY_CD,
+            C.SUBJECT_ISUSE,
+            D.NAME AS CATEGORY_NM
+        FROM TB_LECTURE_EVENT_INFO A
+        INNER JOIN TB_LECTURE_EVENT_LIST B ON A.EVENT_NO = B.EVENT_NO
+        INNER JOIN TB_LEC_MST C ON B.LECCODE = C.LECCODE
+        INNER JOIN TB_CATEGORY_INFO D ON C.CATEGORY_CD = D.CODE
+        WHERE A.EVENT_NO = #{eventNo}
+    </select>
+
+    <!-- 강의 이벤트 강좌 등록 -->
+    <insert id="insertLecEventLecture" parameterType="com.academy.event.service.LecEventVO">
+        INSERT INTO TB_LECTURE_EVENT_LIST (EVENT_NO, LECCODE)
+        VALUES (#{eventNo}, #{leccode})
+    </insert>
+
+    <!-- 강의 이벤트 강좌 삭제 -->
+    <delete id="deleteLecEventLecture" parameterType="com.academy.event.service.LecEventVO">
+        DELETE FROM TB_LECTURE_EVENT_LIST
+        WHERE EVENT_NO = #{eventNo}
+        AND LECCODE = #{leccode}
+    </delete>
+
+    <!-- 강좌 목록 조회 (이벤트용) -->
+    <select id="selectLectureListForEvent" parameterType="com.academy.event.service.LecEventVO" resultType="org.json.simple.JSONObject">
+        SELECT
+            LM.LEC_TYPE_CHOICE,
+            LM.LECCODE,
+            LM.SUBJECT_OPTION,
+            LM.CATEGORY_CD,
+            (SELECT NAME FROM TB_CATEGORY_INFO WHERE CODE = LM.CATEGORY_CD) AS CATEGORY_NM,
+            LM.SUBJECT_SJT_CD,
+            (SELECT SUBJECT_NM FROM TB_SUBJECT_INFO WHERE SUBJECT_CD = LM.SUBJECT_SJT_CD) AS SUBJECT_NM,
+            LM.SUBJECT_TEACHER,
+            (SELECT USER_NM FROM TB_MA_MEMBER WHERE USER_ID = LM.SUBJECT_TEACHER) AS SUBJECT_TEACHER_NM,
+            LM.SUBJECT_TITLE,
+            LM.LEARNING_CD,
+            (SELECT NAME FROM TB_LEARNING_FORM_INFO WHERE CODE = LM.LEARNING_CD) AS LEARNING_NM,
+            LM.REG_DT,
+            LM.SUBJECT_ISUSE
+        FROM TB_LEC_MST LM
+        WHERE LM.LEC_TYPE_CHOICE = 'D'
+        AND LM.SUBJECT_ISUSE = 'Y'
+        AND LM.LECCODE NOT IN (SELECT LECCODE FROM TB_LECTURE_EVENT_LIST WHERE EVENT_NO = #{eventNo})
+        <if test="searchKind != null and searchKind != ''">
+            AND LM.CATEGORY_CD = #{searchKind}
+        </if>
+        <if test="searchForm != null and searchForm != ''">
+            AND LM.LEARNING_CD = #{searchForm}
+        </if>
+        <if test="searchText != null and searchText != ''">
+            <if test="searchType != null and searchType != ''">
+                <if test='searchType == "1"'>
+                    AND (LM.SUBJECT_SJT_CD LIKE CONCAT('%', #{searchText}, '%')
+                         OR (SELECT SUBJECT_NM FROM TB_SUBJECT_INFO WHERE SUBJECT_CD = LM.SUBJECT_SJT_CD) LIKE CONCAT('%', #{searchText}, '%'))
+                </if>
+                <if test='searchType == "2"'>
+                    AND LM.SUBJECT_TITLE LIKE CONCAT('%', #{searchText}, '%')
+                </if>
+                <if test='searchType == "3"'>
+                    AND (SELECT USER_NM FROM TB_MA_MEMBER WHERE USER_ID = LM.SUBJECT_TEACHER) LIKE CONCAT('%', #{searchText}, '%')
+                </if>
+                <if test='searchType == "4"'>
+                    AND LM.LECCODE LIKE CONCAT('%', #{searchText}, '%')
+                </if>
+            </if>
+        </if>
+        ORDER BY LM.REG_DT DESC, (SELECT SUBJECT_NM FROM TB_SUBJECT_INFO WHERE SUBJECT_CD = LM.SUBJECT_SJT_CD) ASC
+        LIMIT #{recordCountPerPage} OFFSET #{firstIndex}
+    </select>
+
+    <!-- 강좌 목록 건수 조회 (이벤트용) -->
+    <select id="selectLectureListForEventCount" parameterType="com.academy.event.service.LecEventVO" resultType="int">
+        SELECT COUNT(*) AS CNT
+        FROM TB_LEC_MST LM
+        WHERE LM.LEC_TYPE_CHOICE = 'D'
+        AND LM.SUBJECT_ISUSE = 'Y'
+        AND LM.LECCODE NOT IN (SELECT LECCODE FROM TB_LECTURE_EVENT_LIST WHERE EVENT_NO = #{eventNo})
+        <if test="searchKind != null and searchKind != ''">
+            AND LM.CATEGORY_CD = #{searchKind}
+        </if>
+        <if test="searchForm != null and searchForm != ''">
+            AND LM.LEARNING_CD = #{searchForm}
+        </if>
+        <if test="searchText != null and searchText != ''">
+            <if test="searchType != null and searchType != ''">
+                <if test='searchType == "1"'>
+                    AND (LM.SUBJECT_SJT_CD LIKE CONCAT('%', #{searchText}, '%')
+                         OR (SELECT SUBJECT_NM FROM TB_SUBJECT_INFO WHERE SUBJECT_CD = LM.SUBJECT_SJT_CD) LIKE CONCAT('%', #{searchText}, '%'))
+                </if>
+                <if test='searchType == "2"'>
+                    AND LM.SUBJECT_TITLE LIKE CONCAT('%', #{searchText}, '%')
+                </if>
+                <if test='searchType == "3"'>
+                    AND (SELECT USER_NM FROM TB_MA_MEMBER WHERE USER_ID = LM.SUBJECT_TEACHER) LIKE CONCAT('%', #{searchText}, '%')
+                </if>
+                <if test='searchType == "4"'>
+                    AND LM.LECCODE LIKE CONCAT('%', #{searchText}, '%')
+                </if>
+            </if>
+        </if>
+    </select>
+
+</mapper>

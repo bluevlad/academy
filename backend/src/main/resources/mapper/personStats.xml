@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.academy.mapper.PersonStatsMapper">
+
+    <select id="selectPersonStatsList" parameterType="com.academy.mocktest.stats.person.service.PersonStatsVO" resultType="com.academy.mocktest.stats.person.service.PersonStatsVO">
+        SELECT A.STATS_SEQ AS statsSeq, A.IDENTY_ID AS identyId, A.MOCK_CODE AS mockCode,
+               B.MOCK_NAME AS mockName, B.EXAM_YEAR AS examYear, B.EXAM_ROUND AS examRound,
+               A.USER_ID AS userId, A.USER_NM AS userNm, A.PHONE AS phone,
+               A.ORIGIN_SCORE AS originScore, A.ADJUST_SCORE AS adjustScore,
+               A.RANKING AS ranking, A.TOTAL_CNT AS totalCnt,
+               CASE A.EXAM_TYPE WHEN '0' THEN '온라인' WHEN '1' THEN '오프라인' ELSE A.EXAM_TYPE END AS examTypeNm
+          FROM TB_MOCK_PERSON_STATS A
+          LEFT JOIN TB_MOCK_REGISTRATION B ON A.MOCK_CODE = B.MOCK_CODE
+         WHERE 1=1
+        <if test="searchExamYear != null and searchExamYear != ''">AND B.EXAM_YEAR = #{searchExamYear}</if>
+        <if test="searchExamRound != null and searchExamRound != ''">AND B.EXAM_ROUND = #{searchExamRound}</if>
+        <if test="searchUserNm != null and searchUserNm != ''">AND A.USER_NM LIKE CONCAT('%', #{searchUserNm}, '%')</if>
+        <if test="searchMockCode != null and searchMockCode != ''">AND A.MOCK_CODE = #{searchMockCode}</if>
+         ORDER BY A.STATS_SEQ DESC
+         LIMIT #{recordCountPerPage} OFFSET #{firstIndex}
+    </select>
+
+    <select id="selectPersonStatsListCount" parameterType="com.academy.mocktest.stats.person.service.PersonStatsVO" resultType="int">
+        SELECT COUNT(*) FROM TB_MOCK_PERSON_STATS A
+          LEFT JOIN TB_MOCK_REGISTRATION B ON A.MOCK_CODE = B.MOCK_CODE
+         WHERE 1=1
+        <if test="searchExamYear != null and searchExamYear != ''">AND B.EXAM_YEAR = #{searchExamYear}</if>
+        <if test="searchExamRound != null and searchExamRound != ''">AND B.EXAM_ROUND = #{searchExamRound}</if>
+        <if test="searchUserNm != null and searchUserNm != ''">AND A.USER_NM LIKE CONCAT('%', #{searchUserNm}, '%')</if>
+        <if test="searchMockCode != null and searchMockCode != ''">AND A.MOCK_CODE = #{searchMockCode}</if>
+    </select>
+
+    <select id="selectPersonStatsDetail" parameterType="com.academy.mocktest.stats.person.service.PersonStatsVO" resultType="com.academy.mocktest.stats.person.service.PersonStatsVO">
+        SELECT A.STATS_SEQ AS statsSeq, A.IDENTY_ID AS identyId, A.MOCK_CODE AS mockCode,
+               B.MOCK_NAME AS mockName, B.EXAM_YEAR AS examYear, B.EXAM_ROUND AS examRound,
+               A.USER_ID AS userId, A.USER_NM AS userNm, A.PHONE AS phone,
+               A.CLASS_CD AS classCd, A.CLASS_NM AS classNm,
+               A.ORIGIN_SCORE AS originScore, A.ADJUST_SCORE AS adjustScore,
+               A.RANKING AS ranking, A.TOTAL_CNT AS totalCnt,
+               A.AVG_SCORE AS avgScore, A.TOP_SCORE AS topScore,
+               A.EXAM_TYPE AS examType,
+               CASE A.EXAM_TYPE WHEN '0' THEN '온라인' WHEN '1' THEN '오프라인' ELSE A.EXAM_TYPE END AS examTypeNm
+          FROM TB_MOCK_PERSON_STATS A
+          LEFT JOIN TB_MOCK_REGISTRATION B ON A.MOCK_CODE = B.MOCK_CODE
+         WHERE A.IDENTY_ID = #{identyId} AND A.MOCK_CODE = #{mockCode}
+    </select>
+
+    <select id="selectPersonSubjectStats" parameterType="com.academy.mocktest.stats.person.service.PersonStatsVO" resultType="com.academy.mocktest.stats.person.service.PersonStatsVO">
+        SELECT A.IDENTY_ID AS identyId, A.MOCK_CODE AS mockCode,
+               A.SUBJECT_CD AS subjectCd, B.SUBJECT_NM AS subjectNm,
+               A.ORIGIN_SCORE AS originScore, A.ADJUST_SCORE AS adjustScore,
+               A.RANKING AS ranking, A.TOTAL_CNT AS totalCnt
+          FROM TB_MOCK_SUBJECT_STATS A
+          LEFT JOIN TB_SUBJECT_INFO B ON A.SUBJECT_CD = B.SUBJECT_CD
+         WHERE A.IDENTY_ID = #{identyId} AND A.MOCK_CODE = #{mockCode}
+         ORDER BY A.SUBJECT_ORDER ASC
+    </select>
+
+    <select id="selectPersonTotalStats" parameterType="com.academy.mocktest.stats.person.service.PersonStatsVO" resultType="com.academy.mocktest.stats.person.service.PersonStatsVO">
+        SELECT SUM(A.ORIGIN_SCORE) AS originScore, SUM(A.ADJUST_SCORE) AS adjustScore,
+               ROUND(AVG(A.ORIGIN_SCORE), 1) AS avgScore, COUNT(*) AS totalCnt
+          FROM TB_MOCK_SUBJECT_STATS A
+         WHERE A.IDENTY_ID = #{identyId} AND A.MOCK_CODE = #{mockCode}
+    </select>
+
+</mapper>

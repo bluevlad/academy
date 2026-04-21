@@ -1,0 +1,25 @@
+version: '3.8'
+
+services:
+  academy-user-front:
+    container_name: academy-user-front
+    build: .
+    ports:
+      - "3003:3000"
+    volumes:
+      - ./src:/app/src
+      - ./public:/app/public
+      # Avoid overwriting container's node_modules with local node_modules
+      - /app/node_modules
+    environment:
+      - NODE_ENV=development
+      # Polling mechanism for hot-reloading on Windows/Docker
+      - CHOKIDAR_USEPOLLING=true
+      - WDS_SOCKET_PORT=0
+      # Ignore ESLint errors to prevent start failure
+      - ESLINT_NO_DEV_ERRORS=true
+      - DISABLE_ESLINT_PLUGIN=true
+    # Keep the container running
+    stdin_open: true
+    tty: true
+    restart: always

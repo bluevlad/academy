@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Academy Admin API Guide</title>
+  <style>
+    :root { --accent: #3b82f6; --bg: #f8fafc; --card: #ffffff; --text: #1e293b; --muted: #64748b; --border: #e2e8f0; }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: var(--bg); color: var(--text); line-height: 1.6; }
+    .header { background: var(--accent); color: #fff; padding: 2rem; }
+    .header h1 { font-size: 1.5rem; font-weight: 700; }
+    .header p { opacity: 0.85; margin-top: 0.25rem; font-size: 0.95rem; }
+    .container { max-width: 960px; margin: 0 auto; padding: 2rem 1rem; }
+    .card { background: var(--card); border: 1px solid var(--border); border-radius: 8px; padding: 1.5rem; margin-bottom: 1.5rem; }
+    .card h2 { font-size: 1.15rem; color: var(--accent); margin-bottom: 0.75rem; border-bottom: 2px solid var(--accent); padding-bottom: 0.4rem; }
+    .card h3 { font-size: 1rem; color: var(--text); margin: 1rem 0 0.5rem; }
+    table { width: 100%; border-collapse: collapse; margin: 0.75rem 0; font-size: 0.9rem; }
+    th, td { padding: 0.6rem 0.75rem; text-align: left; border: 1px solid var(--border); }
+    th { background: #f1f5f9; font-weight: 600; white-space: nowrap; }
+    td code, p code { background: #f1f5f9; padding: 0.15rem 0.4rem; border-radius: 4px; font-size: 0.85rem; color: #0f172a; }
+    pre { background: #1e293b; color: #e2e8f0; padding: 1rem; border-radius: 6px; overflow-x: auto; font-size: 0.85rem; margin: 0.75rem 0; }
+    pre code { background: none; color: inherit; padding: 0; }
+    .badge { display: inline-block; padding: 0.15rem 0.5rem; border-radius: 4px; font-size: 0.75rem; font-weight: 600; color: #fff; margin-right: 0.25rem; }
+    .badge-get { background: #22c55e; }
+    .badge-post { background: #f59e0b; }
+    .badge-put { background: #3b82f6; }
+    .badge-delete { background: #ef4444; }
+    .note { background: #eff6ff; border-left: 4px solid var(--accent); padding: 0.75rem 1rem; border-radius: 0 6px 6px 0; margin: 0.75rem 0; font-size: 0.9rem; }
+    .warn { background: #fef3c7; border-left: 4px solid #f59e0b; padding: 0.75rem 1rem; border-radius: 0 6px 6px 0; margin: 0.75rem 0; font-size: 0.9rem; }
+    .footer { text-align: center; padding: 2rem; color: var(--muted); font-size: 0.8rem; border-top: 1px solid var(--border); margin-top: 2rem; }
+    ul { margin: 0.5rem 0 0.5rem 1.5rem; }
+    li { margin-bottom: 0.3rem; }
+    a { color: var(--accent); }
+  </style>
+</head>
+<body>
+
+<div class="header">
+  <div class="container" style="padding:0">
+    <h1>Academy Admin API Guide</h1>
+    <p>Backend REST API 구성 및 접속 가이드</p>
+  </div>
+</div>
+
+<div class="container">
+
+  <!-- 1. URL 구조 -->
+  <div class="card">
+    <h2>1. URL 구조</h2>
+    <p>백엔드는 <code>/admin</code> context-path 아래에서 모든 엔드포인트를 제공합니다.</p>
+
+    <h3>기본 구조</h3>
+    <pre><code>https://academy.unmong.com/admin/api/{module}/{endpoint}</code></pre>
+
+    <table>
+      <thead><tr><th>구분</th><th>URL</th><th>설명</th></tr></thead>
+      <tbody>
+        <tr><td>Production 도메인</td><td><code>https://academy.unmong.com</code></td><td>통합 도메인</td></tr>
+        <tr><td>Context Path</td><td><code>/admin</code></td><td>관리자 서비스 컨텍스트</td></tr>
+        <tr><td>API Prefix</td><td><code>/api</code></td><td>각 컨트롤러의 RequestMapping</td></tr>
+      </tbody>
+    </table>
+
+    <div class="note">
+      <strong>참고:</strong> 이전에 사용하던 <code>admin.unmong.com:8080</code> 호스트는 더 이상 사용하지 않습니다.
+      모든 서비스는 <code>academy.unmong.com</code> 도메인으로 통일되었습니다.
+    </div>
+  </div>
+
+  <!-- 2. 서비스 포트 -->
+  <div class="card">
+    <h2>2. 서비스 포트</h2>
+    <table>
+      <thead><tr><th>서비스</th><th>포트</th><th>컨텍스트</th><th>용도</th></tr></thead>
+      <tbody>
+        <tr><td>Backend API</td><td>9001</td><td><code>/admin</code></td><td>Spring Boot REST API</td></tr>
+        <tr><td>Frontend</td><td>4001 (Docker) / 3000 (Dev)</td><td><code>/admin/</code></td><td>React 관리자 콘솔</td></tr>
+        <tr><td>MySQL/MariaDB</td><td>3306</td><td>-</td><td>데이터베이스</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- 3. 주요 엔드포인트 -->
+  <div class="card">
+    <h2>3. 주요 엔드포인트</h2>
+
+    <h3>Swagger UI / OpenAPI</h3>
+    <table>
+      <thead><tr><th>항목</th><th>URL</th></tr></thead>
+      <tbody>
+        <tr><td>Swagger UI</td><td><code>/admin/swagger-ui/index.html</code></td></tr>
+        <tr><td>OpenAPI JSON</td><td><code>/admin/v3/api-docs</code></td></tr>
+      </tbody>
+    </table>
+
+    <div class="warn">
+      <strong>주의:</strong> Swagger UI는 <code>/admin/swagger-ui/...</code> 경로입니다.
+      <code>/admin/api/swagger-ui/...</code>가 아닙니다 (404 발생).
+    </div>
+
+    <h3>API 모듈 목록</h3>
+    <table>
+      <thead><tr><th>모듈</th><th>경로</th><th>설명</th></tr></thead>
+      <tbody>
+        <tr><td>인증</td><td><code>/admin/api/auth</code></td><td>로그인, JWT 토큰</td></tr>
+        <tr><td>Google OAuth</td><td><code>/admin/api/auth/google</code></td><td>Google 소셜 로그인</td></tr>
+        <tr><td>관리자 권한</td><td><code>/admin/api/admin/auth</code></td><td>관리자 권한 관리</td></tr>
+        <tr><td>메뉴</td><td><code>/admin/api/menu</code></td><td>메뉴 관리</td></tr>
+        <tr><td>게시판</td><td><code>/admin/api/board</code></td><td>게시판 관리</td></tr>
+        <tr><td>회원</td><td><code>/admin/api/member</code></td><td>회원 관리</td></tr>
+        <tr><td>강의</td><td><code>/admin/api/lecture</code></td><td>강의 관리</td></tr>
+        <tr><td>교재</td><td><code>/admin/api/book</code></td><td>교재 관리</td></tr>
+        <tr><td>시험</td><td><code>/admin/api/exam</code></td><td>시험 관리</td></tr>
+        <tr><td>사물함</td><td><code>/admin/api/locker</code></td><td>사물함 관리</td></tr>
+        <tr><td>대시보드</td><td><code>/admin/api/dashboard</code></td><td>대시보드</td></tr>
+        <tr><td>주문</td><td><code>/admin/api/productorder</code></td><td>상품 주문 관리</td></tr>
+        <tr><td>쿠폰</td><td><code>/admin/api/coupon</code></td><td>쿠폰 관리</td></tr>
+        <tr><td>배너</td><td><code>/admin/api/banner</code></td><td>배너 관리</td></tr>
+        <tr><td>팝업</td><td><code>/admin/api/popup</code></td><td>팝업 관리</td></tr>
+        <tr><td>설문</td><td><code>/admin/api/survey</code></td><td>설문 관리</td></tr>
+        <tr><td>통계</td><td><code>/admin/api/stat</code></td><td>매출 통계</td></tr>
+        <tr><td>API 정보</td><td><code>/admin/api/info</code></td><td>API 목록/통계 조회</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- 4. 프론트엔드 연동 -->
+  <div class="card">
+    <h2>4. 프론트엔드 연동 설정</h2>
+    <p>프론트엔드는 <code>VITE_API_URL</code> 환경변수로 API baseURL을 설정합니다.</p>
+
+    <h3>Docker (Production)</h3>
+    <pre><code># docker-compose.yml
+environment:
+  - VITE_API_URL=/admin/api</code></pre>
+
+    <h3>로컬 개발 (기본값)</h3>
+    <pre><code>// shared/api/client.js
+const BASE_API = import.meta.env.VITE_API_URL || "http://academy.unmong.com:9001/admin/api";</code></pre>
+
+    <h3>API 호출 예시</h3>
+    <pre><code>// baseURL: /admin/api
+// 호출: apiClient.get("/board/getBoardMngList")
+// 최종 경로: /admin/api/board/getBoardMngList</code></pre>
+  </div>
+
+  <!-- 5. CORS 허용 도메인 -->
+  <div class="card">
+    <h2>5. CORS 허용 도메인</h2>
+    <table>
+      <thead><tr><th>Origin</th><th>용도</th></tr></thead>
+      <tbody>
+        <tr><td><code>http://localhost:3000</code></td><td>로컬 개발</td></tr>
+        <tr><td><code>http://academy.unmong.com:3000</code></td><td>개발 서버</td></tr>
+        <tr><td><code>http://academy.unmong.com:9001</code></td><td>백엔드 직접 접근</td></tr>
+        <tr><td><code>http://study.unmong.com:3000</code></td><td>학습 프론트엔드</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- 6. Gateway 연동 -->
+  <div class="card">
+    <h2>6. Gateway (Nginx) 프록시 설정</h2>
+    <p>메인 Gateway에서 <code>academy.unmong.com</code> 도메인으로 들어오는 요청을 각 서비스로 라우팅합니다.</p>
+
+    <h3>필요한 프록시 룰</h3>
+    <table>
+      <thead><tr><th>Location</th><th>Proxy Target</th><th>대상</th></tr></thead>
+      <tbody>
+        <tr><td><code>/admin/api/</code></td><td><code>http://localhost:9001/admin/api/</code></td><td>Backend API</td></tr>
+        <tr><td><code>/admin/swagger-ui/</code></td><td><code>http://localhost:9001/admin/swagger-ui/</code></td><td>Swagger UI</td></tr>
+        <tr><td><code>/admin/v3/</code></td><td><code>http://localhost:9001/admin/v3/</code></td><td>OpenAPI Docs</td></tr>
+        <tr><td><code>/admin/</code></td><td><code>http://localhost:4001/admin/</code></td><td>Frontend (React)</td></tr>
+      </tbody>
+    </table>
+
+    <h3>Nginx 설정 예시</h3>
+    <pre><code># Backend API + Swagger
+location /admin/api/ {
+    proxy_pass http://127.0.0.1:9001/admin/api/;
+    proxy_set_header Host $host;
+    proxy_set_header X-Real-IP $remote_addr;
+    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+    proxy_set_header X-Forwarded-Proto $scheme;
+}
+
+location /admin/swagger-ui/ {
+    proxy_pass http://127.0.0.1:9001/admin/swagger-ui/;
+    proxy_set_header Host $host;
+    proxy_set_header X-Forwarded-Proto $scheme;
+}
+
+location /admin/v3/ {
+    proxy_pass http://127.0.0.1:9001/admin/v3/;
+    proxy_set_header Host $host;
+    proxy_set_header X-Forwarded-Proto $scheme;
+}
+
+# Frontend (React) - 가장 마지막에 배치
+location /admin/ {
+    proxy_pass http://127.0.0.1:4001/admin/;
+    proxy_set_header Host $host;
+    proxy_set_header X-Forwarded-Proto $scheme;
+}</code></pre>
+
+    <div class="warn">
+      <strong>순서 중요:</strong> Nginx location 블록은 <code>/admin/api/</code>, <code>/admin/swagger-ui/</code>, <code>/admin/v3/</code>를
+      <code>/admin/</code>보다 먼저 선언해야 합니다.
+    </div>
+  </div>
+
+  <!-- 7. 변경 이력 -->
+  <div class="card">
+    <h2>7. 변경 이력</h2>
+    <table>
+      <thead><tr><th>일자</th><th>변경 내용</th></tr></thead>
+      <tbody>
+        <tr>
+          <td>2026-04-09</td>
+          <td>
+            <ul>
+              <li><code>server.servlet.context-path: /admin</code> 추가</li>
+              <li>호스트 통일: <code>admin.unmong.com:8080</code> &rarr; <code>academy.unmong.com:9001</code></li>
+              <li>CORS, OpenAPI 서버 URL, 프론트엔드 API baseURL 일괄 변경</li>
+              <li>Swagger UI 경로: <code>/admin/swagger-ui/index.html</code></li>
+            </ul>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+</div>
+
+<div class="footer">
+  Academy Admin &copy; 2026 Unmong Systems
+</div>
+
+</body>
+</html>

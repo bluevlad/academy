@@ -1,0 +1,305 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.academy.mapper.AdminAuthMapper">
+    <!-- 권한 관리 ==================================================================================== -->
+
+    <!-- 권한 리스트 조회 -->
+    <select id="selectAuthList" parameterType="com.academy.admin.service.AdminSiteVO" resultType="org.json.simple.JSONObject">
+        SELECT
+            SITE_ID,
+            SITE_NM,
+            ISUSE,
+            CASE ONOFF_DIV
+                WHEN 'A' THEN '전체'
+                WHEN 'O' THEN '온라인'
+                WHEN 'F' THEN '오프라인'
+                WHEN 'T' THEN '모의고사'
+                ELSE ONOFF_DIV
+            END AS ONOFF_DIV_NM,
+            ONOFF_DIV,
+            DATE_FORMAT(REG_DT, '%Y-%m-%d') AS REG_DT,
+            REG_ID,
+            DATE_FORMAT(UPD_DT, '%Y-%m-%d') AS UPD_DT,
+            UPD_ID
+        FROM TB_SG_SITE
+        WHERE 1=1
+        <if test="searchKeyword != null and searchKeyword != ''">
+            <choose>
+                <when test='searchType == "SITE_ID"'>
+                    AND SITE_ID LIKE CONCAT('%', #{searchKeyword}, '%')
+                </when>
+                <when test='searchType == "SITE_NM"'>
+                    AND SITE_NM LIKE CONCAT('%', #{searchKeyword}, '%')
+                </when>
+                <otherwise>
+                    AND (SITE_ID LIKE CONCAT('%', #{searchKeyword}, '%')
+                        OR SITE_NM LIKE CONCAT('%', #{searchKeyword}, '%'))
+                </otherwise>
+            </choose>
+        </if>
+        ORDER BY SITE_ID DESC
+        LIMIT #{recordCountPerPage} OFFSET #{firstIndex}
+    </select>
+
+    <!-- 권한 리스트 총 건수 -->
+    <select id="selectAuthListCount" parameterType="com.academy.admin.service.AdminSiteVO" resultType="int">
+        SELECT COUNT(*) AS CNT
+        FROM TB_SG_SITE
+        WHERE 1=1
+        <if test="searchKeyword != null and searchKeyword != ''">
+            <choose>
+                <when test='searchType == "SITE_ID"'>
+                    AND SITE_ID LIKE CONCAT('%', #{searchKeyword}, '%')
+                </when>
+                <when test='searchType == "SITE_NM"'>
+                    AND SITE_NM LIKE CONCAT('%', #{searchKeyword}, '%')
+                </when>
+                <otherwise>
+                    AND (SITE_ID LIKE CONCAT('%', #{searchKeyword}, '%')
+                        OR SITE_NM LIKE CONCAT('%', #{searchKeyword}, '%'))
+                </otherwise>
+            </choose>
+        </if>
+    </select>
+
+    <!-- 권한 등록 -->
+    <insert id="insertAuth" parameterType="com.academy.admin.service.AdminSiteVO">
+        INSERT INTO TB_SG_SITE (
+            SITE_ID,
+            SITE_NM,
+            ONOFF_DIV,
+            ISUSE,
+            REG_DT,
+            REG_ID
+        ) VALUES (
+            #{siteId},
+            #{siteNm},
+            #{onoffDiv},
+            #{isUse},
+            NOW(),
+            #{regId}
+        )
+    </insert>
+
+    <!-- 권한 상세 조회 -->
+    <select id="selectAuthDetail" parameterType="com.academy.admin.service.AdminSiteVO" resultType="org.json.simple.JSONObject">
+        SELECT
+            SITE_ID,
+            SITE_NM,
+            ONOFF_DIV,
+            ISUSE,
+            DATE_FORMAT(REG_DT, '%Y-%m-%d') AS REG_DT,
+            REG_ID,
+            DATE_FORMAT(UPD_DT, '%Y-%m-%d') AS UPD_DT,
+            UPD_ID
+        FROM TB_SG_SITE
+        WHERE SITE_ID = #{detailSiteId}
+    </select>
+
+    <!-- 권한 수정 -->
+    <update id="updateAuth" parameterType="com.academy.admin.service.AdminSiteVO">
+        UPDATE TB_SG_SITE
+        SET
+            SITE_ID = #{siteId},
+            SITE_NM = #{siteNm},
+            ONOFF_DIV = #{onoffDiv},
+            ISUSE = #{isUse},
+            UPD_DT = NOW(),
+            UPD_ID = #{updId}
+        WHERE SITE_ID = #{detailSiteId}
+    </update>
+
+    <!-- 권한별 메뉴 사이트ID 수정 -->
+    <update id="updateAuthMenuSiteId" parameterType="com.academy.admin.service.AdminSiteVO">
+        UPDATE TB_SG_SITE_MENU
+        SET SITE_ID = #{siteId}
+        WHERE SITE_ID = #{detailSiteId}
+    </update>
+
+    <!-- 권한 개별 삭제 -->
+    <delete id="deleteAuth" parameterType="com.academy.admin.service.AdminSiteVO">
+        DELETE FROM TB_SG_SITE WHERE SITE_ID = #{detailSiteId}
+    </delete>
+
+    <!-- 권한 일괄 삭제 -->
+    <delete id="deleteAuthBatch" parameterType="com.academy.admin.service.AdminSiteVO">
+        DELETE FROM TB_SG_SITE WHERE SITE_ID IN (${deleteIds})
+    </delete>
+
+    <!-- 온라인 메뉴 리스트 조회 (계층 구조 포함) -->
+    <select id="selectOnlineMenuList" parameterType="com.academy.admin.service.AdminSiteVO" resultType="org.json.simple.JSONObject">
+        WITH RECURSIVE menu_tree AS (
+            SELECT
+                MENU_ID,
+                MENU_NM,
+                P_MENUID,
+                MENU_SEQ,
+                0 AS LEVEL,
+                CAST(MENU_ID AS CHAR(1000)) AS PATH
+            FROM TB_SG_MENU_MST
+            WHERE P_MENUID IS NULL OR P_MENUID = '-1'
+
+            UNION ALL
+
+            SELECT
+                m.MENU_ID,
+                m.MENU_NM,
+                m.P_MENUID,
+                m.MENU_SEQ,
+                mt.LEVEL + 1,
+                CONCAT(mt.PATH, ',', m.MENU_ID)
+            FROM TB_SG_MENU_MST m
+            INNER JOIN menu_tree mt ON m.P_MENUID = mt.MENU_ID
+        )
+        SELECT
+            MENU_ID,
+            CASE WHEN MENU_SEQ = '000' THEN MENU_NM
+                 ELSE CONCAT(REPEAT('  ', LENGTH(MENU_SEQ) DIV 4), MENU_NM)
+            END AS MENU_NM,
+            P_MENUID,
+            MENU_SEQ,
+            PATH AS UP_P_MENUID_RECUR
+        FROM menu_tree
+        WHERE MENU_ID LIKE 'OM%'
+        ORDER BY MENU_SEQ
+    </select>
+
+    <!-- 오프라인 메뉴 리스트 조회 (계층 구조 포함) -->
+    <select id="selectOfflineMenuList" parameterType="com.academy.admin.service.AdminSiteVO" resultType="org.json.simple.JSONObject">
+        WITH RECURSIVE menu_tree AS (
+            SELECT
+                MENU_ID,
+                MENU_NM,
+                P_MENUID,
+                MENU_SEQ,
+                0 AS LEVEL,
+                CAST(MENU_ID AS CHAR(1000)) AS PATH
+            FROM TB_SG_MENU_MST
+            WHERE P_MENUID IS NULL OR P_MENUID = '-1'
+
+            UNION ALL
+
+            SELECT
+                m.MENU_ID,
+                m.MENU_NM,
+                m.P_MENUID,
+                m.MENU_SEQ,
+                mt.LEVEL + 1,
+                CONCAT(mt.PATH, ',', m.MENU_ID)
+            FROM TB_SG_MENU_MST m
+            INNER JOIN menu_tree mt ON m.P_MENUID = mt.MENU_ID
+        )
+        SELECT
+            MENU_ID,
+            CASE WHEN MENU_SEQ = '000' THEN MENU_NM
+                 ELSE CONCAT(REPEAT('  ', LENGTH(MENU_SEQ) DIV 4), MENU_NM)
+            END AS MENU_NM,
+            P_MENUID,
+            MENU_SEQ,
+            PATH AS UP_P_MENUID_RECUR
+        FROM menu_tree
+        WHERE MENU_ID LIKE 'FM%'
+        ORDER BY MENU_SEQ
+    </select>
+
+    <!-- 모의고사 메뉴 리스트 조회 (계층 구조 포함) -->
+    <select id="selectTestMenuList" parameterType="com.academy.admin.service.AdminSiteVO" resultType="org.json.simple.JSONObject">
+        WITH RECURSIVE menu_tree AS (
+            SELECT
+                MENU_ID,
+                MENU_NM,
+                P_MENUID,
+                MENU_SEQ,
+                0 AS LEVEL,
+                CAST(MENU_ID AS CHAR(1000)) AS PATH
+            FROM TB_SG_MENU_MST
+            WHERE P_MENUID IS NULL OR P_MENUID = '-1'
+
+            UNION ALL
+
+            SELECT
+                m.MENU_ID,
+                m.MENU_NM,
+                m.P_MENUID,
+                m.MENU_SEQ,
+                mt.LEVEL + 1,
+                CONCAT(mt.PATH, ',', m.MENU_ID)
+            FROM TB_SG_MENU_MST m
+            INNER JOIN menu_tree mt ON m.P_MENUID = mt.MENU_ID
+        )
+        SELECT
+            MENU_ID,
+            CASE WHEN MENU_SEQ = '000' THEN MENU_NM
+                 ELSE CONCAT(REPEAT('  ', LENGTH(MENU_SEQ) DIV 4), MENU_NM)
+            END AS MENU_NM,
+            P_MENUID,
+            MENU_SEQ,
+            PATH AS UP_P_MENUID_RECUR
+        FROM menu_tree
+        WHERE MENU_ID LIKE 'TM%'
+        ORDER BY MENU_SEQ
+    </select>
+
+    <!-- 권한별 메뉴 삭제 -->
+    <delete id="deleteAuthMenu" parameterType="com.academy.admin.service.AdminSiteVO">
+        DELETE FROM TB_SG_SITE_MENU
+        WHERE SITE_ID = #{detailSiteId}
+        <choose>
+            <when test='menuOnoff == "ON"'>
+                AND MENU_ID LIKE 'OM%'
+            </when>
+            <when test='menuOnoff == "OFF"'>
+                AND MENU_ID LIKE 'FM%'
+            </when>
+            <when test='menuOnoff == "TEST"'>
+                AND MENU_ID LIKE 'TM%'
+            </when>
+        </choose>
+    </delete>
+
+    <!-- 권한별 메뉴 등록 -->
+    <insert id="insertAuthMenu" parameterType="com.academy.admin.service.AdminSiteVO">
+        INSERT INTO TB_SG_SITE_MENU (
+            SITE_ID,
+            MENU_ID,
+            REG_DT,
+            REG_ID
+        ) VALUES (
+            #{detailSiteId},
+            #{menuId},
+            NOW(),
+            #{regId}
+        )
+    </insert>
+
+    <!-- 권한별 등록된 메뉴 리스트 조회 -->
+    <select id="selectAuthMenuList" parameterType="com.academy.admin.service.AdminSiteVO" resultType="org.json.simple.JSONObject">
+        SELECT
+            SITE_ID,
+            MENU_ID
+        FROM TB_SG_SITE_MENU
+        WHERE SITE_ID = #{detailSiteId}
+        <choose>
+            <when test='menuOnoff == "ON"'>
+                AND MENU_ID LIKE 'OM%'
+            </when>
+            <when test='menuOnoff == "OFF"'>
+                AND MENU_ID LIKE 'FM%'
+            </when>
+            <when test='menuOnoff == "TEST"'>
+                AND MENU_ID LIKE 'TM%'
+            </when>
+        </choose>
+    </select>
+
+    <!-- 권한별 등록된 메뉴 개별 삭제 -->
+    <delete id="deleteSiteIdAuthMenu" parameterType="com.academy.admin.service.AdminSiteVO">
+        DELETE FROM TB_SG_SITE_MENU WHERE SITE_ID = #{detailSiteId}
+    </delete>
+
+    <!-- 권한별 등록된 메뉴 일괄 삭제 -->
+    <delete id="deleteSiteIdAuthMenuBatch" parameterType="com.academy.admin.service.AdminSiteVO">
+        DELETE FROM TB_SG_SITE_MENU WHERE SITE_ID IN (${deleteIds})
+    </delete>
+
+</mapper>

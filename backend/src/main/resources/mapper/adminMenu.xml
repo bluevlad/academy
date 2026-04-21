@@ -1,0 +1,225 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.academy.mapper.AdminMenuMapper">
+    <!-- 메뉴 관리 ==================================================================================== -->
+
+    <!-- 관리자 메뉴 트리 조회 -->
+    <select id="selectMenuTree" resultType="org.json.simple.JSONObject">
+        SELECT
+            MENU_ID,
+            MENU_NM,
+            MENU_SEQ,
+            MENU_URL,
+            P_MENUID,
+            ISUSE,
+            TARGET,
+            MENU_INFO
+        FROM TB_SG_MENU_MST
+        ORDER BY MENU_SEQ, MENU_ID
+    </select>
+
+    <!-- 사용자 메뉴 트리 조회 -->
+    <select id="selectPassMenuTree" resultType="org.json.simple.JSONObject">
+        SELECT
+            MENU_ID,
+            MENU_NM,
+            MENU_SEQ,
+            MENU_URL,
+            P_MENUID,
+            ISUSE,
+            TARGET,
+            MENU_INFO
+        FROM TB_SG_MENU_MST2
+        ORDER BY MENU_SEQ, MENU_ID
+    </select>
+
+    <!-- 관리자 메뉴 상세 조회 -->
+    <select id="selectMenuDetail" parameterType="com.academy.admin.service.AdminMenuVO" resultType="org.json.simple.JSONObject">
+        SELECT
+            ONOFF_DIV,
+            MENU_ID,
+            MENU_NM,
+            MENU_SEQ,
+            MENU_URL,
+            P_MENUID,
+            ISUSE,
+            TARGET,
+            MENU_INFO
+        FROM TB_SG_MENU_MST
+        WHERE MENU_ID = #{menuId}
+    </select>
+
+    <!-- 사용자 메뉴 상세 조회 -->
+    <select id="selectPassMenuDetail" parameterType="com.academy.admin.service.AdminMenuVO" resultType="org.json.simple.JSONObject">
+        SELECT
+            ONOFF_DIV,
+            MENU_ID,
+            MENU_NM,
+            MENU_SEQ,
+            MENU_URL,
+            P_MENUID,
+            ISUSE,
+            TARGET,
+            MENU_INFO,
+            CODE,
+            TOP_IMG_URL,
+            LEFT_IMG_URL,
+            TITL_IMG_URL,
+            SUBTITL_IMG_URL
+        FROM TB_SG_MENU_MST2
+        WHERE MENU_ID = #{menuId}
+    </select>
+
+    <!-- 관리자 메뉴 등록 -->
+    <insert id="insertMenu" parameterType="com.academy.admin.service.AdminMenuVO">
+        INSERT INTO TB_SG_MENU_MST (
+            ONOFF_DIV,
+            MENU_ID,
+            MENU_NM,
+            MENU_SEQ,
+            MENU_URL,
+            P_MENUID,
+            ISUSE,
+            TARGET,
+            MENU_INFO,
+            REG_ID,
+            REG_DT
+        ) VALUES (
+            #{onoffDiv},
+            #{menuId},
+            #{menuNm},
+            #{menuSeq},
+            #{menuUrl},
+            #{pMenuId},
+            #{isUse},
+            #{target},
+            #{menuInfo},
+            #{regId},
+            NOW()
+        )
+    </insert>
+
+    <!-- 사용자 메뉴 등록 -->
+    <insert id="insertPassMenu" parameterType="com.academy.admin.service.AdminMenuVO">
+        INSERT INTO TB_SG_MENU_MST2 (
+            ONOFF_DIV,
+            MENU_ID,
+            MENU_NM,
+            MENU_SEQ,
+            MENU_URL,
+            P_MENUID,
+            ISUSE,
+            TARGET,
+            MENU_INFO,
+            CODE,
+            TOP_IMG_URL,
+            LEFT_IMG_URL,
+            TITL_IMG_URL,
+            SUBTITL_IMG_URL,
+            REG_ID,
+            REG_DT
+        ) VALUES (
+            #{onoffDiv},
+            #{menuId},
+            #{menuNm},
+            #{menuSeq},
+            #{menuUrl},
+            #{pMenuId},
+            #{isUse},
+            #{target},
+            #{menuInfo},
+            #{code},
+            #{topImgUrl},
+            #{leftImgUrl},
+            #{titlImgUrl},
+            #{subtitlImgUrl},
+            #{regId},
+            NOW()
+        )
+    </insert>
+
+    <!-- 관리자 메뉴 수정 -->
+    <update id="updateMenu" parameterType="com.academy.admin.service.AdminMenuVO">
+        UPDATE TB_SG_MENU_MST
+        SET
+            MENU_NM = #{menuNm},
+            MENU_SEQ = #{menuSeq},
+            MENU_URL = #{menuUrl},
+            P_MENUID = #{pMenuId},
+            ISUSE = #{isUse},
+            TARGET = #{target},
+            MENU_INFO = #{menuInfo},
+            UPD_ID = #{updId},
+            UPD_DT = NOW()
+        WHERE MENU_ID = #{menuId}
+    </update>
+
+    <!-- 사용자 메뉴 수정 -->
+    <update id="updatePassMenu" parameterType="com.academy.admin.service.AdminMenuVO">
+        UPDATE TB_SG_MENU_MST2
+        SET
+            MENU_NM = #{menuNm},
+            MENU_SEQ = #{menuSeq},
+            MENU_URL = #{menuUrl},
+            P_MENUID = #{pMenuId},
+            ISUSE = #{isUse},
+            TARGET = #{target},
+            MENU_INFO = #{menuInfo},
+            CODE = #{code},
+            TOP_IMG_URL = #{topImgUrl},
+            LEFT_IMG_URL = #{leftImgUrl},
+            TITL_IMG_URL = #{titlImgUrl},
+            SUBTITL_IMG_URL = #{subtitlImgUrl},
+            UPD_ID = #{updId},
+            UPD_DT = NOW()
+        WHERE MENU_ID = #{menuId}
+    </update>
+
+    <!-- 관리자 메뉴 삭제 -->
+    <delete id="deleteMenu" parameterType="com.academy.admin.service.AdminMenuVO">
+        DELETE FROM TB_SG_MENU_MST WHERE MENU_ID = #{menuId}
+    </delete>
+
+    <!-- 사용자 메뉴 삭제 -->
+    <delete id="deletePassMenu" parameterType="com.academy.admin.service.AdminMenuVO">
+        DELETE FROM TB_SG_MENU_MST2 WHERE MENU_ID = #{menuId}
+    </delete>
+
+    <!-- 메뉴 ID 중복 체크 -->
+    <select id="checkMenuIdDuplicate" parameterType="com.academy.admin.service.AdminMenuVO" resultType="int">
+        SELECT COUNT(*) AS CNT
+        FROM TB_SG_MENU_MST
+        WHERE MENU_ID = #{menuId}
+    </select>
+
+    <!-- 관리자 메뉴 MAX ID 조회 -->
+    <select id="selectMaxMenuId" parameterType="com.academy.admin.service.AdminMenuVO" resultType="org.json.simple.JSONObject">
+        SELECT
+            CONCAT(
+                REGEXP_REPLACE(MAX(MENU_ID), '.{3}$', ''),
+                LPAD(CAST(SUBSTRING(MAX(MENU_ID), -3) AS UNSIGNED) + 1, 3, '0')
+            ) AS MENU_ID,
+            CONCAT(
+                REGEXP_REPLACE(MAX(MENU_SEQ), '.{3}$', ''),
+                LPAD(CAST(SUBSTRING(MAX(MENU_SEQ), -3) AS UNSIGNED) + 1, 3, '0')
+            ) AS MENU_SEQ
+        FROM TB_SG_MENU_MST
+        WHERE P_MENUID = #{menuId}
+    </select>
+
+    <!-- 사용자 메뉴 MAX ID 조회 -->
+    <select id="selectPassMaxMenuId" parameterType="com.academy.admin.service.AdminMenuVO" resultType="org.json.simple.JSONObject">
+        SELECT
+            CONCAT(
+                REGEXP_REPLACE(MAX(MENU_ID), '.{3}$', ''),
+                LPAD(CAST(SUBSTRING(MAX(MENU_ID), -3) AS UNSIGNED) + 1, 3, '0')
+            ) AS MENU_ID,
+            CONCAT(
+                REGEXP_REPLACE(MAX(MENU_SEQ), '.{3}$', ''),
+                LPAD(CAST(SUBSTRING(MAX(MENU_SEQ), -3) AS UNSIGNED) + 1, 3, '0')
+            ) AS MENU_SEQ
+        FROM TB_SG_MENU_MST2
+        WHERE P_MENUID = #{menuId}
+    </select>
+
+</mapper>

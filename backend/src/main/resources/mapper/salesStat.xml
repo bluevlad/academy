@@ -1,0 +1,97 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.academy.mapper.SalesStatMapper">
+
+    <select id="selectTeacherList" parameterType="com.academy.stat.service.SalesStatVO" resultType="com.academy.stat.service.SalesStatVO">
+        SELECT USER_ID AS userId, USER_NM AS userNm,
+               DATE_FORMAT(REG_DATE, '%Y-%m-%d') AS regDate, ISUSE AS isuse
+          FROM TB_MEMBER
+         WHERE USER_ROLE = 'PRF'
+         ORDER BY ISUSE DESC, USER_NM
+    </select>
+
+    <select id="selectTeacherSubjectList" parameterType="com.academy.stat.service.SalesStatVO" resultType="com.academy.stat.service.SalesStatVO">
+        SELECT A.SUBJECT_TEACHER AS subjectTeacher, B.SUBJECT_CD AS subjectCd, B.SUBJECT_NM AS subjectNm
+          FROM TB_LEC_MST A
+          LEFT JOIN TB_SUBJECT_INFO B ON A.SUBJECT_SJT_CD = B.SUBJECT_CD
+         GROUP BY A.SUBJECT_TEACHER, B.SUBJECT_CD, B.SUBJECT_NM
+    </select>
+
+    <select id="selectTeacherOne" parameterType="com.academy.stat.service.SalesStatVO" resultType="com.academy.stat.service.SalesStatVO">
+        SELECT USER_ID AS userId, USER_NM AS userNm,
+               PROFILE_SUMMARY AS profileSummary, BOOK_LOG_SUMMARY AS bookLogSummary, PIC1 AS pic1
+          FROM TB_MEMBER
+         WHERE USER_ROLE = 'PRF' AND USER_ID = #{prfId}
+    </select>
+
+    <select id="selectTeacherSalesStatList" parameterType="com.academy.stat.service.SalesStatVO" resultType="com.academy.stat.service.SalesStatVO">
+        SELECT CONCAT(S_YEAR, '-', S_MONTH) AS ym,
+               SUM(ON_SALE_CNT) AS onSaleCnt, SUM(ON_REFUND_CNT) AS onRefundCnt,
+               SUM(ON_SALE_SUM) AS onSaleSum, SUM(ON_REFUND_SUM) AS onRefundSum,
+               SUM(OF_SALE_CNT) AS ofSaleCnt, SUM(OF_REFUND_CNT) AS ofRefundCnt,
+               SUM(OF_SALE_SUM) AS ofSaleSum, SUM(OF_REFUND_SUM) AS ofRefundSum
+          FROM (
+            SELECT S_YEAR, S_MONTH,
+                   SUM(SALE_CNT) AS ON_SALE_CNT, SUM(REFUND_CNT) AS ON_REFUND_CNT,
+                   SUM(SALE_SUM) AS ON_SALE_SUM, SUM(REFUND_SUM) AS ON_REFUND_SUM,
+                   0 AS OF_SALE_CNT, 0 AS OF_REFUND_CNT, 0 AS OF_SALE_SUM, 0 AS OF_REFUND_SUM
+              FROM TB_STAT_PRF
+             WHERE S_TYPE = 'ON' AND PRF_ID = #{prfId}
+            <if test="sYear != null and sYear != ''">AND S_YEAR = #{sYear}</if>
+            <if test="sMonth != null and sMonth != ''">AND S_MONTH = #{sMonth}</if>
+             GROUP BY S_YEAR, S_MONTH
+            UNION ALL
+            SELECT S_YEAR, S_MONTH,
+                   0 AS ON_SALE_CNT, 0 AS ON_REFUND_CNT, 0 AS ON_SALE_SUM, 0 AS ON_REFUND_SUM,
+                   SUM(SALE_CNT) AS OF_SALE_CNT, SUM(REFUND_CNT) AS OF_REFUND_CNT,
+                   SUM(SALE_SUM) AS OF_SALE_SUM, SUM(REFUND_SUM) AS OF_REFUND_SUM
+              FROM TB_STAT_PRF
+             WHERE S_TYPE = 'OF' AND PRF_ID = #{prfId}
+            <if test="sYear != null and sYear != ''">AND S_YEAR = #{sYear}</if>
+            <if test="sMonth != null and sMonth != ''">AND S_MONTH = #{sMonth}</if>
+             GROUP BY S_YEAR, S_MONTH
+          ) A
+         GROUP BY S_YEAR, S_MONTH
+         ORDER BY S_YEAR, S_MONTH
+    </select>
+
+    <select id="selectUserBuyStat" parameterType="com.academy.stat.service.SalesStatVO" resultType="com.academy.stat.service.SalesStatVO">
+        SELECT COUNT(USER_ID) AS userCnt,
+               COUNT(A.ALL_ON_ORD_SUM) AS onOrdCnt,
+               COUNT(A.ALL_OF_ORD_SUM) AS ofOrdCnt,
+               ROUND((COUNT(A.ALL_ON_ORD_SUM)/COUNT(USER_ID)), 2) AS onOrdAvr,
+               ROUND((COUNT(A.ALL_OF_ORD_SUM)/COUNT(USER_ID)), 2) AS ofOrdAvr,
+               IFNULL(SUM(A.ALL_ON_ORD_SUM), 0) AS onOrdSum,
+               IFNULL(SUM(A.ALL_OF_ORD_SUM), 0) AS ofOrdSum,
+               ROUND(IFNULL(SUM(A.ALL_ON_ORD_SUM)/NULLIF(COUNT(A.ALL_ON_ORD_SUM), 0), 0), 0) AS onOrdPrice,
+               ROUND(IFNULL(SUM(A.ALL_OF_ORD_SUM)/NULLIF(COUNT(A.ALL_OF_ORD_SUM), 0), 0), 0) AS ofOrdPrice,
+               ROUND(IFNULL(SUM(A.ALL_ON_ORD_SUM)/COUNT(USER_ID), 0), 0) AS onOrdAllPrice,
+               ROUND(IFNULL(SUM(A.ALL_OF_ORD_SUM)/COUNT(USER_ID), 0), 0) AS ofOrdAllPrice,
+               ROUND(IFNULL(SUM(DATEDIFF(A.FST_ON_ORD_DT, A.REG_DT))/NULLIF(COUNT(A.FST_ON_ORD_SUM), 0), 0), 1) AS fstOnOrdDay,
+               ROUND(IFNULL(SUM(DATEDIFF(A.FST_OF_ORD_DT, A.REG_DT))/NULLIF(COUNT(A.FST_OF_ORD_SUM), 0), 0), 1) AS fstOfOrdDay,
+               ROUND(IFNULL(SUM(DATEDIFF(A.SND_ON_ORD_DT, A.REG_DT))/NULLIF(COUNT(A.SND_ON_ORD_SUM), 0), 0), 1) AS sndOnOrdDay,
+               ROUND(IFNULL(SUM(DATEDIFF(A.SND_OF_ORD_DT, A.REG_DT))/NULLIF(COUNT(A.SND_OF_ORD_SUM), 0), 0), 1) AS sndOfOrdDay
+          FROM TB_STAT_USER_HISTORY A
+         WHERE REPLACE(REG_DT, '-', '') BETWEEN #{searchStartDate} AND #{searchEndDate}
+    </select>
+
+    <select id="selectSearchKeywordList" parameterType="com.academy.stat.service.SalesStatVO" resultType="com.academy.stat.service.SalesStatVO">
+        SELECT IDX AS idx, SEARCH_KEYWORD AS searchKeyword, SEARCH_CNT AS searchCnt,
+               DATE_FORMAT(REG_DATE, '%Y-%m-%d') AS regDate, SERCH_CLICK AS serchClick
+          FROM TB_SEARCH_LOG
+         WHERE DATE_FORMAT(MOD_DATE, '%Y%m%d') BETWEEN #{sdate} AND #{edate}
+         ORDER BY SEARCH_CNT DESC
+         LIMIT #{recordCountPerPage} OFFSET #{firstIndex}
+    </select>
+
+    <select id="selectSearchKeywordCount" parameterType="com.academy.stat.service.SalesStatVO" resultType="int">
+        SELECT COUNT(IDX) FROM TB_SEARCH_LOG
+         WHERE DATE_FORMAT(MOD_DATE, '%Y%m%d') BETWEEN #{sdate} AND #{edate}
+    </select>
+
+    <select id="selectSearchKeywordSum" parameterType="com.academy.stat.service.SalesStatVO" resultType="int">
+        SELECT IFNULL(SUM(SEARCH_CNT), 0) FROM TB_SEARCH_LOG
+         WHERE DATE_FORMAT(MOD_DATE, '%Y%m%d') BETWEEN #{sdate} AND #{edate}
+    </select>
+
+</mapper>

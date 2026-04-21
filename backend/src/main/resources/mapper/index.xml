@@ -1,0 +1,190 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.academy.mapper.IndexMapper">
+
+    <!-- TOP 메뉴 목록 조회 -->
+    <select id="selectTopMenuList" parameterType="com.academy.index.service.IndexVO" resultType="com.academy.index.service.IndexVO">
+        SELECT c.MENU_ID AS menuId,
+               c.MENU_NM AS menuNm,
+               c.P_MENUID AS pMenuId,
+               c.MENU_URL AS menuUrl,
+               c.MENU_SEQ AS menuSeq
+          FROM (
+                SELECT b.MENU_ID, b.MENU_NM, b.P_MENUID, b.MENU_URL, b.MENU_SEQ
+                  FROM TB_SG_SITE_MENU a, TB_SG_MENU_MST b
+                 WHERE a.SITE_ID = #{adminRole}
+                   AND a.MENU_ID = b.MENU_ID
+                   AND b.ISUSE = 'Y'
+                   AND b.P_MENUID = #{menuType}
+               ) c
+         ORDER BY c.MENU_SEQ
+    </select>
+
+    <!-- LEFT 메뉴 목록 조회 -->
+    <select id="selectLeftMenuList" parameterType="com.academy.index.service.IndexVO" resultType="com.academy.index.service.IndexVO">
+        SELECT c.MENU_ID AS menuId,
+               c.MENU_NM AS menuNm,
+               c.P_MENUID AS pMenuId,
+               c.MENU_URL AS menuUrl,
+               c.MENU_SEQ AS menuSeq
+          FROM (
+                SELECT b.MENU_ID, b.MENU_NM, b.P_MENUID, b.MENU_URL, b.MENU_SEQ
+                  FROM TB_SG_SITE_MENU a, TB_SG_MENU_MST b
+                 WHERE a.SITE_ID = #{adminRole}
+                   AND a.MENU_ID = b.MENU_ID
+                   AND b.ISUSE = 'Y'
+                   AND b.P_MENUID = #{topMenuId}
+               ) c
+         ORDER BY c.MENU_SEQ
+    </select>
+
+    <!-- LEFT 메뉴 트리 조회 (MySQL용 - 재귀 CTE 사용) -->
+    <select id="selectLeftMenuTree" parameterType="com.academy.index.service.IndexVO" resultType="com.academy.index.service.IndexVO">
+        WITH RECURSIVE menu_tree AS (
+            <!-- 시작 노드 (TOP_MENU_ID 하위) -->
+            SELECT S.SITE_ID, M.MENU_ID, M.MENU_NM, M.MENU_URL, M.MENU_SEQ,
+                   IFNULL(M.P_MENUID, '-1') AS P_MENUID, M.TARGET, 1 AS MENU_LEVEL
+              FROM TB_SG_MENU_MST M
+              JOIN TB_SG_SITE_MENU S ON M.MENU_ID = S.MENU_ID
+             WHERE M.ISUSE = 'Y'
+               AND S.SITE_ID = #{adminRole}
+               AND M.P_MENUID = #{topMenuId}
+
+            UNION ALL
+
+            <!-- 재귀적으로 하위 메뉴 조회 -->
+            SELECT S.SITE_ID, M.MENU_ID, M.MENU_NM, M.MENU_URL, M.MENU_SEQ,
+                   IFNULL(M.P_MENUID, '-1') AS P_MENUID, M.TARGET, MT.MENU_LEVEL + 1
+              FROM TB_SG_MENU_MST M
+              JOIN TB_SG_SITE_MENU S ON M.MENU_ID = S.MENU_ID
+              JOIN menu_tree MT ON M.P_MENUID = MT.MENU_ID AND S.SITE_ID = MT.SITE_ID
+             WHERE M.ISUSE = 'Y'
+        )
+        SELECT SITE_ID AS siteId,
+               MENU_ID AS menuId,
+               MENU_NM AS menuNm,
+               MENU_URL AS menuUrl,
+               MENU_SEQ AS menuSeq,
+               P_MENUID AS pMenuId,
+               TARGET AS target,
+               MENU_LEVEL AS menuLevel
+          FROM menu_tree
+         ORDER BY MENU_SEQ, MENU_ID
+    </select>
+
+    <!-- 메뉴 마스터 목록 조회 -->
+    <select id="selectMenuList" parameterType="com.academy.index.service.IndexVO" resultType="com.academy.index.service.IndexVO">
+        SELECT MENU_ID AS menuId,
+               MENU_NM AS menuNm,
+               P_MENUID AS pMenuId,
+               MENU_URL AS menuUrl,
+               MENU_SEQ AS menuSeq,
+               TARGET AS target,
+               ISUSE AS isuse
+          FROM TB_SG_MENU_MST
+         WHERE 1=1
+        <if test="pMenuId != null and pMenuId != ''">
+           AND P_MENUID = #{pMenuId}
+        </if>
+        <if test="searchKeyword != null and searchKeyword != ''">
+           AND MENU_NM LIKE CONCAT('%', #{searchKeyword}, '%')
+        </if>
+        <if test="isuse != null and isuse != ''">
+           AND ISUSE = #{isuse}
+        </if>
+         ORDER BY P_MENUID, MENU_SEQ, MENU_ID
+         LIMIT #{recordCountPerPage} OFFSET #{firstIndex}
+    </select>
+
+    <!-- 메뉴 마스터 목록 카운트 -->
+    <select id="selectMenuListCount" parameterType="com.academy.index.service.IndexVO" resultType="int">
+        SELECT COUNT(*)
+          FROM TB_SG_MENU_MST
+         WHERE 1=1
+        <if test="pMenuId != null and pMenuId != ''">
+           AND P_MENUID = #{pMenuId}
+        </if>
+        <if test="searchKeyword != null and searchKeyword != ''">
+           AND MENU_NM LIKE CONCAT('%', #{searchKeyword}, '%')
+        </if>
+        <if test="isuse != null and isuse != ''">
+           AND ISUSE = #{isuse}
+        </if>
+    </select>
+
+    <!-- 메뉴 상세 조회 -->
+    <select id="selectMenuDetail" parameterType="com.academy.index.service.IndexVO" resultType="com.academy.index.service.IndexVO">
+        SELECT MENU_ID AS menuId,
+               MENU_NM AS menuNm,
+               P_MENUID AS pMenuId,
+               MENU_URL AS menuUrl,
+               MENU_SEQ AS menuSeq,
+               TARGET AS target,
+               ISUSE AS isuse
+          FROM TB_SG_MENU_MST
+         WHERE MENU_ID = #{menuId}
+    </select>
+
+    <!-- 메뉴 등록 -->
+    <insert id="insertMenu" parameterType="com.academy.index.service.IndexVO">
+        INSERT INTO TB_SG_MENU_MST (
+            MENU_ID, MENU_NM, P_MENUID, MENU_URL, MENU_SEQ, TARGET, ISUSE
+        ) VALUES (
+            #{menuId}, #{menuNm}, #{pMenuId}, #{menuUrl}, #{menuSeq}, #{target}, IFNULL(#{isuse}, 'Y')
+        )
+    </insert>
+
+    <!-- 메뉴 수정 -->
+    <update id="updateMenu" parameterType="com.academy.index.service.IndexVO">
+        UPDATE TB_SG_MENU_MST
+           SET MENU_NM = #{menuNm},
+               P_MENUID = #{pMenuId},
+               MENU_URL = #{menuUrl},
+               MENU_SEQ = #{menuSeq},
+               TARGET = #{target},
+               ISUSE = #{isuse}
+         WHERE MENU_ID = #{menuId}
+    </update>
+
+    <!-- 메뉴 삭제 -->
+    <delete id="deleteMenu" parameterType="com.academy.index.service.IndexVO">
+        DELETE FROM TB_SG_MENU_MST WHERE MENU_ID = #{menuId}
+    </delete>
+
+    <!-- 사이트 메뉴 권한 목록 조회 -->
+    <select id="selectSiteMenuList" parameterType="com.academy.index.service.IndexVO" resultType="com.academy.index.service.IndexVO">
+        SELECT S.SITE_ID AS siteId,
+               S.MENU_ID AS menuId,
+               M.MENU_NM AS menuNm,
+               M.MENU_URL AS menuUrl
+          FROM TB_SG_SITE_MENU S
+          JOIN TB_SG_MENU_MST M ON S.MENU_ID = M.MENU_ID
+         WHERE 1=1
+        <if test="siteId != null and siteId != ''">
+           AND S.SITE_ID = #{siteId}
+        </if>
+        <if test="menuId != null and menuId != ''">
+           AND S.MENU_ID = #{menuId}
+        </if>
+         ORDER BY M.MENU_SEQ
+    </select>
+
+    <!-- 사이트 메뉴 권한 등록 -->
+    <insert id="insertSiteMenu" parameterType="com.academy.index.service.IndexVO">
+        INSERT INTO TB_SG_SITE_MENU (
+            SITE_ID, MENU_ID
+        ) VALUES (
+            #{siteId}, #{menuId}
+        )
+    </insert>
+
+    <!-- 사이트 메뉴 권한 삭제 -->
+    <delete id="deleteSiteMenu" parameterType="com.academy.index.service.IndexVO">
+        DELETE FROM TB_SG_SITE_MENU
+         WHERE SITE_ID = #{siteId}
+        <if test="menuId != null and menuId != ''">
+           AND MENU_ID = #{menuId}
+        </if>
+    </delete>
+
+</mapper>

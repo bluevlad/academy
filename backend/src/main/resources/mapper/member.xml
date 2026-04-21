@@ -1,0 +1,85 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+	수정일          	수정자           수정내용
+  ===========      ========    =================
+ *2025.03.00		rainend		시험응시
+-->
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.academy.mapper.MemberMapper">
+
+<select id="selectMemberList">
+		SELECT 
+			USER_ID, USER_NM, USER_ROLE, ADMIN_ROLE, SEX, 
+			BIRTH_DAY, EMAIL, USER_POINT, IS_USE, 
+			REG_DT, REG_ID, UPD_DT, UPD_ID, 
+			ISOK_SMS, ISOK_EMAIL
+		FROM acm_member
+		WHERE user_role = 'USER'
+		ORDER BY REG_DT DESC
+		LIMIT #{recordCountPerPage} OFFSET #{firstIndex}
+	</select>
+
+	<select id="selectMemberListTotCnt">
+		SELECT COUNT(*) TOTAL_CNT
+		FROM acm_member
+		WHERE user_role = 'USER'
+		</select>
+
+	<select id="selectMemberDetail">
+		SELECT 
+			USER_ID, USER_NM, USER_PWD, SEX, USER_ROLE, ADMIN_ROLE, 
+			BIRTH_DAY, EMAIL, ZIP_CODE, ADDRESS1, ADDRESS2, 
+			USER_POINT, MEMO, PIC, IS_USE, 
+			REG_DT, REG_ID, UPD_DT, UPD_ID, 
+			ISOK_SMS, ISOK_EMAIL, TOKEN
+		FROM acm_member
+		WHERE USER_ID = #{userId}
+	</select>
+
+	<insert id="insertMember">
+		INSERT INTO acm_member (
+			USER_ID, USER_NM, USER_PWD, SEX, USER_ROLE, ADMIN_ROLE, 
+			BIRTH_DAY, EMAIL, ZIP_CODE, ADDRESS1, ADDRESS2, 
+			USER_POINT, MEMO, PIC, IS_USE, 
+			REG_DT, REG_ID, UPD_DT, UPD_ID, 
+			ISOK_SMS, ISOK_EMAIL
+		) VALUES (
+			#{userId}, #{userNm}, #{userPwd}, #{sex}, #{userRole}, #{adminRole}, 
+			#{birthDay}, #{email}, #{zipCode}, #{address1}, #{address2}, 
+			#{userPoint}, #{memo}, #{pic}, 'Y', 
+			NOW(), #{regId}, NOW(), #{updId}, 
+			#{isokSms}, #{isokEmail}
+		)
+	</insert>
+
+	<update id="updateMember">
+		UPDATE acm_member
+		SET
+			USER_NM = #{userNm},
+			SEX = #{sex},
+			USER_ROLE = #{userRole},
+			ADMIN_ROLE = #{adminRole},
+			BIRTH_DAY = #{birthDay},
+			EMAIL = #{email},
+			ZIP_CODE = #{zipCode},
+			ADDRESS1 = #{address1},
+			ADDRESS2 = #{address2},
+			MEMO = #{memo},
+			PIC = #{pic},
+			IS_USE = #{isUse},
+			ISOK_SMS = #{isokSms},
+			ISOK_EMAIL = #{isokEmail},
+			<if test="userPwd != null and userPwd != ''">
+				USER_PWD = #{userPwd},
+			</if>
+			UPD_ID = #{updId},
+			UPD_DT = NOW()
+		WHERE USER_ID = #{userId}
+	</update>
+
+	<delete id="deleteMember">
+		DELETE FROM acm_member
+		WHERE USER_ID = #{userId}
+	</delete>
+	
+</mapper>

@@ -1,0 +1,240 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.academy.mapper.AdminCodeMapper">
+    <!-- 공통코드 관리 ==================================================================================== -->
+
+    <!-- 공통코드 리스트 조회 -->
+    <select id="selectCodeList" parameterType="com.academy.admin.service.AdminCodeVO" resultType="org.json.simple.JSONObject">
+        SELECT
+            SYS_CD,
+            SYS_NM,
+            CODE_NO,
+            CODE_CD,
+            CODE_NM,
+            CODE_VAL,
+            CODE_INFO,
+            ISUSE,
+            DATE_FORMAT(REG_DT, '%Y-%m-%d') AS REG_DT,
+            REG_ID,
+            DATE_FORMAT(UPD_DT, '%Y-%m-%d') AS UPD_DT,
+            UPD_ID
+        FROM TB_BA_CONFIG_CD
+        WHERE 1=1
+        <if test="searchKeyword != null and searchKeyword != ''">
+            <choose>
+                <when test='searchType == "CODE"'>
+                    AND SYS_CD LIKE CONCAT('%', #{searchKeyword}, '%')
+                </when>
+                <when test='searchType == "CODENM"'>
+                    AND SYS_NM LIKE CONCAT('%', #{searchKeyword}, '%')
+                </when>
+                <when test='searchType == "SETTINGCODE"'>
+                    AND CODE_NM LIKE CONCAT('%', #{searchKeyword}, '%')
+                </when>
+                <otherwise>
+                    AND (SYS_CD LIKE CONCAT('%', #{searchKeyword}, '%')
+                        OR SYS_NM LIKE CONCAT('%', #{searchKeyword}, '%')
+                        OR CODE_NM LIKE CONCAT('%', #{searchKeyword}, '%'))
+                </otherwise>
+            </choose>
+        </if>
+        ORDER BY CODE_NO DESC
+        LIMIT #{recordCountPerPage} OFFSET #{firstIndex}
+    </select>
+
+    <!-- 공통코드 리스트 총 건수 -->
+    <select id="selectCodeListCount" parameterType="com.academy.admin.service.AdminCodeVO" resultType="int">
+        SELECT COUNT(*) AS CNT
+        FROM TB_BA_CONFIG_CD
+        WHERE 1=1
+        <if test="searchKeyword != null and searchKeyword != ''">
+            <choose>
+                <when test='searchType == "CODE"'>
+                    AND SYS_CD LIKE CONCAT('%', #{searchKeyword}, '%')
+                </when>
+                <when test='searchType == "CODENM"'>
+                    AND SYS_NM LIKE CONCAT('%', #{searchKeyword}, '%')
+                </when>
+                <when test='searchType == "SETTINGCODE"'>
+                    AND CODE_NM LIKE CONCAT('%', #{searchKeyword}, '%')
+                </when>
+                <otherwise>
+                    AND (SYS_CD LIKE CONCAT('%', #{searchKeyword}, '%')
+                        OR SYS_NM LIKE CONCAT('%', #{searchKeyword}, '%')
+                        OR CODE_NM LIKE CONCAT('%', #{searchKeyword}, '%'))
+                </otherwise>
+            </choose>
+        </if>
+    </select>
+
+    <!-- 공통코드 등록 -->
+    <insert id="insertCode" parameterType="com.academy.admin.service.AdminCodeVO">
+        INSERT INTO TB_BA_CONFIG_CD (
+            SYS_CD,
+            SYS_NM,
+            CODE_CD,
+            CODE_NM,
+            CODE_VAL,
+            CODE_INFO,
+            ISUSE,
+            REG_DT,
+            REG_ID
+        ) VALUES (
+            #{sysCd},
+            #{sysNm},
+            #{codeCd},
+            #{codeNm},
+            #{codeVal},
+            #{codeInfo},
+            #{isUse},
+            NOW(),
+            #{regId}
+        )
+    </insert>
+
+    <!-- 공통코드 상세 조회 -->
+    <select id="selectCodeDetail" parameterType="com.academy.admin.service.AdminCodeVO" resultType="org.json.simple.JSONObject">
+        SELECT
+            SYS_CD,
+            SYS_NM,
+            CODE_NO,
+            CODE_CD,
+            CODE_NM,
+            CODE_VAL,
+            CODE_INFO,
+            ISUSE,
+            DATE_FORMAT(REG_DT, '%Y-%m-%d') AS REG_DT,
+            REG_ID,
+            DATE_FORMAT(UPD_DT, '%Y-%m-%d') AS UPD_DT,
+            UPD_ID
+        FROM TB_BA_CONFIG_CD
+        WHERE CODE_NO = #{detailCodeNo}
+    </select>
+
+    <!-- 공통코드 수정 -->
+    <update id="updateCode" parameterType="com.academy.admin.service.AdminCodeVO">
+        UPDATE TB_BA_CONFIG_CD
+        SET
+            SYS_NM = #{sysNm},
+            CODE_CD = #{codeCd},
+            CODE_NM = #{codeNm},
+            CODE_VAL = #{codeVal},
+            CODE_INFO = #{codeInfo},
+            ISUSE = #{isUse},
+            UPD_DT = NOW(),
+            UPD_ID = #{updId}
+        WHERE CODE_NO = #{detailCodeNo}
+    </update>
+
+    <!-- 공통코드 개별 삭제 -->
+    <delete id="deleteCode" parameterType="com.academy.admin.service.AdminCodeVO">
+        DELETE FROM TB_BA_CONFIG_CD WHERE CODE_NO = #{detailCodeNo}
+    </delete>
+
+    <!-- 공통코드 일괄 삭제 -->
+    <delete id="deleteCodeBatch" parameterType="com.academy.admin.service.AdminCodeVO">
+        DELETE FROM TB_BA_CONFIG_CD WHERE CODE_NO IN (${deleteIds})
+    </delete>
+
+    <!-- 설정코드 트리 조회 (계층 구조) -->
+    <select id="selectPassCodeTree" resultType="org.json.simple.JSONObject">
+        WITH RECURSIVE code_tree AS (
+            SELECT
+                SYS_CD,
+                CODE_NO,
+                CODE_VAL,
+                CODE_NM,
+                ISUSE,
+                CODE_SEQ,
+                1 AS LEVEL
+            FROM TB_BA_CONFIG_CD
+            WHERE CODE_VAL = 'CODE'
+
+            UNION ALL
+
+            SELECT
+                c.SYS_CD,
+                c.CODE_NO,
+                c.CODE_VAL,
+                c.CODE_NM,
+                c.ISUSE,
+                c.CODE_SEQ,
+                ct.LEVEL + 1
+            FROM TB_BA_CONFIG_CD c
+            INNER JOIN code_tree ct ON c.SYS_CD = ct.CODE_VAL
+        )
+        SELECT SYS_CD, CODE_NO, CODE_VAL, CODE_NM, ISUSE, CODE_SEQ, LEVEL
+        FROM code_tree
+        ORDER BY CODE_SEQ ASC, CODE_VAL ASC
+    </select>
+
+    <!-- 설정코드 상세 조회 -->
+    <select id="selectPassCodeDetail" parameterType="com.academy.admin.service.AdminCodeVO" resultType="org.json.simple.JSONObject">
+        SELECT *
+        FROM TB_BA_CONFIG_CD
+        WHERE SYS_CD = #{sysCd}
+        AND CODE_VAL = #{codeVal}
+    </select>
+
+    <!-- 설정코드 등록 -->
+    <insert id="insertPassCode" parameterType="com.academy.admin.service.AdminCodeVO">
+        INSERT INTO TB_BA_CONFIG_CD (
+            SYS_CD,
+            CODE_NO,
+            CODE_NM,
+            CODE_VAL,
+            CODE_INFO,
+            ISUSE,
+            REG_DT,
+            REG_ID
+        ) VALUES (
+            #{sysCd},
+            #{codeNo},
+            #{codeNm},
+            #{codeVal},
+            #{codeInfo},
+            #{isUse},
+            NOW(),
+            #{regId}
+        )
+    </insert>
+
+    <!-- 설정코드 수정 -->
+    <update id="updatePassCode" parameterType="com.academy.admin.service.AdminCodeVO">
+        UPDATE TB_BA_CONFIG_CD
+        SET
+            CODE_SEQ = #{codeSeq},
+            CODE_NM = #{codeNm},
+            ISUSE = #{isUse},
+            CODE_INFO = #{codeInfo},
+            UPD_DT = NOW(),
+            UPD_ID = #{updId}
+        WHERE SYS_CD = #{sysCd}
+        AND CODE_VAL = #{codeVal}
+    </update>
+
+    <!-- 설정코드 삭제 -->
+    <delete id="deletePassCode" parameterType="com.academy.admin.service.AdminCodeVO">
+        DELETE FROM TB_BA_CONFIG_CD
+        WHERE SYS_CD = #{sysCd}
+        AND CODE_VAL = #{codeVal}
+    </delete>
+
+    <!-- 설정코드 MAX ID 조회 -->
+    <select id="selectPassMaxCodeId" parameterType="com.academy.admin.service.AdminCodeVO" resultType="org.json.simple.JSONObject">
+        SELECT IFNULL(MAX(CODE_NO), 0) + 1 AS CODE_NO
+        FROM TB_BA_CONFIG_CD
+        WHERE SYS_CD = #{codeVal}
+    </select>
+
+    <!-- BA CONFIG 코드 리스트 조회 -->
+    <select id="selectBaConfigCodeList" parameterType="com.academy.admin.service.AdminCodeVO" resultType="org.json.simple.JSONObject">
+        SELECT SYS_CD, CODE_NO, CODE_NM, CODE_VAL
+        FROM TB_BA_CONFIG_CD
+        <if test="sysCd != null and sysCd != ''">
+        WHERE SYS_CD = #{sysCd}
+        </if>
+        ORDER BY CODE_NO ASC
+    </select>
+
+</mapper>

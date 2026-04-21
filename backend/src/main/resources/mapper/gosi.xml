@@ -1,0 +1,350 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.academy.mapper.GosiMapper">
+
+    <!-- 고시 마스터 목록 조회 -->
+    <select id="selectGosiList" parameterType="com.academy.gosi.service.GosiVO" resultType="com.academy.gosi.service.GosiVO">
+        SELECT GOSI_CD AS gosiCd,
+               GOSI_NM AS gosiNm,
+               GOSI_TYPE AS gosiType
+          FROM GOSI_MST
+         WHERE 1=1
+        <if test="searchGosiType != null and searchGosiType != ''">
+           AND GOSI_TYPE = #{searchGosiType}
+        </if>
+         ORDER BY GOSI_CD
+    </select>
+
+    <!-- 샘플 사용자 목록 조회 -->
+    <select id="selectSampleUserList" parameterType="com.academy.gosi.service.GosiVO" resultType="com.academy.gosi.service.GosiVO">
+        SELECT RST_NO AS rstNo,
+               USER_NM AS userNm,
+               USER_AGE AS userAge,
+               STUDY_WAIT AS studyWait,
+               STUDY_TYPE AS studyType,
+               ADD_POINT AS addPoint,
+               EXAM_STAT AS examStat,
+               AREA_01 AS area01,
+               AREA_02 AS area02,
+               SEL_SBJ_01 AS selSbj01,
+               SEL_SBJ_02 AS selSbj02,
+               SBJ_01 AS sbj01,
+               SBJ_02 AS sbj02,
+               SBJ_03 AS sbj03,
+               SBJ_04 AS sbj04,
+               SBJ_05 AS sbj05,
+               SBJ_MO_01 AS sbjMo01,
+               SBJ_MO_02 AS sbjMo02,
+               SBJ_MO_03 AS sbjMo03,
+               SBJ_MO_04 AS sbjMo04,
+               SBJ_MO_05 AS sbjMo05,
+               USER_SEX AS userSex,
+               ISUSE AS isuse,
+               DATE_FORMAT(INPUT_DATE, '%Y-%m-%d') AS inputDate,
+               DATE_FORMAT(UPDATE_DATE, '%Y-%m-%d') AS updateDate
+          FROM GOSI_RST_SMP
+         WHERE 1=1
+        <if test="gosiCd != null and gosiCd != ''">
+           AND GOSI_CD = #{gosiCd}
+        </if>
+        <if test="searchUserNm != null and searchUserNm != ''">
+           AND USER_NM LIKE CONCAT('%', #{searchUserNm}, '%')
+        </if>
+        <if test="isuse != null and isuse != ''">
+           AND ISUSE = #{isuse}
+        </if>
+         ORDER BY RST_NO DESC
+         LIMIT #{recordCountPerPage} OFFSET #{firstIndex}
+    </select>
+
+    <!-- 샘플 사용자 목록 카운트 -->
+    <select id="selectSampleUserListCount" parameterType="com.academy.gosi.service.GosiVO" resultType="int">
+        SELECT COUNT(*)
+          FROM GOSI_RST_SMP
+         WHERE 1=1
+        <if test="gosiCd != null and gosiCd != ''">
+           AND GOSI_CD = #{gosiCd}
+        </if>
+        <if test="searchUserNm != null and searchUserNm != ''">
+           AND USER_NM LIKE CONCAT('%', #{searchUserNm}, '%')
+        </if>
+        <if test="isuse != null and isuse != ''">
+           AND ISUSE = #{isuse}
+        </if>
+    </select>
+
+    <!-- 샘플 사용자 상세 조회 -->
+    <select id="selectSampleUserDetail" parameterType="com.academy.gosi.service.GosiVO" resultType="com.academy.gosi.service.GosiVO">
+        SELECT RST_NO AS rstNo,
+               USER_NM AS userNm,
+               USER_AGE AS userAge,
+               STUDY_WAIT AS studyWait,
+               STUDY_TYPE AS studyType,
+               ADD_POINT AS addPoint,
+               EXAM_STAT AS examStat,
+               AREA_01 AS area01,
+               AREA_02 AS area02,
+               SEL_SBJ_01 AS selSbj01,
+               SEL_SBJ_02 AS selSbj02,
+               SBJ_01 AS sbj01,
+               SBJ_02 AS sbj02,
+               SBJ_03 AS sbj03,
+               SBJ_04 AS sbj04,
+               SBJ_05 AS sbj05,
+               SBJ_MO_01 AS sbjMo01,
+               SBJ_MO_02 AS sbjMo02,
+               SBJ_MO_03 AS sbjMo03,
+               SBJ_MO_04 AS sbjMo04,
+               SBJ_MO_05 AS sbjMo05,
+               USER_SEX AS userSex,
+               ISUSE AS isuse,
+               DATE_FORMAT(INPUT_DATE, '%Y-%m-%d') AS inputDate,
+               DATE_FORMAT(UPDATE_DATE, '%Y-%m-%d') AS updateDate
+          FROM GOSI_RST_SMP
+         WHERE RST_NO = #{rstNo}
+    </select>
+
+    <!-- 샘플 사용자 등록 -->
+    <insert id="insertSampleUser" parameterType="com.academy.gosi.service.GosiVO">
+        INSERT INTO GOSI_RST_SMP (
+            GOSI_CD, USER_NM, USER_AGE, STUDY_WAIT, STUDY_TYPE,
+            ADD_POINT, EXAM_STAT, AREA_01, AREA_02,
+            SEL_SBJ_01, SEL_SBJ_02, SBJ_01, SBJ_02, SBJ_03, SBJ_04, SBJ_05,
+            SBJ_MO_01, SBJ_MO_02, SBJ_MO_03, SBJ_MO_04, SBJ_MO_05,
+            USER_SEX, ISUSE, INPUT_DATE
+        ) VALUES (
+            #{gosiCd}, #{userNm}, #{userAge}, #{studyWait}, #{studyType},
+            #{addPoint}, #{examStat}, #{area01}, #{area02},
+            #{selSbj01}, #{selSbj02}, #{sbj01}, #{sbj02}, #{sbj03}, #{sbj04}, #{sbj05},
+            #{sbjMo01}, #{sbjMo02}, #{sbjMo03}, #{sbjMo04}, #{sbjMo05},
+            #{userSex}, IFNULL(#{isuse}, 'Y'), NOW()
+        )
+    </insert>
+
+    <!-- 샘플 사용자 수정 -->
+    <update id="updateSampleUser" parameterType="com.academy.gosi.service.GosiVO">
+        UPDATE GOSI_RST_SMP
+           SET USER_NM = #{userNm},
+               USER_AGE = #{userAge},
+               STUDY_WAIT = #{studyWait},
+               STUDY_TYPE = #{studyType},
+               ADD_POINT = #{addPoint},
+               EXAM_STAT = #{examStat},
+               AREA_01 = #{area01},
+               AREA_02 = #{area02},
+               SEL_SBJ_01 = #{selSbj01},
+               SEL_SBJ_02 = #{selSbj02},
+               SBJ_01 = #{sbj01},
+               SBJ_02 = #{sbj02},
+               SBJ_03 = #{sbj03},
+               SBJ_04 = #{sbj04},
+               SBJ_05 = #{sbj05},
+               SBJ_MO_01 = #{sbjMo01},
+               SBJ_MO_02 = #{sbjMo02},
+               SBJ_MO_03 = #{sbjMo03},
+               SBJ_MO_04 = #{sbjMo04},
+               SBJ_MO_05 = #{sbjMo05},
+               USER_SEX = #{userSex},
+               ISUSE = #{isuse},
+               UPDATE_DATE = NOW()
+         WHERE RST_NO = #{rstNo}
+    </update>
+
+    <!-- 샘플 사용자 삭제 -->
+    <delete id="deleteSampleUser" parameterType="com.academy.gosi.service.GosiVO">
+        DELETE FROM GOSI_RST_SMP WHERE RST_NO = #{rstNo}
+    </delete>
+
+    <!-- 고시 지역 마스터 목록 조회 -->
+    <select id="selectGosiAreaMstList" parameterType="com.academy.gosi.service.GosiVO" resultType="com.academy.gosi.service.GosiVO">
+        SELECT GOSI_CD AS gosiCd,
+               GOSI_TYPE AS gosiType,
+               GOSI_AREA AS gosiArea,
+               GOSI_AREA_FULL_NM AS gosiAreaFullNm,
+               REQ_NUM AS reqNum,
+               USE_NUM AS useNum,
+               GOSI_CMP_STAT AS gosiCmpStat,
+               PASS_2016 AS pass2016,
+               PASS_2017_S AS pass2017S,
+               PASS_2017_E AS pass2017E
+          FROM GOSI_AREA_MST
+         WHERE 1=1
+        <if test="gosiCd != null and gosiCd != ''">
+           AND GOSI_CD = #{gosiCd}
+        </if>
+        <if test="gosiType != null and gosiType != ''">
+           AND GOSI_TYPE = #{gosiType}
+        </if>
+         ORDER BY GOSI_AREA
+    </select>
+
+    <!-- 고시 지역 마스터 상세 조회 -->
+    <select id="selectGosiAreaMstDetail" parameterType="com.academy.gosi.service.GosiVO" resultType="com.academy.gosi.service.GosiVO">
+        SELECT GOSI_CD AS gosiCd,
+               GOSI_TYPE AS gosiType,
+               GOSI_AREA AS gosiArea,
+               GOSI_AREA_FULL_NM AS gosiAreaFullNm,
+               REQ_NUM AS reqNum,
+               USE_NUM AS useNum,
+               GOSI_CMP_STAT AS gosiCmpStat,
+               PASS_2016 AS pass2016,
+               PASS_2017_S AS pass2017S,
+               PASS_2017_E AS pass2017E
+          FROM GOSI_AREA_MST
+         WHERE GOSI_CD = #{gosiCd}
+           AND GOSI_AREA = #{gosiArea}
+    </select>
+
+    <!-- 고시 지역 마스터 수정 -->
+    <update id="updateGosiAreaMst" parameterType="com.academy.gosi.service.GosiVO">
+        UPDATE GOSI_AREA_MST
+           SET GOSI_AREA_FULL_NM = #{gosiAreaFullNm},
+               REQ_NUM = #{reqNum},
+               USE_NUM = #{useNum},
+               GOSI_CMP_STAT = #{gosiCmpStat},
+               PASS_2016 = #{pass2016},
+               PASS_2017_S = #{pass2017S},
+               PASS_2017_E = #{pass2017E}
+         WHERE GOSI_CD = #{gosiCd}
+           AND GOSI_AREA = #{gosiArea}
+    </update>
+
+    <!-- VOD 과목 목록 조회 -->
+    <select id="selectVodSubjectList" parameterType="com.academy.gosi.service.GosiVO" resultType="com.academy.gosi.service.GosiVO">
+        SELECT V.PRF_ID AS prfId,
+               V.TITLE AS title,
+               V.VOD_URL AS vodUrl,
+               V.FILE_URL AS fileUrl,
+               V.IDX AS idx,
+               V.T_NO AS tNo,
+               S.SBJ_NM AS sbjNm
+          FROM GOSI_VOD V
+          LEFT JOIN GOSI_SBJ_MST S ON V.SBJ_CD = S.SBJ_CD
+         WHERE 1=1
+        <if test="gosiCd != null and gosiCd != ''">
+           AND V.GOSI_CD = #{gosiCd}
+        </if>
+         ORDER BY V.IDX
+    </select>
+
+    <!-- VOD 상세 조회 -->
+    <select id="selectVodDetail" parameterType="com.academy.gosi.service.GosiVO" resultType="com.academy.gosi.service.GosiVO">
+        SELECT PRF_ID AS prfId,
+               TITLE AS title,
+               VOD_URL AS vodUrl,
+               FILE_URL AS fileUrl,
+               IDX AS idx,
+               T_NO AS tNo
+          FROM GOSI_VOD
+         WHERE IDX = #{idx}
+    </select>
+
+    <!-- VOD 수정 -->
+    <update id="updateGosiVod" parameterType="com.academy.gosi.service.GosiVO">
+        UPDATE GOSI_VOD
+           SET PRF_ID = #{prfId},
+               TITLE = #{title},
+               VOD_URL = #{vodUrl},
+               FILE_URL = #{fileUrl},
+               T_NO = #{tNo}
+         WHERE IDX = #{idx}
+    </update>
+
+    <!-- 고시 통계 마스터 목록 조회 -->
+    <select id="selectGosiStatMstList" parameterType="com.academy.gosi.service.GosiVO" resultType="com.academy.gosi.service.GosiVO">
+        SELECT GOSI_CD AS gosiCd,
+               STAT_YEAR AS statYear,
+               STAT_TYPE AS statType,
+               STAT_VAL AS statVal
+          FROM GOSI_STAT_MST
+         WHERE 1=1
+        <if test="gosiCd != null and gosiCd != ''">
+           AND GOSI_CD = #{gosiCd}
+        </if>
+        <if test="statYear != null and statYear != ''">
+           AND STAT_YEAR = #{statYear}
+        </if>
+         ORDER BY STAT_YEAR DESC, STAT_TYPE
+    </select>
+
+    <!-- 고시 결과 생성 (저장 프로시저 호출) -->
+    <update id="callMakeGosiResult" parameterType="com.academy.gosi.service.GosiVO" statementType="CALLABLE">
+        CALL SP_MAKE_GOSI_RESULT(#{gosiCd})
+    </update>
+
+    <!-- 고시 표준 생성 (저장 프로시저 호출) -->
+    <update id="callMakeGosiStandard" parameterType="com.academy.gosi.service.GosiVO" statementType="CALLABLE">
+        CALL SP_MAKE_GOSI_STANDARD(#{gosiCd})
+    </update>
+
+    <!-- 고시 통계 마스터 생성 (저장 프로시저 호출) -->
+    <update id="callMakeGosiStatMst" parameterType="com.academy.gosi.service.GosiVO" statementType="CALLABLE">
+        CALL SP_MAKE_GOSI_STAT_MST(#{gosiCd})
+    </update>
+
+    <!-- 고시 조정 마스터 생성 (저장 프로시저 호출) -->
+    <update id="callMakeGosiAdjustMst" parameterType="com.academy.gosi.service.GosiVO" statementType="CALLABLE">
+        CALL SP_MAKE_GOSI_ADJUST_MST(#{gosiCd})
+    </update>
+
+    <!-- 고시 과목 목록 조회 -->
+    <select id="selectGosiSubjectList" parameterType="com.academy.gosi.service.GosiVO" resultType="com.academy.gosi.service.GosiVO">
+        SELECT SBJ_CD AS sbjCd,
+               SBJ_NM AS sbjNm,
+               SBJ_ORD AS sbjOrd
+          FROM GOSI_SBJ_MST
+         WHERE 1=1
+        <if test="gosiCd != null and gosiCd != ''">
+           AND GOSI_CD = #{gosiCd}
+        </if>
+         ORDER BY SBJ_ORD
+    </select>
+
+    <!-- 이벤트 결과 목록 조회 -->
+    <select id="selectEventResultList" parameterType="com.academy.gosi.service.GosiVO" resultType="com.academy.gosi.service.GosiVO">
+        SELECT EVENT_CD AS eventCd,
+               USER_ID AS userId,
+               USER_NAME AS userName,
+               DATE_FORMAT(EVENT_DATE, '%Y-%m-%d') AS eventDate,
+               EVENT_RESULT AS eventResult,
+               PHONE AS phone,
+               EMAIL AS email,
+               DATE_FORMAT(REG_DATE, '%Y-%m-%d %H:%i:%s') AS regDate
+          FROM TB_EVENT_RESULT
+         WHERE 1=1
+        <if test="searchEventCd != null and searchEventCd != ''">
+           AND EVENT_CD = #{searchEventCd}
+        </if>
+        <if test="searchStartDate != null and searchStartDate != ''">
+           AND EVENT_DATE &gt;= STR_TO_DATE(#{searchStartDate}, '%Y%m%d')
+        </if>
+        <if test="searchEndDate != null and searchEndDate != ''">
+           AND EVENT_DATE &lt;= STR_TO_DATE(#{searchEndDate}, '%Y%m%d')
+        </if>
+        <if test="searchKeyword != null and searchKeyword != ''">
+           AND (USER_NAME LIKE CONCAT('%', #{searchKeyword}, '%') OR USER_ID LIKE CONCAT('%', #{searchKeyword}, '%'))
+        </if>
+         ORDER BY REG_DATE DESC
+         LIMIT #{recordCountPerPage} OFFSET #{firstIndex}
+    </select>
+
+    <!-- 이벤트 결과 목록 카운트 -->
+    <select id="selectEventResultListCount" parameterType="com.academy.gosi.service.GosiVO" resultType="int">
+        SELECT COUNT(*)
+          FROM TB_EVENT_RESULT
+         WHERE 1=1
+        <if test="searchEventCd != null and searchEventCd != ''">
+           AND EVENT_CD = #{searchEventCd}
+        </if>
+        <if test="searchStartDate != null and searchStartDate != ''">
+           AND EVENT_DATE &gt;= STR_TO_DATE(#{searchStartDate}, '%Y%m%d')
+        </if>
+        <if test="searchEndDate != null and searchEndDate != ''">
+           AND EVENT_DATE &lt;= STR_TO_DATE(#{searchEndDate}, '%Y%m%d')
+        </if>
+        <if test="searchKeyword != null and searchKeyword != ''">
+           AND (USER_NAME LIKE CONCAT('%', #{searchKeyword}, '%') OR USER_ID LIKE CONCAT('%', #{searchKeyword}, '%'))
+        </if>
+    </select>
+
+</mapper>

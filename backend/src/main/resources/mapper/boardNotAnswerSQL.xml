@@ -1,0 +1,376 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.academy.mapper.BoardNotAnswerMapper">
+
+    <!-- 미응답 게시판 목록 조회 -->
+    <select id="selectBoardNotAnswerList" parameterType="com.academy.board.service.BoardVO" resultType="org.json.simple.JSONObject">
+        SELECT
+            (SELECT BOARD_MNG_NAME FROM TB_BOARD_MNG WHERE BOARD_MNG_SEQ = C.BOARD_MNG_SEQ) AS BOARD_NAME,
+            D.ONOFF_DIV,
+            C.BOARD_MNG_SEQ,
+            CAST(C.BOARD_SEQ AS UNSIGNED) AS BOARD_SEQ,
+            C.SUBJECT,
+            C.CONTENT,
+            (SELECT FILE_NAME FROM TB_BOARD_FILE WHERE BOARD_SEQ = C.BOARD_SEQ LIMIT 1) AS FILE_NAME,
+            C.PARENT_BOARD_SEQ,
+            C.NOTICE_TOP_YN,
+            C.HITS,
+            DATE_FORMAT(C.REG_DT, '%Y-%m-%d %H:%i:%s') AS REG_DT,
+            DATE_FORMAT(C.UPD_DT, '%Y-%m-%d %H:%i:%s') AS UPD_DT,
+            C.UPD_ID,
+            C.CREATENAME,
+            C.PROF_ID,
+            (SELECT USER_NM FROM TB_MA_MEMBER WHERE USER_ID = C.PROF_ID) AS PROF_NM,
+            C.BOARD_REPLY,
+            CASE
+                WHEN EXISTS (SELECT 1 FROM TB_BOARD WHERE BOARD_MNG_SEQ = C.BOARD_MNG_SEQ AND PARENT_BOARD_SEQ = C.BOARD_SEQ) THEN '답변완료'
+                WHEN C.PARENT_BOARD_SEQ > 0 THEN '답변완료'
+                ELSE CASE C.BOARD_REPLY
+                    WHEN 'C' THEN '처리중(CS)'
+                    WHEN 'A' THEN '처리중(운영)'
+                    WHEN 'Y' THEN '답변완료'
+                    ELSE '답변대기'
+                END
+            END AS BOARD_REPLY_NM
+        FROM TB_BOARD C
+        INNER JOIN TB_BOARD_MNG D ON C.BOARD_MNG_SEQ = D.BOARD_MNG_SEQ
+        WHERE 1=1
+        <if test='onoffDiv != null and onoffDiv == "O"'>
+            AND D.ONOFF_DIV = 'O'
+        </if>
+        <if test='onoffDiv != null and onoffDiv == "F"'>
+            AND D.ONOFF_DIV = 'F'
+        </if>
+        AND D.REPLY_YN = 'Y'
+        AND C.PARENT_BOARD_SEQ = 0
+        AND C.BOARD_MNG_SEQ LIKE '%BOARD_%'
+        AND D.BOARD_MNG_NAME LIKE '%상담실%'
+        AND C.NOTICE_TOP_YN = 'N'
+        AND C.BOARD_SEQ NOT IN (SELECT PARENT_BOARD_SEQ FROM TB_BOARD WHERE PARENT_BOARD_SEQ > 0)
+        <choose>
+            <when test='searchPrfId != null and searchPrfId != ""'>
+                AND C.PROF_ID IS NOT NULL
+            </when>
+            <otherwise>
+                AND C.PROF_ID IS NULL
+            </otherwise>
+        </choose>
+        ORDER BY C.BOARD_SEQ DESC
+        LIMIT #{recordCountPerPage} OFFSET #{firstIndex}
+    </select>
+
+    <!-- 미응답 게시판 목록 건수 조회 -->
+    <select id="selectBoardNotAnswerListCount" parameterType="com.academy.board.service.BoardVO" resultType="int">
+        SELECT COUNT(*) AS CNT
+        FROM TB_BOARD C
+        INNER JOIN TB_BOARD_MNG D ON C.BOARD_MNG_SEQ = D.BOARD_MNG_SEQ
+        WHERE 1=1
+        <if test='onoffDiv != null and onoffDiv == "O"'>
+            AND D.ONOFF_DIV = 'O'
+        </if>
+        <if test='onoffDiv != null and onoffDiv == "F"'>
+            AND D.ONOFF_DIV = 'F'
+        </if>
+        AND D.REPLY_YN = 'Y'
+        AND C.PARENT_BOARD_SEQ = 0
+        AND C.BOARD_MNG_SEQ LIKE '%BOARD_%'
+        AND D.BOARD_MNG_NAME LIKE '%상담실%'
+        AND C.NOTICE_TOP_YN = 'N'
+        AND C.BOARD_SEQ NOT IN (SELECT PARENT_BOARD_SEQ FROM TB_BOARD WHERE PARENT_BOARD_SEQ > 0)
+        <choose>
+            <when test='searchPrfId != null and searchPrfId != ""'>
+                AND C.PROF_ID IS NOT NULL
+            </when>
+            <otherwise>
+                AND C.PROF_ID IS NULL
+            </otherwise>
+        </choose>
+    </select>
+
+    <!-- 직급 코드 목록 조회 -->
+    <select id="selectRankCodeList" parameterType="com.academy.board.service.BoardVO" resultType="org.json.simple.JSONObject">
+        SELECT
+            ID, CODE, NAME, ISUSE,
+            CASE ISUSE WHEN 'Y' THEN '활성' WHEN 'N' THEN '비활성' ELSE ISUSE END AS ISUSENM,
+            REG_DT, REG_ID, UPD_DT, UPD_ID
+        FROM TB_CATEGORY_INFO
+        WHERE ISUSE = 'Y'
+        AND P_CODE = 'CLASSCODE'
+        <if test='onoffDiv != null and onoffDiv == "O"'>
+            AND USE_ON = 'Y'
+        </if>
+        <if test='onoffDiv != null and onoffDiv == "F"'>
+            AND USE_OFF = 'Y'
+        </if>
+        ORDER BY CODE ASC
+    </select>
+
+    <!-- 게시판 카테고리 정보 등록 -->
+    <insert id="insertBoardCatInfo" parameterType="com.academy.board.service.BoardVO">
+        INSERT INTO TB_BOARD_CATEGORY_INFO (
+            BOARD_MNG_SEQ,
+            BOARD_SEQ,
+            CATEGORY_CODE
+        ) VALUES (
+            #{boardMngSeq},
+            #{boardSeq},
+            #{categoryCode}
+        )
+    </insert>
+
+    <!-- 게시판 카테고리 정보 조회 -->
+    <select id="selectBoardCodeList" parameterType="com.academy.board.service.BoardVO" resultType="org.json.simple.JSONObject">
+        SELECT CATEGORY_CODE FROM TB_BOARD_CATEGORY_INFO
+        WHERE BOARD_MNG_SEQ = #{boardMngSeq}
+        AND BOARD_SEQ = #{boardSeq}
+    </select>
+
+    <!-- 게시판 카테고리 정보 삭제 -->
+    <delete id="deleteBoardCatInfo" parameterType="com.academy.board.service.BoardVO">
+        DELETE FROM TB_BOARD_CATEGORY_INFO
+        WHERE BOARD_SEQ = #{boardSeq}
+        AND BOARD_MNG_SEQ = #{boardMngSeq}
+    </delete>
+
+    <!-- 게시판 상세 조회 (미응답용) -->
+    <select id="getBoardDetail" parameterType="com.academy.board.service.BoardVO" resultType="org.json.simple.JSONObject">
+        SELECT
+            <if test="parentBoardSeq != null and parentBoardSeq != 0">
+                (SELECT CONTENT FROM TB_BOARD WHERE BOARD_SEQ = A.PARENT_BOARD_SEQ) AS ORIGIN,
+            </if>
+            BOARD_MNG_SEQ,
+            BOARD_SEQ,
+            OPEN_YN,
+            SUBJECT,
+            CONTENT,
+            ANSWER,
+            FILE_PATH,
+            FILE_NAME,
+            REAL_FILE_NAME,
+            PARENT_BOARD_SEQ,
+            NOTICE_TOP_YN,
+            DATE_FORMAT(REG_DT, '%Y-%m-%d %H:%i:%s') AS REG_DT,
+            REG_ID,
+            UPD_DT,
+            UPD_ID,
+            HITS,
+            CREATENAME,
+            BOARD_REPLY,
+            CASE
+                WHEN EXISTS (SELECT 1 FROM TB_BOARD WHERE BOARD_MNG_SEQ = A.BOARD_MNG_SEQ AND PARENT_BOARD_SEQ = A.BOARD_SEQ) THEN '답변완료'
+                WHEN A.PARENT_BOARD_SEQ > 0 THEN '답변완료'
+                ELSE CASE A.BOARD_REPLY
+                    WHEN 'C' THEN '처리중(CS)'
+                    WHEN 'A' THEN '처리중(운영)'
+                    WHEN 'Y' THEN '답변완료'
+                    ELSE '답변대기'
+                END
+            END AS BOARD_REPLY_NM
+        FROM TB_BOARD A
+        WHERE BOARD_SEQ = #{boardSeq}
+    </select>
+
+    <!-- 원본글 상세 조회 (답변글에서 참조) -->
+    <select id="getBoardDetailOrigin" parameterType="com.academy.board.service.BoardVO" resultType="org.json.simple.JSONObject">
+        SELECT
+            BOARD_MNG_SEQ,
+            BOARD_SEQ,
+            OPEN_YN,
+            SUBJECT,
+            CONTENT,
+            ANSWER,
+            FILE_PATH,
+            FILE_NAME,
+            REAL_FILE_NAME,
+            PARENT_BOARD_SEQ,
+            NOTICE_TOP_YN,
+            DATE_FORMAT(REG_DT, '%Y-%m-%d %H:%i:%s') AS REG_DT,
+            REG_ID,
+            UPD_DT,
+            UPD_ID,
+            HITS,
+            CREATENAME,
+            BOARD_REPLY
+        FROM TB_BOARD
+        WHERE BOARD_SEQ = #{parentBoardSeq}
+    </select>
+
+    <!-- 답변 게시물 등록 -->
+    <insert id="insertBoardReply" parameterType="com.academy.board.service.BoardVO">
+        <selectKey keyProperty="boardSeq" resultType="String" order="BEFORE">
+            SELECT IFNULL(MAX(CAST(BOARD_SEQ AS UNSIGNED)), 0) + 1 FROM TB_BOARD
+        </selectKey>
+        INSERT INTO TB_BOARD (
+            BOARD_MNG_SEQ,
+            BOARD_SEQ,
+            OPEN_YN,
+            SUBJECT,
+            CONTENT,
+            PARENT_BOARD_SEQ,
+            NOTICE_TOP_YN,
+            REG_DT,
+            REG_ID,
+            UPD_DT,
+            UPD_ID,
+            HITS,
+            BOARD_TYPE,
+            CREATENAME
+        ) VALUES (
+            #{boardMngSeq},
+            #{boardSeq},
+            #{openYn},
+            #{subject},
+            #{content},
+            #{parentBoardSeq},
+            #{noticeTopYn},
+            now(),
+            #{regId},
+            now(),
+            #{regId},
+            0,
+            #{boardType},
+            #{createName}
+        )
+    </insert>
+
+    <!-- 게시판 수정 -->
+    <update id="updateBoard" parameterType="com.academy.board.service.BoardVO">
+        UPDATE TB_BOARD
+        SET
+            NOTICE_TOP_YN = #{noticeTopYn},
+            OPEN_YN = #{openYn},
+            SUBJECT = #{subject},
+            UPD_DT = now(),
+            UPD_ID = #{regId},
+            CONTENT = #{content}
+        WHERE BOARD_SEQ = #{boardSeq}
+    </update>
+
+    <!-- 조회수 증가 -->
+    <update id="updateBoardHits" parameterType="com.academy.board.service.BoardVO">
+        UPDATE TB_BOARD SET HITS = HITS + 1 WHERE BOARD_SEQ = #{boardSeq}
+    </update>
+
+    <!-- 답변 상태 수정 -->
+    <update id="updateBoardReply" parameterType="com.academy.board.service.BoardVO">
+        UPDATE TB_BOARD
+        SET BOARD_REPLY = #{boardReply}
+        WHERE BOARD_SEQ = #{boardSeq}
+        AND BOARD_MNG_SEQ = #{boardMngSeq}
+    </update>
+
+    <!-- 답변 존재 여부 확인 -->
+    <select id="selectReplyCount" parameterType="com.academy.board.service.BoardVO" resultType="int">
+        SELECT COUNT(*) AS CNT
+        FROM TB_BOARD
+        WHERE PARENT_BOARD_SEQ = #{boardSeq}
+    </select>
+
+    <!-- 답변 데이터 조회 -->
+    <select id="selectReplyData" parameterType="com.academy.board.service.BoardVO" resultType="org.json.simple.JSONObject">
+        SELECT
+            BOARD_SEQ,
+            FILE_PATH
+        FROM TB_BOARD
+        WHERE BOARD_MNG_SEQ = #{boardMngSeq}
+        AND PARENT_BOARD_SEQ = #{boardSeq}
+    </select>
+
+    <!-- 게시판 삭제 -->
+    <delete id="deleteBoard" parameterType="com.academy.board.service.BoardVO">
+        DELETE FROM TB_BOARD
+        WHERE BOARD_MNG_SEQ = #{boardMngSeq}
+        AND BOARD_SEQ = #{boardSeq}
+    </delete>
+
+    <!-- 게시판 첨부파일 목록 조회 -->
+    <select id="selectBoardFileList" parameterType="com.academy.board.service.BoardFileVO" resultType="org.json.simple.JSONObject">
+        SELECT
+            BOARD_SEQ,
+            FILE_NO,
+            FILE_NAME,
+            FILE_PATH
+        FROM TB_BOARD_FILE
+        WHERE BOARD_SEQ = #{boardSeq}
+    </select>
+
+    <!-- 게시판 이미지 첨부파일 목록 조회 -->
+    <select id="selectBoardFileImgList" parameterType="com.academy.board.service.BoardFileVO" resultType="org.json.simple.JSONObject">
+        SELECT
+            BOARD_SEQ,
+            FILE_NO,
+            FILE_NAME,
+            FILE_PATH
+        FROM TB_BOARD_FILE
+        WHERE BOARD_SEQ = #{boardSeq}
+        AND (LOWER(RIGHT(FILE_NAME, 3)) IN ('jpg', 'peg', 'png', 'bmp', 'gif')
+             OR LOWER(RIGHT(FILE_NAME, 4)) = 'jpeg')
+    </select>
+
+    <!-- 게시판 첨부파일 등록 -->
+    <insert id="insertBoardFile" parameterType="com.academy.board.service.BoardFileVO">
+        INSERT INTO TB_BOARD_FILE (
+            BOARD_MNG_SEQ,
+            BOARD_SEQ,
+            FILE_NO,
+            FILE_NAME,
+            FILE_PATH,
+            REG_ID,
+            REG_DT,
+            UPD_ID,
+            UPD_DT
+        ) VALUES (
+            #{boardMngSeq},
+            #{boardSeq},
+            (SELECT IFNULL(MAX(CAST(FILE_NO AS UNSIGNED)), 0) + 1 FROM TB_BOARD_FILE A),
+            #{fileName},
+            #{filePath},
+            #{regId},
+            now(),
+            #{regId},
+            now()
+        )
+    </insert>
+
+    <!-- 답변 게시판 첨부파일 등록 -->
+    <insert id="insertBoardReplyFile" parameterType="com.academy.board.service.BoardFileVO">
+        INSERT INTO TB_BOARD_FILE (
+            BOARD_MNG_SEQ,
+            BOARD_SEQ,
+            FILE_NO,
+            FILE_NAME,
+            FILE_PATH,
+            REG_ID,
+            REG_DT,
+            UPD_ID,
+            UPD_DT,
+            PARENT_BOARD_SEQ
+        ) VALUES (
+            #{boardMngSeq},
+            #{boardSeq},
+            (SELECT IFNULL(MAX(CAST(FILE_NO AS UNSIGNED)), 0) + 1 FROM TB_BOARD_FILE A),
+            #{fileName},
+            #{filePath},
+            #{regId},
+            now(),
+            #{regId},
+            now(),
+            #{parentBoardSeq}
+        )
+    </insert>
+
+    <!-- 게시판 첨부파일 삭제 (경로 기준) -->
+    <delete id="deleteBoardFileByPath" parameterType="com.academy.board.service.BoardFileVO">
+        DELETE FROM TB_BOARD_FILE
+        WHERE FILE_PATH = #{filePath}
+        AND BOARD_SEQ = #{boardSeq}
+    </delete>
+
+    <!-- 게시판 첨부파일 삭제 (게시글 기준) -->
+    <delete id="deleteBoardFileByBoard" parameterType="com.academy.board.service.BoardFileVO">
+        DELETE FROM TB_BOARD_FILE
+        WHERE BOARD_MNG_SEQ = #{boardMngSeq}
+        AND BOARD_SEQ = #{boardSeq}
+    </delete>
+
+</mapper>

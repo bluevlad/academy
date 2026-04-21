@@ -1,0 +1,285 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+    수정일              수정자           수정내용
+  ===========      =========    =================
+ *2025.12.11       system       사물함 관리 매퍼 신규 생성 (MySQL 버전)
+-->
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.academy.mapper.BoxMapper">
+
+    <!-- =====================================================
+         사물함 마스터 (TB_OFF_BOX) 관련
+         ===================================================== -->
+
+    <!-- 사물함 목록 조회 -->
+    <select id="selectBoxList" parameterType="com.academy.box.service.BoxVO" resultType="org.json.simple.JSONObject">
+        SELECT
+            TOB.BOX_CD,
+            TOB.BOX_NM,
+            TOB.BOX_COUNT,
+            TOB.BOX_PRICE,
+            TOB.DEPOSIT,
+            TOB.ROW_COUNT,
+            TOB.ROW_NUM,
+            TOB.START_NUM,
+            TOB.END_NUM,
+            DATE_FORMAT(TOB.UPD_DT, '%Y-%m-%d') AS UPD_DT,
+            TOB.UPD_ID,
+            (SELECT COUNT(BOX_NUM) FROM TB_OFF_BOX_NUM WHERE BOX_CD = TOB.BOX_CD AND BOX_FLAG = 'Y') AS Y_CNT,
+            (SELECT COUNT(BOX_NUM) FROM TB_OFF_BOX_NUM WHERE BOX_CD = TOB.BOX_CD AND BOX_FLAG = 'N') AS N_CNT
+        FROM TB_OFF_BOX TOB
+        WHERE 1=1
+        <if test="searchText != null and searchText != ''">
+            AND TOB.BOX_NM LIKE CONCAT('%', #{searchText}, '%')
+        </if>
+        ORDER BY TOB.BOX_CD ASC
+        LIMIT #{recordCountPerPage} OFFSET #{firstIndex}
+    </select>
+
+    <!-- 사물함 목록 건수 조회 -->
+    <select id="selectBoxListCount" parameterType="com.academy.box.service.BoxVO" resultType="int">
+        SELECT COUNT(*) AS CNT
+        FROM TB_OFF_BOX TOB
+        WHERE 1=1
+        <if test="searchText != null and searchText != ''">
+            AND TOB.BOX_NM LIKE CONCAT('%', #{searchText}, '%')
+        </if>
+    </select>
+
+    <!-- 사물함 상세 조회 -->
+    <select id="selectBoxDetail" parameterType="com.academy.box.service.BoxVO" resultType="org.json.simple.JSONObject">
+        SELECT
+            BOX_CD,
+            BOX_NM,
+            BOX_COUNT,
+            BOX_PRICE,
+            DEPOSIT,
+            ROW_COUNT,
+            ROW_NUM,
+            START_NUM,
+            END_NUM,
+            UPD_DT,
+            UPD_ID
+        FROM TB_OFF_BOX
+        WHERE BOX_CD = #{boxCd}
+    </select>
+
+    <!-- 사물함 사용중 수 조회 -->
+    <select id="selectBoxNumYCount" parameterType="com.academy.box.service.BoxVO" resultType="int">
+        SELECT COUNT(BOX_NUM)
+        FROM TB_OFF_BOX_NUM
+        WHERE BOX_CD = #{boxCd} AND BOX_FLAG = 'Y'
+    </select>
+
+    <!-- 사물함 등록 -->
+    <insert id="insertBox" parameterType="com.academy.box.service.BoxVO">
+        <selectKey keyProperty="boxCd" resultType="String" order="BEFORE">
+            SELECT REPLACE(UUID(),'-','')
+        </selectKey>
+        INSERT INTO TB_OFF_BOX (
+            BOX_CD,
+            BOX_NM,
+            BOX_COUNT,
+            BOX_PRICE,
+            DEPOSIT,
+            ROW_COUNT,
+            ROW_NUM,
+            START_NUM,
+            END_NUM,
+            UPD_DT,
+            UPD_ID
+        ) VALUES (
+            #{boxCd},
+            #{boxNm},
+            #{boxCount},
+            #{boxPrice},
+            #{deposit},
+            #{rowCount},
+            #{rowNum},
+            #{startNum},
+            #{endNum},
+            now(),
+            #{regId}
+        )
+    </insert>
+
+    <!-- 사물함 수정 -->
+    <update id="updateBox" parameterType="com.academy.box.service.BoxVO">
+        UPDATE TB_OFF_BOX
+        SET
+            BOX_NM = #{boxNm},
+            BOX_COUNT = #{boxCount},
+            BOX_PRICE = #{boxPrice},
+            DEPOSIT = #{deposit},
+            ROW_COUNT = #{rowCount},
+            ROW_NUM = #{rowNum},
+            START_NUM = #{startNum},
+            END_NUM = #{endNum},
+            UPD_DT = now(),
+            UPD_ID = #{updId}
+        WHERE BOX_CD = #{boxCd}
+    </update>
+
+    <!-- 사물함 수정 (사물함 개수, 시작/종료번호 제외) -->
+    <update id="updateBox2" parameterType="com.academy.box.service.BoxVO">
+        UPDATE TB_OFF_BOX
+        SET
+            BOX_NM = #{boxNm},
+            BOX_PRICE = #{boxPrice},
+            DEPOSIT = #{deposit},
+            ROW_COUNT = #{rowCount},
+            ROW_NUM = #{rowNum},
+            UPD_DT = now(),
+            UPD_ID = #{updId}
+        WHERE BOX_CD = #{boxCd}
+    </update>
+
+    <!-- 사물함 삭제 -->
+    <delete id="deleteBox" parameterType="com.academy.box.service.BoxVO">
+        DELETE FROM TB_OFF_BOX WHERE BOX_CD = #{boxCd}
+    </delete>
+
+
+    <!-- =====================================================
+         사물함 세부정보 (TB_OFF_BOX_NUM) 관련
+         ===================================================== -->
+
+    <!-- 사물함 세부정보 목록 조회 -->
+    <select id="selectBoxNumList" parameterType="com.academy.box.service.BoxNumVO" resultType="org.json.simple.JSONObject">
+        SELECT
+            TOBN.BOX_CD,
+            TOBN.BOX_NUM,
+            TOBN.USER_ID,
+            TOBN.BOX_FLAG,
+            TOBN.RENT_SEQ,
+            TOBN.RENT_MEMO,
+            DATE_FORMAT(TOBN.UPD_DT, '%Y-%m-%d') AS UPD_DT,
+            TOBN.UPD_ID,
+            TMM.USER_NM
+        FROM TB_OFF_BOX_NUM TOBN
+        LEFT OUTER JOIN TB_MEMBER TMM ON TOBN.USER_ID = TMM.USER_ID
+        WHERE TOBN.BOX_CD = #{boxCd}
+        <if test="searchText != null and searchText != ''">
+            AND (TOBN.USER_ID LIKE CONCAT('%', #{searchText}, '%')
+                 OR TOBN.RENT_MEMO LIKE CONCAT('%', #{searchText}, '%'))
+        </if>
+        ORDER BY TOBN.BOX_NUM ASC
+        LIMIT #{recordCountPerPage} OFFSET #{firstIndex}
+    </select>
+
+    <!-- 사물함 세부정보 목록 건수 조회 -->
+    <select id="selectBoxNumListCount" parameterType="com.academy.box.service.BoxNumVO" resultType="int">
+        SELECT COUNT(*) AS CNT
+        FROM TB_OFF_BOX_NUM TOBN
+        WHERE TOBN.BOX_CD = #{boxCd}
+        <if test="searchText != null and searchText != ''">
+            AND (TOBN.USER_ID LIKE CONCAT('%', #{searchText}, '%')
+                 OR TOBN.RENT_MEMO LIKE CONCAT('%', #{searchText}, '%'))
+        </if>
+    </select>
+
+    <!-- 사물함 세부정보 상세 조회 -->
+    <select id="selectBoxNumDetail" parameterType="com.academy.box.service.BoxNumVO" resultType="org.json.simple.JSONObject">
+        SELECT
+            TOB.BOX_NM,
+            TOBN.BOX_CD,
+            TOBN.BOX_NUM,
+            TOBN.USER_ID,
+            TOBN.BOX_FLAG,
+            TOBN.RENT_SEQ,
+            TOBN.RENT_MEMO,
+            TOBN.UPD_DT,
+            TOBN.UPD_ID
+        FROM TB_OFF_BOX TOB
+        INNER JOIN TB_OFF_BOX_NUM TOBN ON TOB.BOX_CD = TOBN.BOX_CD
+        WHERE TOBN.BOX_CD = #{boxCd}
+          AND TOBN.BOX_NUM = #{boxNum}
+    </select>
+
+    <!-- 사물함 세부정보 등록 -->
+    <insert id="insertBoxNum" parameterType="com.academy.box.service.BoxNumVO">
+        INSERT INTO TB_OFF_BOX_NUM (
+            BOX_CD,
+            BOX_NUM,
+            USER_ID,
+            BOX_FLAG,
+            <if test="rentMemo != null and rentMemo != ''">
+            RENT_MEMO,
+            </if>
+            UPD_DT,
+            UPD_ID
+        ) VALUES (
+            #{boxCd},
+            #{boxNum},
+            #{userId},
+            #{boxFlag},
+            <if test="rentMemo != null and rentMemo != ''">
+            #{rentMemo},
+            </if>
+            now(),
+            #{regId}
+        )
+    </insert>
+
+    <!-- 사물함 세부정보 수정 -->
+    <update id="updateBoxNum" parameterType="com.academy.box.service.BoxNumVO">
+        UPDATE TB_OFF_BOX_NUM
+        SET
+            <if test="userId != null">
+            USER_ID = #{userId},
+            </if>
+            <if test="boxFlag != null and boxFlag != ''">
+            BOX_FLAG = #{boxFlag},
+            </if>
+            <if test="rentSeq != null">
+            RENT_SEQ = #{rentSeq},
+            </if>
+            <if test="rentMemo != null">
+            RENT_MEMO = #{rentMemo},
+            </if>
+            UPD_DT = now(),
+            UPD_ID = #{updId}
+        WHERE BOX_CD = #{boxCd} AND BOX_NUM = #{boxNum}
+    </update>
+
+    <!-- 사물함 플래그(사용상태) 수정 -->
+    <update id="updateBoxNumFlag" parameterType="com.academy.box.service.BoxNumVO">
+        UPDATE TB_OFF_BOX_NUM
+        SET
+            BOX_FLAG = #{boxFlag}
+            <if test='boxFlag != "Y"'>
+            , RENT_SEQ = NULL
+            </if>
+            , UPD_DT = now()
+            , UPD_ID = #{updId}
+        WHERE BOX_CD = #{boxCd} AND BOX_NUM = #{boxNum}
+    </update>
+
+    <!-- 사물함 세부정보 초기화 -->
+    <update id="updateBoxNumReset" parameterType="com.academy.box.service.BoxNumVO">
+        UPDATE TB_OFF_BOX_NUM
+        SET
+            USER_ID = '',
+            BOX_FLAG = 'N',
+            RENT_SEQ = NULL,
+            RENT_MEMO = '',
+            UPD_DT = now(),
+            UPD_ID = #{updId}
+        WHERE BOX_CD = #{boxCd} AND BOX_NUM = #{boxNum}
+        <if test="rentSeq != null">
+            AND RENT_SEQ = #{rentSeq}
+        </if>
+    </update>
+
+    <!-- 사물함 세부정보 삭제 -->
+    <delete id="deleteBoxNum" parameterType="com.academy.box.service.BoxNumVO">
+        DELETE FROM TB_OFF_BOX_NUM
+        WHERE BOX_CD = #{boxCd} AND BOX_NUM = #{boxNum}
+    </delete>
+
+    <!-- 사물함 세부정보 일괄 삭제 (사물함코드 기준) -->
+    <delete id="deleteBoxNumByBoxCd" parameterType="com.academy.box.service.BoxVO">
+        DELETE FROM TB_OFF_BOX_NUM WHERE BOX_CD = #{boxCd}
+    </delete>
+
+</mapper>

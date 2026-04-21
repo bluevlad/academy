@@ -1,0 +1,119 @@
+server:
+  port: ${SERVER_PORT:9000}
+  forward-headers-strategy: framework
+  # 통합 이후 context-path 는 '/' — URL prefix (/api/admin, /api/user) 로 경계 구분
+
+log:
+  path: ${LOG_PATH:/app/logs}
+
+spring:
+  application:
+    name: academy-integrated
+
+  datasource:
+    url: ${DB_URL:jdbc:mariadb://localhost:3306/acm_basic?useUnicode=true&characterEncoding=utf8&serverTimezone=Asia/Seoul}
+    username: ${DB_USERNAME:root}
+    password: ${DB_PASSWORD:password}
+    driver-class-name: ${DB_DRIVER:org.mariadb.jdbc.Driver}
+    hikari:
+      maximum-pool-size: ${DB_POOL_MAX:20}
+      minimum-idle: ${DB_POOL_MIN:5}
+      connection-timeout: 30000
+
+  # Flyway — baseline=1 로 기존 acm_basic 스키마 인정 → V2+ 부터 실행
+  flyway:
+    enabled: ${FLYWAY_ENABLED:true}
+    locations: classpath:db/migration
+    baseline-on-migrate: true
+    baseline-version: 1
+    validate-on-migrate: true
+
+  # Redis — Sprint 0+ (장바구니 임시·JWT refresh·stat 캐시)
+  data:
+    redis:
+      host: ${REDIS_HOST:localhost}
+      port: ${REDIS_PORT:6379}
+      password: ${REDIS_PASSWORD:}
+      timeout: 2000ms
+      lettuce:
+        pool:
+          max-active: 16
+          max-idle: 8
+          min-idle: 2
+
+mybatis:
+  mapper-locations: classpath:mapper/**/*.xml
+  configuration:
+    map-underscore-to-camel-case: true
+    default-statement-timeout: 30
+
+# Actuator — /actuator/health 는 공개
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health, info
+  endpoint:
+    health:
+      show-details: never
+      probes:
+        enabled: true
+
+# Swagger / OpenAPI
+springdoc:
+  api-docs:
+    path: /api-docs
+  swagger-ui:
+    path: /swagger-ui.html
+    operations-sorter: method
+    tags-sorter: alpha
+
+# CORS
+cors:
+  allowed-origins: ${CORS_ALLOWED_ORIGINS:http://localhost:4001,http://localhost:3003,http://localhost:5173,http://localhost:5174}
+
+# 애플리케이션 커스텀 속성
+app:
+  super-admin-emails: ${SUPER_ADMIN_EMAILS:rainend00@gmail.com}
+  admin:
+    username: ${ADMIN_USERNAME:admin}
+    password: ${ADMIN_PASSWORD:dnflskfk}
+  jwt:
+    secret: ${JWT_SECRET:academy-integrated-dev-secret-change-in-production-minimum-32-bytes}
+    expiration-ms: ${JWT_EXPIRATION:3600000}
+  google:
+    client-id: ${GOOGLE_CLIENT_ID:}
+
+logging:
+  level:
+    com.academy: DEBUG
+    org.springframework.web: INFO
+
+---
+# ===== prod profile =====
+spring:
+  config:
+    activate:
+      on-profile: prod
+
+logging:
+  level:
+    com.academy: INFO
+    org.springframework.web: WARN
+    org.mybatis: WARN
+
+springdoc:
+  api-docs:
+    enabled: false
+  swagger-ui:
+    enabled: false
+
+---
+# ===== local profile (mvn spring-boot:run -Dspring-boot.run.profiles=local) =====
+spring:
+  config:
+    activate:
+      on-profile: local
+
+  flyway:
+    enabled: false   # 로컬 H2 등 사용 시 Flyway skip (필요 시 override)

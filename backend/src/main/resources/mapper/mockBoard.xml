@@ -1,0 +1,85 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.academy.mapper.MockBoardMapper">
+
+    <select id="selectMockBoardList" parameterType="com.academy.mocktest.board.service.MockBoardVO" resultType="com.academy.mocktest.board.service.MockBoardVO">
+        SELECT A.BOARD_SEQ AS boardSeq,
+               A.BOARD_TYPE AS boardType,
+               CASE A.BOARD_TYPE WHEN 'NOTICE' THEN '공지' WHEN 'QNA' THEN 'Q&amp;A' WHEN 'FAQ' THEN 'FAQ' ELSE A.BOARD_TYPE END AS boardTypeNm,
+               A.TITLE AS title,
+               A.VIEW_CNT AS viewCnt,
+               A.IS_TOP AS isTop,
+               A.ISUSE AS isuse,
+               A.ANSWER_YN AS answerYn,
+               A.WRITER_ID AS writerId,
+               A.WRITER_NM AS writerNm,
+               DATE_FORMAT(A.REG_DATE, '%Y-%m-%d') AS regDate
+          FROM TB_MOCK_BOARD A
+         WHERE A.ISUSE = 'Y'
+        <if test="boardType != null and boardType != ''">
+           AND A.BOARD_TYPE = #{boardType}
+        </if>
+        <if test="searchTitle != null and searchTitle != ''">
+           AND A.TITLE LIKE CONCAT('%', #{searchTitle}, '%')
+        </if>
+        <if test="searchWriter != null and searchWriter != ''">
+           AND A.WRITER_NM LIKE CONCAT('%', #{searchWriter}, '%')
+        </if>
+         ORDER BY A.IS_TOP DESC, A.REG_DATE DESC
+         LIMIT #{recordCountPerPage} OFFSET #{firstIndex}
+    </select>
+
+    <select id="selectMockBoardListCount" parameterType="com.academy.mocktest.board.service.MockBoardVO" resultType="int">
+        SELECT COUNT(*)
+          FROM TB_MOCK_BOARD A
+         WHERE A.ISUSE = 'Y'
+        <if test="boardType != null and boardType != ''">
+           AND A.BOARD_TYPE = #{boardType}
+        </if>
+        <if test="searchTitle != null and searchTitle != ''">
+           AND A.TITLE LIKE CONCAT('%', #{searchTitle}, '%')
+        </if>
+        <if test="searchWriter != null and searchWriter != ''">
+           AND A.WRITER_NM LIKE CONCAT('%', #{searchWriter}, '%')
+        </if>
+    </select>
+
+    <select id="selectMockBoardDetail" parameterType="com.academy.mocktest.board.service.MockBoardVO" resultType="com.academy.mocktest.board.service.MockBoardVO">
+        SELECT BOARD_SEQ AS boardSeq, BOARD_TYPE AS boardType, TITLE AS title, CONTENT AS content,
+               VIEW_CNT AS viewCnt, IS_TOP AS isTop, ISUSE AS isuse, FILE_ID AS fileId,
+               WRITER_ID AS writerId, WRITER_NM AS writerNm,
+               ANSWER_CONTENT AS answerContent, ANSWER_YN AS answerYn, ANSWER_ID AS answerId,
+               DATE_FORMAT(ANSWER_DATE, '%Y-%m-%d %H:%i:%s') AS answerDate,
+               REG_ID AS regId, DATE_FORMAT(REG_DATE, '%Y-%m-%d %H:%i:%s') AS regDate
+          FROM TB_MOCK_BOARD WHERE BOARD_SEQ = #{boardSeq}
+    </select>
+
+    <insert id="insertMockBoard" parameterType="com.academy.mocktest.board.service.MockBoardVO">
+        INSERT INTO TB_MOCK_BOARD (BOARD_TYPE, TITLE, CONTENT, IS_TOP, ISUSE, FILE_ID, WRITER_ID, WRITER_NM, REG_ID, REG_DATE)
+        VALUES (#{boardType}, #{title}, #{content}, IFNULL(#{isTop}, 'N'), 'Y', #{fileId}, #{writerId}, #{writerNm}, #{regId}, NOW())
+    </insert>
+
+    <update id="updateMockBoard" parameterType="com.academy.mocktest.board.service.MockBoardVO">
+        UPDATE TB_MOCK_BOARD SET TITLE = #{title}, CONTENT = #{content}, IS_TOP = #{isTop}, FILE_ID = #{fileId}, MOD_ID = #{modId}, MOD_DATE = NOW()
+         WHERE BOARD_SEQ = #{boardSeq}
+    </update>
+
+    <update id="deleteMockBoard" parameterType="com.academy.mocktest.board.service.MockBoardVO">
+        UPDATE TB_MOCK_BOARD SET ISUSE = 'N', MOD_ID = #{modId}, MOD_DATE = NOW() WHERE BOARD_SEQ = #{boardSeq}
+    </update>
+
+    <update id="updateViewCnt" parameterType="com.academy.mocktest.board.service.MockBoardVO">
+        UPDATE TB_MOCK_BOARD SET VIEW_CNT = VIEW_CNT + 1 WHERE BOARD_SEQ = #{boardSeq}
+    </update>
+
+    <update id="updateAnswer" parameterType="com.academy.mocktest.board.service.MockBoardVO">
+        UPDATE TB_MOCK_BOARD SET ANSWER_CONTENT = #{answerContent}, ANSWER_YN = 'Y', ANSWER_ID = #{answerId}, ANSWER_DATE = NOW()
+         WHERE BOARD_SEQ = #{boardSeq}
+    </update>
+
+    <select id="selectNoticeTopList" parameterType="com.academy.mocktest.board.service.MockBoardVO" resultType="com.academy.mocktest.board.service.MockBoardVO">
+        SELECT BOARD_SEQ AS boardSeq, TITLE AS title, DATE_FORMAT(REG_DATE, '%Y-%m-%d') AS regDate
+          FROM TB_MOCK_BOARD WHERE BOARD_TYPE = 'NOTICE' AND IS_TOP = 'Y' AND ISUSE = 'Y' ORDER BY REG_DATE DESC LIMIT 5
+    </select>
+
+</mapper>

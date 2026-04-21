@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.academy.mapper.OffExamRegMapper">
+
+    <select id="selectOffExamRegList" parameterType="com.academy.mocktest.offExamReg.registration.service.OffExamRegVO" resultType="com.academy.mocktest.offExamReg.registration.service.OffExamRegVO">
+        SELECT A.REG_SEQ AS regSeq, A.EXAM_SEQ AS examSeq, B.EXAM_NM AS examNm,
+               DATE_FORMAT(B.EXAM_DATE, '%Y-%m-%d') AS examDate,
+               A.USER_ID AS userId, A.USER_NM AS userNm, A.PHONE AS phone, A.EMAIL AS email,
+               A.REG_STATUS AS regStatus,
+               CASE A.REG_STATUS WHEN 'REG' THEN '접수완료' WHEN 'CANCEL' THEN '취소' WHEN 'CONFIRM' THEN '확정' ELSE A.REG_STATUS END AS regStatusNm,
+               DATE_FORMAT(A.REG_DATE, '%Y-%m-%d') AS regDate,
+               A.PAY_AMT AS payAmt, A.PAY_STATUS AS payStatus,
+               A.ATTEND_YN AS attendYn, A.SCORE AS score, A.RANKING AS ranking, A.PASS_YN AS passYn
+          FROM TB_OFF_EXAM_REG A
+          LEFT JOIN TB_OFF_EXAM B ON A.EXAM_SEQ = B.EXAM_SEQ
+         WHERE 1=1
+        <if test="searchExamSeq != null and searchExamSeq != ''">AND A.EXAM_SEQ = #{searchExamSeq}</if>
+        <if test="searchUserNm != null and searchUserNm != ''">AND A.USER_NM LIKE CONCAT('%', #{searchUserNm}, '%')</if>
+        <if test="searchRegStatus != null and searchRegStatus != ''">AND A.REG_STATUS = #{searchRegStatus}</if>
+         ORDER BY A.REG_DATE DESC
+         LIMIT #{recordCountPerPage} OFFSET #{firstIndex}
+    </select>
+
+    <select id="selectOffExamRegListCount" parameterType="com.academy.mocktest.offExamReg.registration.service.OffExamRegVO" resultType="int">
+        SELECT COUNT(*) FROM TB_OFF_EXAM_REG A WHERE 1=1
+        <if test="searchExamSeq != null and searchExamSeq != ''">AND A.EXAM_SEQ = #{searchExamSeq}</if>
+        <if test="searchUserNm != null and searchUserNm != ''">AND A.USER_NM LIKE CONCAT('%', #{searchUserNm}, '%')</if>
+        <if test="searchRegStatus != null and searchRegStatus != ''">AND A.REG_STATUS = #{searchRegStatus}</if>
+    </select>
+
+    <select id="selectOffExamRegDetail" parameterType="com.academy.mocktest.offExamReg.registration.service.OffExamRegVO" resultType="com.academy.mocktest.offExamReg.registration.service.OffExamRegVO">
+        SELECT A.REG_SEQ AS regSeq, A.EXAM_SEQ AS examSeq, B.EXAM_NM AS examNm,
+               DATE_FORMAT(B.EXAM_DATE, '%Y-%m-%d') AS examDate,
+               A.USER_ID AS userId, A.USER_NM AS userNm, A.PHONE AS phone, A.EMAIL AS email,
+               A.REG_STATUS AS regStatus,
+               CASE A.REG_STATUS WHEN 'REG' THEN '접수완료' WHEN 'CANCEL' THEN '취소' WHEN 'CONFIRM' THEN '확정' ELSE A.REG_STATUS END AS regStatusNm,
+               DATE_FORMAT(A.REG_DATE, '%Y-%m-%d %H:%i:%s') AS regDate,
+               DATE_FORMAT(A.CANCEL_DATE, '%Y-%m-%d %H:%i:%s') AS cancelDate,
+               A.CANCEL_REASON AS cancelReason,
+               A.PAY_AMT AS payAmt, A.PAY_STATUS AS payStatus, DATE_FORMAT(A.PAY_DATE, '%Y-%m-%d %H:%i:%s') AS payDate,
+               A.ATTEND_YN AS attendYn, A.SCORE AS score, A.RANKING AS ranking, A.PASS_YN AS passYn,
+               A.MOD_ID AS modId, DATE_FORMAT(A.MOD_DATE, '%Y-%m-%d %H:%i:%s') AS modDate
+          FROM TB_OFF_EXAM_REG A
+          LEFT JOIN TB_OFF_EXAM B ON A.EXAM_SEQ = B.EXAM_SEQ
+         WHERE A.REG_SEQ = #{regSeq}
+    </select>
+
+    <insert id="insertOffExamReg" parameterType="com.academy.mocktest.offExamReg.registration.service.OffExamRegVO">
+        INSERT INTO TB_OFF_EXAM_REG (EXAM_SEQ, USER_ID, USER_NM, PHONE, EMAIL, REG_STATUS, REG_DATE, PAY_AMT, PAY_STATUS)
+        VALUES (#{examSeq}, #{userId}, #{userNm}, #{phone}, #{email}, IFNULL(#{regStatus}, 'REG'), NOW(), #{payAmt}, IFNULL(#{payStatus}, 'N'))
+    </insert>
+
+    <update id="updateOffExamReg" parameterType="com.academy.mocktest.offExamReg.registration.service.OffExamRegVO">
+        UPDATE TB_OFF_EXAM_REG SET USER_NM = #{userNm}, PHONE = #{phone}, EMAIL = #{email},
+               PAY_AMT = #{payAmt}, PAY_STATUS = #{payStatus}, MOD_ID = #{modId}, MOD_DATE = NOW()
+         WHERE REG_SEQ = #{regSeq}
+    </update>
+
+    <update id="deleteOffExamReg" parameterType="com.academy.mocktest.offExamReg.registration.service.OffExamRegVO">
+        UPDATE TB_OFF_EXAM_REG SET REG_STATUS = 'CANCEL', CANCEL_DATE = NOW(), CANCEL_REASON = #{cancelReason},
+               MOD_ID = #{modId}, MOD_DATE = NOW()
+         WHERE REG_SEQ = #{regSeq}
+    </update>
+
+    <update id="updateOffExamRegStatus" parameterType="com.academy.mocktest.offExamReg.registration.service.OffExamRegVO">
+        UPDATE TB_OFF_EXAM_REG SET REG_STATUS = #{regStatus}, MOD_ID = #{modId}, MOD_DATE = NOW()
+         WHERE REG_SEQ = #{regSeq}
+    </update>
+
+    <update id="updateOffExamRegResult" parameterType="com.academy.mocktest.offExamReg.registration.service.OffExamRegVO">
+        UPDATE TB_OFF_EXAM_REG SET ATTEND_YN = #{attendYn}, SCORE = #{score}, RANKING = #{ranking}, PASS_YN = #{passYn},
+               MOD_ID = #{modId}, MOD_DATE = NOW()
+         WHERE REG_SEQ = #{regSeq}
+    </update>
+
+</mapper>

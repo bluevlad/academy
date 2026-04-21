@@ -1,0 +1,247 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.academy.mapper.BoardTeacherMapper">
+
+    <!-- 강사용 게시판 목록 조회 -->
+    <select id="selectBoardTeacherList" parameterType="com.academy.board.service.BoardVO" resultType="org.json.simple.JSONObject">
+        SELECT
+            (SELECT NAME FROM TB_CATEGORY_INFO WHERE CODE = #{searchCategory}) AS CODENAME,
+            CAST(bb.BOARD_SEQ AS UNSIGNED) AS BOARD_SEQ,
+            bb.SUBJECT,
+            bb.CONTENT,
+            (SELECT FILE_NAME FROM TB_BOARD_FILE WHERE BOARD_SEQ = bb.BOARD_SEQ LIMIT 1) AS FILE_NAME,
+            bb.THUMBNAIL_FILE_NAME,
+            bb.PARENT_BOARD_SEQ,
+            bb.NOTICE_TOP_YN,
+            bb.HITS,
+            DATE_FORMAT(bb.REG_DT, '%Y-%m-%d %H:%i:%s') AS REG_DT,
+            (SELECT USER_NM FROM TB_MA_MEMBER WHERE USER_ID = bb.REG_ID) AS USER_NM,
+            DATE_FORMAT(bb.UPD_DT, '%Y-%m-%d %H:%i:%s') AS UPD_DT,
+            bb.UPD_ID,
+            bb.CREATENAME,
+            bb.RECOMMEND,
+            bb.ISSUE,
+            bb.OPEN_YN,
+            bb.PROF_ID,
+            (SELECT USER_NM FROM TB_MA_MEMBER WHERE USER_ID = bb.PROF_ID) AS PROF_NM
+        FROM TB_BOARD bb
+        INNER JOIN TB_BOARD_MNG cc ON bb.BOARD_MNG_SEQ = cc.BOARD_MNG_SEQ
+        WHERE 1=1
+        AND bb.BOARD_MNG_SEQ = #{boardMngSeq}
+        AND cc.BOARD_MNG_SEQ = #{boardMngSeq}
+        <choose>
+            <when test="searchOnoffDiv != null and searchOnoffDiv != ''">
+                AND cc.ONOFF_DIV = #{searchOnoffDiv}
+            </when>
+            <otherwise>
+                <if test='onoffDiv != null and onoffDiv == "T"'>
+                    AND cc.ONOFF_DIV = 'T'
+                </if>
+            </otherwise>
+        </choose>
+        <if test="searchText != null and searchText != ''">
+            <choose>
+                <when test='searchKind == "SEARCHSUBJECT"'>
+                    AND bb.SUBJECT LIKE CONCAT('%', #{searchText}, '%')
+                </when>
+                <when test='searchKind == "SEARCHNAME"'>
+                    AND bb.CREATENAME LIKE CONCAT('%', #{searchText}, '%')
+                </when>
+                <when test='searchKind == "SEARCHCONTENT"'>
+                    AND bb.CONTENT LIKE CONCAT('%', #{searchText}, '%')
+                </when>
+                <otherwise>
+                    AND (bb.SUBJECT LIKE CONCAT('%', #{searchText}, '%')
+                         OR bb.CREATENAME LIKE CONCAT('%', #{searchText}, '%')
+                         OR bb.CONTENT LIKE CONCAT('%', #{searchText}, '%'))
+                </otherwise>
+            </choose>
+        </if>
+        <if test="searchPrfId != null and searchPrfId != ''">
+            AND bb.PROF_ID = #{searchPrfId}
+        </if>
+        ORDER BY bb.NOTICE_TOP_YN DESC, bb.BOARD_SEQ DESC
+        LIMIT #{recordCountPerPage} OFFSET #{firstIndex}
+    </select>
+
+    <!-- 강사용 게시판 목록 건수 조회 -->
+    <select id="selectBoardTeacherListCount" parameterType="com.academy.board.service.BoardVO" resultType="int">
+        SELECT COUNT(*) AS CNT
+        FROM TB_BOARD bb
+        INNER JOIN TB_BOARD_MNG cc ON bb.BOARD_MNG_SEQ = cc.BOARD_MNG_SEQ
+        WHERE 1=1
+        AND bb.BOARD_MNG_SEQ = #{boardMngSeq}
+        AND cc.BOARD_MNG_SEQ = #{boardMngSeq}
+        <choose>
+            <when test="searchOnoffDiv != null and searchOnoffDiv != ''">
+                AND cc.ONOFF_DIV = #{searchOnoffDiv}
+            </when>
+            <otherwise>
+                <if test='onoffDiv != null and onoffDiv == "T"'>
+                    AND cc.ONOFF_DIV = 'T'
+                </if>
+            </otherwise>
+        </choose>
+        <if test="searchText != null and searchText != ''">
+            <choose>
+                <when test='searchKind == "SEARCHSUBJECT"'>
+                    AND bb.SUBJECT LIKE CONCAT('%', #{searchText}, '%')
+                </when>
+                <when test='searchKind == "SEARCHNAME"'>
+                    AND bb.CREATENAME LIKE CONCAT('%', #{searchText}, '%')
+                </when>
+                <when test='searchKind == "SEARCHCONTENT"'>
+                    AND bb.CONTENT LIKE CONCAT('%', #{searchText}, '%')
+                </when>
+                <otherwise>
+                    AND (bb.SUBJECT LIKE CONCAT('%', #{searchText}, '%')
+                         OR bb.CREATENAME LIKE CONCAT('%', #{searchText}, '%')
+                         OR bb.CONTENT LIKE CONCAT('%', #{searchText}, '%'))
+                </otherwise>
+            </choose>
+        </if>
+        <if test="searchPrfId != null and searchPrfId != ''">
+            AND bb.PROF_ID = #{searchPrfId}
+        </if>
+    </select>
+
+    <!-- 강사용 게시판 상세 조회 -->
+    <select id="getBoardTeacherDetail" parameterType="com.academy.board.service.BoardVO" resultType="org.json.simple.JSONObject">
+        SELECT
+            BOARD_MNG_SEQ,
+            BOARD_SEQ,
+            OPEN_YN,
+            SUBJECT,
+            CONTENT,
+            ANSWER,
+            FILE_PATH,
+            FILE_NAME,
+            REAL_FILE_NAME,
+            THUMBNAIL_FILE_NAME,
+            PARENT_BOARD_SEQ,
+            NOTICE_TOP_YN,
+            DATE_FORMAT(REG_DT, '%Y-%m-%d %H:%i:%s') AS REG_DT,
+            REG_ID,
+            UPD_DT,
+            UPD_ID,
+            HITS,
+            CREATENAME,
+            RECOMMEND,
+            ISSUE,
+            PROF_ID,
+            (SELECT USER_NM FROM TB_MA_MEMBER WHERE USER_ID = PROF_ID) AS PROF_NM
+        FROM TB_BOARD
+        WHERE BOARD_SEQ = #{boardSeq}
+    </select>
+
+    <!-- 강사용 게시판 등록 -->
+    <insert id="insertBoardTeacher" parameterType="com.academy.board.service.BoardVO">
+        <selectKey keyProperty="boardSeq" resultType="String" order="BEFORE">
+            SELECT IFNULL(MAX(CAST(BOARD_SEQ AS UNSIGNED)), 0) + 1 FROM TB_BOARD
+        </selectKey>
+        INSERT INTO TB_BOARD (
+            BOARD_MNG_SEQ,
+            BOARD_SEQ,
+            OPEN_YN,
+            SUBJECT,
+            CONTENT,
+            FILE_PATH,
+            FILE_NAME,
+            REAL_FILE_NAME,
+            THUMBNAIL_FILE_NAME,
+            PARENT_BOARD_SEQ,
+            NOTICE_TOP_YN,
+            REG_DT,
+            REG_ID,
+            UPD_DT,
+            UPD_ID,
+            HITS,
+            CREATENAME,
+            RECOMMEND,
+            ISSUE,
+            PROF_ID
+        ) VALUES (
+            #{boardMngSeq},
+            #{boardSeq},
+            #{openYn},
+            #{subject},
+            #{content},
+            #{filePath},
+            #{fileName},
+            #{realFileName},
+            #{thumbnailFileName},
+            0,
+            #{noticeTopYn},
+            now(),
+            #{regId},
+            now(),
+            #{regId},
+            0,
+            #{createName},
+            #{recommend},
+            #{issue},
+            #{profId}
+        )
+    </insert>
+
+    <!-- 강사용 게시판 수정 -->
+    <update id="updateBoardTeacher" parameterType="com.academy.board.service.BoardVO">
+        UPDATE TB_BOARD
+        SET
+            NOTICE_TOP_YN = #{noticeTopYn},
+            OPEN_YN = #{openYn},
+            SUBJECT = #{subject},
+            CONTENT = #{content},
+            <if test="thumbnailFileName != null and thumbnailFileName != ''">
+                THUMBNAIL_FILE_NAME = #{thumbnailFileName},
+            </if>
+            RECOMMEND = #{recommend},
+            ISSUE = #{issue},
+            PROF_ID = #{profId},
+            UPD_DT = now(),
+            UPD_ID = #{updId}
+        WHERE BOARD_SEQ = #{boardSeq}
+        AND BOARD_MNG_SEQ = #{boardMngSeq}
+    </update>
+
+    <!-- 이슈 여부 수정 -->
+    <update id="updateBoardIssue" parameterType="com.academy.board.service.BoardVO">
+        UPDATE TB_BOARD
+        SET
+            ISSUE = #{issue},
+            UPD_DT = now(),
+            UPD_ID = #{updId}
+        WHERE BOARD_SEQ = #{boardSeq}
+    </update>
+
+    <!-- 추천 여부 수정 -->
+    <update id="updateBoardRecommend" parameterType="com.academy.board.service.BoardVO">
+        UPDATE TB_BOARD
+        SET
+            RECOMMEND = #{recommend},
+            UPD_DT = now(),
+            UPD_ID = #{updId}
+        WHERE BOARD_SEQ = #{boardSeq}
+    </update>
+
+    <!-- 공개 여부 수정 -->
+    <update id="updateBoardOpenYn" parameterType="com.academy.board.service.BoardVO">
+        UPDATE TB_BOARD
+        SET
+            OPEN_YN = #{openYn},
+            UPD_DT = now(),
+            UPD_ID = #{updId}
+        WHERE BOARD_SEQ = #{boardSeq}
+    </update>
+
+    <!-- 메인 노출 여부 수정 -->
+    <update id="updateBoardMainYn" parameterType="com.academy.board.service.BoardVO">
+        UPDATE TB_BOARD
+        SET
+            MAIN_YN = #{mainYn},
+            UPD_DT = now(),
+            UPD_ID = #{updId}
+        WHERE BOARD_SEQ = #{boardSeq}
+    </update>
+
+</mapper>

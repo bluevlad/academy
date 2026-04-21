@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.academy.mapper.NoteMapper">
+
+    <select id="selectNoteList" parameterType="com.academy.note.service.NoteVO" resultType="com.academy.note.service.NoteVO">
+        SELECT A.NOTE_ID AS noteId, A.FROM_USER_ID AS fromUserId,
+               (SELECT USER_NM FROM TB_MEMBER WHERE USER_ID = A.FROM_USER_ID) AS fromUserNm,
+               A.SEND_ID AS sendId,
+               (SELECT USER_NM FROM TB_MEMBER WHERE USER_ID = A.SEND_ID) AS sendNm,
+               A.CONTENT AS content, A.READ_YN AS readYn,
+               CASE A.READ_YN WHEN 'Y' THEN '수신' WHEN 'N' THEN '미수신' ELSE A.READ_YN END AS readYnNm,
+               DATE_FORMAT(A.SEND_DATE, '%Y-%m-%d %H:%i:%s') AS sendDate,
+               DATE_FORMAT(A.READ_DATE, '%Y-%m-%d %H:%i:%s') AS readDate
+          FROM TB_NOTE A
+         WHERE 1=1
+        <if test="searchText != null and searchText != ''">
+            <choose>
+                <when test="searchKind == 'FROM'">AND (SELECT USER_NM FROM TB_MEMBER WHERE USER_ID = A.FROM_USER_ID) LIKE CONCAT('%', #{searchText}, '%')</when>
+                <when test="searchKind == 'SEND'">AND (SELECT USER_NM FROM TB_MEMBER WHERE USER_ID = A.SEND_ID) LIKE CONCAT('%', #{searchText}, '%')</when>
+                <when test="searchKind == 'CONT'">AND A.CONTENT LIKE CONCAT('%', #{searchText}, '%')</when>
+                <otherwise>
+                    AND ((SELECT USER_NM FROM TB_MEMBER WHERE USER_ID = A.FROM_USER_ID) LIKE CONCAT('%', #{searchText}, '%')
+                      OR (SELECT USER_NM FROM TB_MEMBER WHERE USER_ID = A.SEND_ID) LIKE CONCAT('%', #{searchText}, '%')
+                      OR A.CONTENT LIKE CONCAT('%', #{searchText}, '%'))
+                </otherwise>
+            </choose>
+        </if>
+         ORDER BY A.NOTE_ID DESC
+         LIMIT #{recordCountPerPage} OFFSET #{firstIndex}
+    </select>
+
+    <select id="selectNoteListCount" parameterType="com.academy.note.service.NoteVO" resultType="int">
+        SELECT COUNT(*) FROM TB_NOTE A WHERE 1=1
+        <if test="searchText != null and searchText != ''">
+            <choose>
+                <when test="searchKind == 'FROM'">AND (SELECT USER_NM FROM TB_MEMBER WHERE USER_ID = A.FROM_USER_ID) LIKE CONCAT('%', #{searchText}, '%')</when>
+                <when test="searchKind == 'SEND'">AND (SELECT USER_NM FROM TB_MEMBER WHERE USER_ID = A.SEND_ID) LIKE CONCAT('%', #{searchText}, '%')</when>
+                <when test="searchKind == 'CONT'">AND A.CONTENT LIKE CONCAT('%', #{searchText}, '%')</when>
+                <otherwise>
+                    AND ((SELECT USER_NM FROM TB_MEMBER WHERE USER_ID = A.FROM_USER_ID) LIKE CONCAT('%', #{searchText}, '%')
+                      OR (SELECT USER_NM FROM TB_MEMBER WHERE USER_ID = A.SEND_ID) LIKE CONCAT('%', #{searchText}, '%')
+                      OR A.CONTENT LIKE CONCAT('%', #{searchText}, '%'))
+                </otherwise>
+            </choose>
+        </if>
+    </select>
+
+    <select id="selectNoteDetail" parameterType="com.academy.note.service.NoteVO" resultType="com.academy.note.service.NoteVO">
+        SELECT A.NOTE_ID AS noteId, A.FROM_USER_ID AS fromUserId,
+               (SELECT USER_NM FROM TB_MEMBER WHERE USER_ID = A.FROM_USER_ID) AS fromUserNm,
+               A.SEND_ID AS sendId,
+               (SELECT USER_NM FROM TB_MEMBER WHERE USER_ID = A.SEND_ID) AS sendNm,
+               A.CONTENT AS content, A.READ_YN AS readYn,
+               CASE A.READ_YN WHEN 'Y' THEN '수신' WHEN 'N' THEN '미수신' ELSE A.READ_YN END AS readYnNm,
+               DATE_FORMAT(A.SEND_DATE, '%Y-%m-%d %H:%i:%s') AS sendDate,
+               DATE_FORMAT(A.READ_DATE, '%Y-%m-%d %H:%i:%s') AS readDate
+          FROM TB_NOTE A
+         WHERE A.NOTE_ID = #{noteId}
+    </select>
+
+    <insert id="insertNote" parameterType="com.academy.note.service.NoteVO">
+        INSERT INTO TB_NOTE (FROM_USER_ID, SEND_ID, CONTENT, READ_YN, SEND_DATE)
+        VALUES (#{fromUserId}, #{sendId}, #{content}, 'N', NOW())
+    </insert>
+
+    <update id="updateNote" parameterType="com.academy.note.service.NoteVO">
+        UPDATE TB_NOTE SET CONTENT = #{content}, READ_YN = #{readYn},
+               READ_DATE = CASE WHEN #{readYn} = 'Y' THEN NOW() ELSE READ_DATE END
+         WHERE NOTE_ID = #{noteId}
+    </update>
+
+    <delete id="deleteNote" parameterType="com.academy.note.service.NoteVO">
+        DELETE FROM TB_NOTE WHERE NOTE_ID = #{noteId}
+    </delete>
+
+    <update id="updateNoteReadYn" parameterType="com.academy.note.service.NoteVO">
+        UPDATE TB_NOTE SET READ_YN = 'Y', READ_DATE = NOW() WHERE NOTE_ID = #{noteId}
+    </update>
+
+</mapper>

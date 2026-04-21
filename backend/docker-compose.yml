@@ -1,0 +1,31 @@
+version: '3.8'
+
+services:
+  academy-service:
+    build: .
+    container_name: academy-admin-back-end
+    ports:
+      - "9001:9001"
+    environment:
+      - SERVER_PORT=9001
+      # Docker 내부에서 호스트의 DB에 접근하기 위해 host.docker.internal 사용
+      # MySQL 8.0 이상 접속 시 allowPublicKeyRetrieval=true 필요할 수 있음
+      - DB_URL=${DB_URL:-jdbc:mysql://172.30.1.72:3306/acm_basic?useUnicode=true&characterEncoding=utf8&serverTimezone=Asia/Seoul}
+      - DB_USERNAME=${DB_USERNAME:-root}
+      - DB_PASSWORD=${DB_PASSWORD:-password}
+      - GOOGLE_CLIENT_ID=${GOOGLE_CLIENT_ID:-}
+      - GOOGLE_CLIENT_SECRET=${GOOGLE_CLIENT_SECRET:-}
+      - SUPER_ADMIN_EMAILS=${SUPER_ADMIN_EMAILS:-}
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    restart: always
+  # 데이터베이스 컨테이너가 필요한 경우 주석 해제하여 사용하세요
+  # db:
+  #   image: mysql:8.0
+  #   container_name: academy-db
+  #   environment:
+  #     MYSQL_ROOT_PASSWORD: password
+  #     MYSQL_DATABASE: acm_basic
+  #   ports:
+  #     - "3306:3306"
+  #   command: --character-set-server=utf8mb4 --collation-server=utf8mb4_unicode_ci

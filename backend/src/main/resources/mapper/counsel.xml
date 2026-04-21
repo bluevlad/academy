@@ -1,0 +1,333 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+    수정일              수정자           수정내용
+  ===========      =========    =================
+ *2025.12.11       system       상담 관리 매퍼 신규 생성 (MySQL 버전)
+-->
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.academy.mapper.CounselMapper">
+
+    <!-- =====================================================
+         상담 일정 (COUNSEL_SCH) 관련
+         ===================================================== -->
+
+    <!-- 상담 일정 일자 목록 조회 -->
+    <select id="selectScheduleDayList" parameterType="com.academy.counsel.service.CounselScheduleVO" resultType="org.json.simple.JSONObject">
+        SELECT
+            SUBSTRING(AA.SCH_DAY, 6, 5) AS V_DAY,
+            AA.SCH_DAY,
+            DAYNAME(AA.SCH_DAY) AS WEEK,
+            (SELECT SUM(MAX_USR) FROM COUNSEL_SCH WHERE SCH_DAY = AA.SCH_DAY AND CAT_CD = AA.CAT_CD) AS MAX_USR,
+            (SELECT SUM(REQ_CNT) FROM COUNSEL_SCH WHERE SCH_DAY = AA.SCH_DAY AND CAT_CD = AA.CAT_CD) AS REQ_CNT,
+            AA.CAT_CD,
+            (SELECT BB.NAME FROM TB_CATEGORY_INFO BB WHERE BB.CODE = AA.CAT_CD) AS CAT_NM
+        FROM (
+            SELECT B.CAT_CD, B.SCH_DAY
+            FROM COUNSEL_TIME A, COUNSEL_SCH B
+            WHERE A.IDX = B.TS_IDX
+            <if test="sDate != null and sDate != ''">
+                AND REPLACE(B.SCH_DAY, '-', '') BETWEEN #{sDate} AND #{eDate}
+            </if>
+            <if test="cateList != null and cateList.size() > 0">
+                AND B.CAT_CD IN
+                <foreach collection="cateList" item="item" index="index" open="(" separator="," close=")">
+                    #{item}
+                </foreach>
+            </if>
+            GROUP BY B.CAT_CD, B.SCH_DAY
+        ) AA
+        ORDER BY SCH_DAY DESC
+    </select>
+
+    <!-- 상담 일정 상세 목록 조회 -->
+    <select id="selectScheduleList" parameterType="com.academy.counsel.service.CounselScheduleVO" resultType="org.json.simple.JSONObject">
+        SELECT
+            A.TIME_SET,
+            B.TS_IDX,
+            B.MAX_USR,
+            B.REQ_CNT,
+            B.ISUSE,
+            B.REQ_TYPE
+        FROM COUNSEL_TIME A, COUNSEL_SCH B
+        WHERE A.IDX = B.TS_IDX
+        AND B.SCH_DAY = #{schDay}
+        <if test="catCd != null and catCd != ''">
+            AND B.CAT_CD = #{catCd}
+        </if>
+        ORDER BY TS_IDX ASC
+    </select>
+
+    <!-- 상담 일정 테이블 조회 -->
+    <select id="selectScheduleTable" parameterType="com.academy.counsel.service.CounselScheduleVO" resultType="org.json.simple.JSONObject">
+        SELECT A.*, B.TIME_SET
+        FROM COUNSEL_SCH A, COUNSEL_TIME B
+        WHERE A.TS_IDX = B.IDX
+        AND A.SCH_DAY = #{updateDate}
+        <if test="catCd != null and catCd != ''">
+            AND A.CAT_CD = #{catCd}
+        </if>
+        ORDER BY A.TS_IDX ASC
+    </select>
+
+    <!-- 상담 시간 테이블 조회 -->
+    <select id="selectTimeTable" parameterType="com.academy.counsel.service.CounselScheduleVO" resultType="org.json.simple.JSONObject">
+        SELECT * FROM COUNSEL_TIME
+        WHERE ISUSE = 'Y'
+        ORDER BY IDX ASC
+    </select>
+
+    <!-- 상담 일정 중복 건수 조회 -->
+    <select id="selectScheduleCount" parameterType="com.academy.counsel.service.CounselScheduleVO" resultType="int">
+        SELECT COUNT(*) AS CNT
+        FROM COUNSEL_SCH
+        WHERE DATE_FORMAT(STR_TO_DATE(SCH_DAY, '%Y-%m-%d'), '%Y%m%d') BETWEEN #{sDate} AND #{eDate}
+        AND ISUSE = 'Y'
+        <if test="catCd != null and catCd != ''">
+            AND CAT_CD = #{catCd}
+        </if>
+    </select>
+
+    <!-- 상담 일정 등록 -->
+    <insert id="insertSchedule" parameterType="com.academy.counsel.service.CounselScheduleVO">
+        INSERT INTO COUNSEL_SCH (
+            SCH_DAY,
+            TS_IDX,
+            MAX_USR,
+            REQ_CNT,
+            ISUSE,
+            REQ_TYPE,
+            CAT_CD
+        ) VALUES (
+            #{schDay},
+            #{tsIdx},
+            #{reqCnt},
+            0,
+            #{isUse},
+            #{reqType},
+            #{catCd}
+        )
+    </insert>
+
+    <!-- 상담 일정 수정 -->
+    <update id="updateSchedule" parameterType="com.academy.counsel.service.CounselScheduleVO">
+        UPDATE COUNSEL_SCH
+        SET
+            MAX_USR = #{reqCnt},
+            ISUSE = #{isUse},
+            REQ_TYPE = #{reqType}
+        WHERE SCH_DAY = #{updateDate}
+        AND TS_IDX = #{tsIdx}
+        AND CAT_CD = #{catCd}
+    </update>
+
+    <!-- 상담 일정 삭제 -->
+    <delete id="deleteSchedule" parameterType="com.academy.counsel.service.CounselScheduleVO">
+        DELETE FROM COUNSEL_SCH
+        WHERE SCH_DAY = #{delDate}
+        AND CAT_CD = #{catCd}
+    </delete>
+
+
+    <!-- =====================================================
+         상담 신청 (COUNSEL_RST) 관련
+         ===================================================== -->
+
+    <!-- 상담 신청 목록 조회 -->
+    <select id="selectCounselRequestList" parameterType="com.academy.counsel.service.CounselRequestVO" resultType="org.json.simple.JSONObject">
+        SELECT
+            B.SCH_DAY,
+            A.TIME_SET,
+            B.TS_IDX,
+            B.MAX_USR,
+            B.REQ_CNT,
+            B.ISUSE,
+            B.REQ_TYPE,
+            C.USER_CATEGORY,
+            (SELECT NAME FROM TB_CATEGORY_INFO INFO WHERE INFO.CODE = C.USER_CATEGORY) AS USER_CATEGORY_NM,
+            C.USER_PERIOD,
+            CASE C.USER_PERIOD
+                WHEN 'A' THEN '6개월 미만'
+                WHEN 'B' THEN '1년 미만'
+                WHEN 'C' THEN '1년 이상'
+            END AS USER_PERIOD_NM,
+            C.USER_LEC,
+            C.USER_ID,
+            C.USER_NM,
+            C.USER_BIRTHDAY,
+            C.USER_PHONE,
+            C.USER_EMAIL,
+            C.USER_CODE1,
+            C.USER_CODE2,
+            C.USER_SUBJECT,
+            C.USER_COMMENTS,
+            DATE_FORMAT(C.REG_DT, '%Y-%m-%d') AS REG_DT,
+            C.CANCEL_DATE,
+            C.RESERVE
+        FROM COUNSEL_TIME A, COUNSEL_SCH B, COUNSEL_RST C
+        WHERE A.IDX = B.TS_IDX
+        AND B.SCH_DAY = C.SCH_DAY
+        AND B.TS_IDX = C.TS_IDX
+        AND B.CAT_CD = C.USER_CATEGORY
+        <if test="cateList != null and cateList.size() > 0">
+            AND B.CAT_CD IN
+            <foreach collection="cateList" item="item" index="index" open="(" separator="," close=")">
+                #{item}
+            </foreach>
+        </if>
+        <if test="searchText != null and searchText != ''">
+            <choose>
+                <when test='searchType == "USER_ID"'>
+                    AND C.USER_ID LIKE CONCAT('%', #{searchKeyword}, '%')
+                </when>
+                <when test='searchType == "USER_NM"'>
+                    AND C.USER_NM LIKE CONCAT('%', #{searchKeyword}, '%')
+                </when>
+                <otherwise>
+                    AND (C.USER_ID LIKE CONCAT('%', #{searchKeyword}, '%')
+                         OR C.USER_NM LIKE CONCAT('%', #{searchKeyword}, '%'))
+                </otherwise>
+            </choose>
+        </if>
+        ORDER BY B.SCH_DAY DESC, B.TS_IDX DESC, C.USER_NM ASC
+        LIMIT #{recordCountPerPage} OFFSET #{firstIndex}
+    </select>
+
+    <!-- 상담 신청 목록 건수 조회 -->
+    <select id="selectCounselRequestListCount" parameterType="com.academy.counsel.service.CounselRequestVO" resultType="int">
+        SELECT COUNT(*) AS CNT
+        FROM COUNSEL_TIME A, COUNSEL_SCH B, COUNSEL_RST C
+        WHERE A.IDX = B.TS_IDX
+        AND B.SCH_DAY = C.SCH_DAY
+        AND B.TS_IDX = C.TS_IDX
+        AND B.CAT_CD = C.USER_CATEGORY
+        <if test="cateList != null and cateList.size() > 0">
+            AND B.CAT_CD IN
+            <foreach collection="cateList" item="item" index="index" open="(" separator="," close=")">
+                #{item}
+            </foreach>
+        </if>
+        <if test="searchText != null and searchText != ''">
+            <choose>
+                <when test='searchType == "USER_ID"'>
+                    AND C.USER_ID LIKE CONCAT('%', #{searchKeyword}, '%')
+                </when>
+                <when test='searchType == "USER_NM"'>
+                    AND C.USER_NM LIKE CONCAT('%', #{searchKeyword}, '%')
+                </when>
+                <otherwise>
+                    AND (C.USER_ID LIKE CONCAT('%', #{searchKeyword}, '%')
+                         OR C.USER_NM LIKE CONCAT('%', #{searchKeyword}, '%'))
+                </otherwise>
+            </choose>
+        </if>
+    </select>
+
+    <!-- 상담 신청 명단 조회 (예약 현황) -->
+    <select id="selectCounselReqList" parameterType="com.academy.counsel.service.CounselRequestVO" resultType="org.json.simple.JSONObject">
+        SELECT
+            A.TIME_SET,
+            B.SCH_DAY,
+            B.TS_IDX,
+            B.MAX_USR,
+            B.REQ_CNT,
+            B.ISUSE,
+            B.REQ_TYPE,
+            C.USER_ID,
+            C.USER_NM
+        FROM COUNSEL_TIME A, COUNSEL_SCH B, COUNSEL_RST C
+        WHERE A.IDX = B.TS_IDX
+        AND B.SCH_DAY = C.SCH_DAY
+        AND B.TS_IDX = C.TS_IDX
+        AND B.CAT_CD = C.USER_CATEGORY
+        AND B.SCH_DAY = #{schDay}
+        AND C.RESERVE = 'Y'
+        <if test="catCd != null and catCd != ''">
+            AND B.CAT_CD = #{catCd}
+        </if>
+    </select>
+
+    <!-- 개인 상담 신청 내역 조회 -->
+    <select id="selectCounselUserReq" parameterType="com.academy.counsel.service.CounselRequestVO" resultType="org.json.simple.JSONObject">
+        SELECT
+            A.TIME_SET,
+            B.TS_IDX,
+            B.MAX_USR,
+            B.REQ_CNT,
+            B.ISUSE,
+            B.REQ_TYPE,
+            (SELECT NAME FROM TB_CATEGORY_INFO INFO WHERE INFO.CODE = C.USER_CATEGORY) AS USER_CATEGORY_NM,
+            CASE C.USER_PERIOD
+                WHEN 'A' THEN '6개월 미만'
+                WHEN 'B' THEN '1년 미만'
+                WHEN 'C' THEN '1년 이상'
+            END AS USER_PERIOD_NM,
+            C.*
+        FROM COUNSEL_TIME A, COUNSEL_SCH B, COUNSEL_RST C
+        WHERE A.IDX = B.TS_IDX
+        AND B.SCH_DAY = C.SCH_DAY
+        AND B.TS_IDX = C.TS_IDX
+        AND B.CAT_CD = C.USER_CATEGORY
+        AND B.SCH_DAY = #{schDay}
+        AND C.USER_ID = #{userId}
+        AND B.CAT_CD = #{catCd}
+    </select>
+
+
+    <!-- =====================================================
+         설명회 신청 (TB_PRESENT) 관련
+         ===================================================== -->
+
+    <!-- 설명회 신청 목록 조회 -->
+    <select id="selectPresentReqList" parameterType="com.academy.counsel.service.PresentRequestVO" resultType="org.json.simple.JSONObject">
+        SELECT
+            A.USER_ID,
+            A.UNIV_CD,
+            DATE_FORMAT(A.REG_DT, '%Y-%m-%d') AS REG_DT,
+            B.CODE_NM,
+            IFNULL(C.USER_NM, A.USER_NM) AS USER_NM,
+            IFNULL(C.PHONE_NO, A.PHONE) AS PHONE_NO,
+            IFNULL(C.EMAIL, A.EMAIL) AS EMAIL,
+            A.COMENTS
+        FROM TB_PRESENT A
+        INNER JOIN TB_BA_CONFIG_CD B ON A.UNIV_CD = B.CODE_VAL
+        LEFT JOIN TB_MEMBER C ON A.USER_ID = C.USER_ID
+        WHERE B.SYS_CD = 'TB_PRESENT'
+        <if test="searchType != null and searchType == 'USER_ID'">
+            AND A.USER_ID LIKE CONCAT('%', #{searchKeyword}, '%')
+        </if>
+        <if test="searchType != null and searchType == 'USER_NM'">
+            AND C.USER_NM LIKE CONCAT('%', #{searchKeyword}, '%')
+        </if>
+        <if test="searchCode != null and searchCode != ''">
+            AND A.UNIV_CD = #{searchCode}
+        </if>
+        ORDER BY A.REG_DT DESC
+        LIMIT #{recordCountPerPage} OFFSET #{firstIndex}
+    </select>
+
+    <!-- 설명회 신청 목록 건수 조회 -->
+    <select id="selectPresentReqListCount" parameterType="com.academy.counsel.service.PresentRequestVO" resultType="int">
+        SELECT COUNT(*) AS CNT
+        FROM TB_PRESENT A
+        INNER JOIN TB_BA_CONFIG_CD B ON A.UNIV_CD = B.CODE_VAL
+        LEFT JOIN TB_MEMBER C ON A.USER_ID = C.USER_ID
+        WHERE B.SYS_CD = 'TB_PRESENT'
+        <if test="searchType != null and searchType == 'USER_ID'">
+            AND A.USER_ID LIKE CONCAT('%', #{searchKeyword}, '%')
+        </if>
+        <if test="searchType != null and searchType == 'USER_NM'">
+            AND C.USER_NM LIKE CONCAT('%', #{searchKeyword}, '%')
+        </if>
+        <if test="searchCode != null and searchCode != ''">
+            AND A.UNIV_CD = #{searchCode}
+        </if>
+    </select>
+
+    <!-- 설명회 코드 목록 조회 -->
+    <select id="selectPresentCodeList" parameterType="com.academy.counsel.service.PresentRequestVO" resultType="org.json.simple.JSONObject">
+        SELECT CODE_VAL, CODE_NM
+        FROM TB_BA_CONFIG_CD
+        WHERE SYS_CD = 'TB_PRESENT'
+    </select>
+
+</mapper>

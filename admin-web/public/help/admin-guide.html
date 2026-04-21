@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Academy Admin Console Guide</title>
+  <style>
+    :root { --accent: #3b82f6; --bg: #f8fafc; --card: #ffffff; --text: #1e293b; --muted: #64748b; --border: #e2e8f0; }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: var(--bg); color: var(--text); line-height: 1.6; }
+    .header { background: var(--accent); color: #fff; padding: 2rem; }
+    .header h1 { font-size: 1.5rem; font-weight: 700; }
+    .header p { opacity: 0.85; margin-top: 0.25rem; font-size: 0.95rem; }
+    .container { max-width: 960px; margin: 0 auto; padding: 2rem 1rem; }
+    .card { background: var(--card); border: 1px solid var(--border); border-radius: 8px; padding: 1.5rem; margin-bottom: 1.5rem; }
+    .card h2 { font-size: 1.15rem; color: var(--accent); margin-bottom: 0.75rem; border-bottom: 2px solid var(--accent); padding-bottom: 0.4rem; }
+    .card h3 { font-size: 1rem; color: var(--text); margin: 1rem 0 0.5rem; }
+    table { width: 100%; border-collapse: collapse; margin: 0.75rem 0; font-size: 0.9rem; }
+    th, td { padding: 0.6rem 0.75rem; text-align: left; border: 1px solid var(--border); }
+    th { background: #f1f5f9; font-weight: 600; white-space: nowrap; }
+    td code, p code { background: #f1f5f9; padding: 0.15rem 0.4rem; border-radius: 4px; font-size: 0.85rem; color: #0f172a; }
+    pre { background: #1e293b; color: #e2e8f0; padding: 1rem; border-radius: 6px; overflow-x: auto; font-size: 0.85rem; margin: 0.75rem 0; }
+    pre code { background: none; color: inherit; padding: 0; }
+    .note { background: #eff6ff; border-left: 4px solid var(--accent); padding: 0.75rem 1rem; border-radius: 0 6px 6px 0; margin: 0.75rem 0; font-size: 0.9rem; }
+    .warn { background: #fef3c7; border-left: 4px solid #f59e0b; padding: 0.75rem 1rem; border-radius: 0 6px 6px 0; margin: 0.75rem 0; font-size: 0.9rem; }
+    .footer { text-align: center; padding: 2rem; color: var(--muted); font-size: 0.8rem; border-top: 1px solid var(--border); margin-top: 2rem; }
+    ul { margin: 0.5rem 0 0.5rem 1.5rem; }
+    li { margin-bottom: 0.3rem; }
+    a { color: var(--accent); }
+  </style>
+</head>
+<body>
+
+<div class="header">
+  <div class="container" style="padding:0">
+    <h1>Academy Admin Console Guide</h1>
+    <p>관리자 콘솔 서비스 구성 및 운영 가이드</p>
+  </div>
+</div>
+
+<div class="container">
+
+  <!-- 1. 서비스 개요 -->
+  <div class="card">
+    <h2>1. 서비스 개요</h2>
+    <p>Academy Admin은 소규모 온라인 학원의 관리 업무를 위한 통합 관리 시스템입니다.</p>
+    <table>
+      <thead><tr><th>구성</th><th>기술 스택</th></tr></thead>
+      <tbody>
+        <tr><td>Backend</td><td>Spring Boot 3.2 + MyBatis + MySQL (Java 17)</td></tr>
+        <tr><td>Frontend</td><td>React 18 + Vite 6 + MUI 6</td></tr>
+        <tr><td>인증</td><td>JWT + Google OAuth 2.0</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- 2. 접속 정보 -->
+  <div class="card">
+    <h2>2. 접속 정보</h2>
+
+    <h3>Production</h3>
+    <table>
+      <thead><tr><th>서비스</th><th>URL</th></tr></thead>
+      <tbody>
+        <tr><td>관리자 콘솔</td><td><a href="https://academy.unmong.com/admin/">https://academy.unmong.com/admin/</a></td></tr>
+        <tr><td>API 문서 (Swagger)</td><td><a href="https://academy.unmong.com/admin/swagger-ui/index.html">https://academy.unmong.com/admin/swagger-ui/index.html</a></td></tr>
+      </tbody>
+    </table>
+
+    <h3>로컬 개발</h3>
+    <table>
+      <thead><tr><th>서비스</th><th>URL</th></tr></thead>
+      <tbody>
+        <tr><td>Frontend (Vite)</td><td><code>http://localhost:3000/admin/</code></td></tr>
+        <tr><td>Backend API</td><td><code>http://localhost:9001/admin/api/</code></td></tr>
+        <tr><td>Swagger UI</td><td><code>http://localhost:9001/admin/swagger-ui/index.html</code></td></tr>
+      </tbody>
+    </table>
+
+    <div class="note">
+      <strong>도메인 통일:</strong> 모든 서비스는 <code>academy.unmong.com</code> 도메인 아래
+      <code>/admin/</code> 컨텍스트에서 제공됩니다.
+    </div>
+  </div>
+
+  <!-- 3. Docker 구성 -->
+  <div class="card">
+    <h2>3. Docker 구성</h2>
+
+    <h3>컨테이너 구성</h3>
+    <table>
+      <thead><tr><th>컨테이너</th><th>이미지</th><th>포트</th><th>Context Path</th></tr></thead>
+      <tbody>
+        <tr><td>academy-admin-back-end</td><td>Spring Boot JAR</td><td>9001</td><td><code>/admin</code></td></tr>
+        <tr><td>academy-admin-front</td><td>Vite Dev Server</td><td>4001 &rarr; 3000</td><td><code>/admin/</code></td></tr>
+      </tbody>
+    </table>
+
+    <h3>실행 명령어</h3>
+    <pre><code># 전체 서비스 빌드 및 실행
+docker compose up -d --build
+
+# 백엔드만 재빌드
+docker compose up -d --build academy-admin-backend
+
+# 로그 확인
+docker compose logs -f academy-admin-backend
+
+# 서비스 중지
+docker compose down</code></pre>
+
+    <h3>환경변수 (docker-compose.yml)</h3>
+    <table>
+      <thead><tr><th>변수</th><th>기본값</th><th>설명</th></tr></thead>
+      <tbody>
+        <tr><td><code>SERVER_PORT</code></td><td>9001</td><td>백엔드 서버 포트</td></tr>
+        <tr><td><code>DB_URL</code></td><td>jdbc:mysql://172.30.1.72:3306/acm_basic</td><td>DB 접속 URL</td></tr>
+        <tr><td><code>VITE_API_URL</code></td><td>/admin/api</td><td>프론트엔드 API baseURL</td></tr>
+        <tr><td><code>GOOGLE_CLIENT_ID</code></td><td>-</td><td>Google OAuth Client ID</td></tr>
+        <tr><td><code>SUPER_ADMIN_EMAILS</code></td><td>-</td><td>슈퍼 관리자 이메일 목록</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- 4. 프로젝트 구조 -->
+  <div class="card">
+    <h2>4. 프로젝트 구조</h2>
+    <pre><code>academy-admin/                  # 워크스페이스 (Git 저장소 아님)
+├── backend/                    # Spring Boot (독립 Git 저장소)
+│   ├── src/main/java/com/academy/
+│   │   ├── auth/               # 인증/권한
+│   │   ├── board/              # 게시판
+│   │   ├── member/             # 회원
+│   │   ├── lecture/            # 강의 (Category, Form, Kind 등)
+│   │   ├── book/               # 교재
+│   │   ├── exam/               # 시험
+│   │   ├── config/             # OpenAPI, WebMvc 설정
+│   │   ├── common/             # 공통 유틸리티
+│   │   └── mapper/             # MyBatis Mapper 인터페이스
+│   └── src/main/resources/
+│       ├── application.yml     # 서버 설정 (context-path: /admin)
+│       ├── mapper/             # MyBatis XML
+│       └── static/help/        # 도움말 페이지
+├── frontend/                   # React (독립 Git 저장소)
+│   ├── src/
+│   │   ├── api/                # API 모듈 (Axios)
+│   │   ├── shared/api/client.js  # 통합 API 클라이언트
+│   │   └── constants/index.js  # 상수 정의
+│   └── vite.config.js          # base: "/admin/"
+└── docker-compose.yml          # 통합 서비스 관리</code></pre>
+  </div>
+
+  <!-- 5. Git 관리 -->
+  <div class="card">
+    <h2>5. Git 저장소</h2>
+    <table>
+      <thead><tr><th>프로젝트</th><th>저장소</th></tr></thead>
+      <tbody>
+        <tr><td>Backend</td><td><code>bluevlad/academy-admin-back-end-JavaSpring</code></td></tr>
+        <tr><td>Frontend</td><td><code>bluevlad/academy-admin-front-end-React</code></td></tr>
+      </tbody>
+    </table>
+    <div class="note">
+      <code>academy-admin/</code> 루트는 Git 저장소가 아닙니다. 커밋은 각 하위 폴더에서 별도로 수행합니다.
+    </div>
+  </div>
+
+  <!-- 6. 변경 이력 -->
+  <div class="card">
+    <h2>6. 변경 이력</h2>
+    <table>
+      <thead><tr><th>일자</th><th>변경 내용</th></tr></thead>
+      <tbody>
+        <tr>
+          <td>2026-04-09</td>
+          <td>
+            <ul>
+              <li>초기 가이드 페이지 생성</li>
+              <li>도메인 통일: <code>academy.unmong.com</code> + <code>/admin</code> context-path</li>
+            </ul>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+</div>
+
+<div class="footer">
+  Academy Admin &copy; 2026 Unmong Systems
+</div>
+
+</body>
+</html>

@@ -1,0 +1,138 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.academy.mapper.LectureReplyMapper">
+
+	<select id="selectLectureReplyList" parameterType="hashMap" resultType="hashMap">
+		SELECT
+			LECCODE, LEARNING_CD, CATEGORY_CD, CATEGORY_NAME,
+			SUBJECT_TEACHER, SUBJECT_TEACHER_NAME, SUBJECT_NM, SUBJECT_TITLE, CHOICE_POINT, USER_ID
+		FROM (SELECT
+				A.LECCODE, A.LEARNING_CD, A.CATEGORY_CD, B.NAME AS CATEGORY_NAME,
+				A.SUBJECT_TEACHER,
+				(SELECT USER_NM FROM TB_MA_MEMBER WHERE ISUSE = 'Y' AND USER_ID = A.SUBJECT_TEACHER) AS SUBJECT_TEACHER_NAME,
+				A.SUBJECT_TITLE, C.SUBJECT_NM,
+				D.CHOICE_POINT, D.USER_ID
+			FROM TB_LEC_MST A
+			INNER JOIN TB_CATEGORY_INFO B ON A.CATEGORY_CD = B.CODE
+			INNER JOIN TB_SUBJECT_INFO C ON A.SUBJECT_SJT_CD = C.SUBJECT_CD
+			INNER JOIN (
+				SELECT SEQ, LECCODE, USER_ID, CHOICE_POINT,
+					RANK() OVER (PARTITION BY LECCODE, USER_ID ORDER BY LECCODE, USER_ID, CHOICE_POINT DESC, SEQ DESC) AS RNK
+				FROM TB_COMMENT
+			) D ON A.LECCODE = D.LECCODE AND D.RNK = 1
+			WHERE A.LEC_TYPE_CHOICE = 'D'
+			ORDER BY A.REG_DT DESC
+		) AA
+		WHERE 1 = 1
+		<if test="SEARCHKEYWORD != null and SEARCHKEYWORD != ''">
+			<choose>
+				<when test='SEARCHTYPE == "CATEGORY_NAME"'>
+					AND CATEGORY_NAME LIKE CONCAT('%', #{SEARCHKEYWORD}, '%')
+				</when>
+				<when test='SEARCHTYPE == "SUBJECT_TITLE"'>
+					AND SUBJECT_TITLE LIKE CONCAT('%', #{SEARCHKEYWORD}, '%')
+				</when>
+				<when test='SEARCHTYPE == "SJT_NM"'>
+					AND SUBJECT_NM LIKE CONCAT('%', #{SEARCHKEYWORD}, '%')
+				</when>
+				<when test='SEARCHTYPE == "SUBJECT_TEACHER_NAME"'>
+					AND SUBJECT_TEACHER_NAME LIKE CONCAT('%', #{SEARCHKEYWORD}, '%')
+				</when>
+				<otherwise>
+					AND (
+						CATEGORY_NAME LIKE CONCAT('%', #{SEARCHKEYWORD}, '%')
+						OR SUBJECT_TITLE LIKE CONCAT('%', #{SEARCHKEYWORD}, '%')
+						OR SUBJECT_NM LIKE CONCAT('%', #{SEARCHKEYWORD}, '%')
+						OR SUBJECT_TEACHER_NAME LIKE CONCAT('%', #{SEARCHKEYWORD}, '%')
+					)
+				</otherwise>
+			</choose>
+		</if>
+		LIMIT #{pageRow} OFFSET #{startNo}
+	</select>
+
+	<select id="selectLectureReplyListCount" parameterType="hashMap" resultType="int">
+		SELECT COUNT(*) AS CNT
+		FROM (SELECT
+				A.LECCODE, A.LEARNING_CD, A.CATEGORY_CD, B.NAME AS CATEGORY_NAME,
+				A.SUBJECT_TEACHER,
+				(SELECT USER_NM FROM TB_MA_MEMBER WHERE ISUSE = 'Y' AND USER_ID = A.SUBJECT_TEACHER) AS SUBJECT_TEACHER_NAME,
+				A.SUBJECT_TITLE, C.SUBJECT_NM,
+				D.CHOICE_POINT, D.USER_ID
+			FROM TB_LEC_MST A
+			INNER JOIN TB_CATEGORY_INFO B ON A.CATEGORY_CD = B.CODE
+			INNER JOIN TB_SUBJECT_INFO C ON A.SUBJECT_SJT_CD = C.SUBJECT_CD
+			INNER JOIN (
+				SELECT SEQ, LECCODE, USER_ID, CHOICE_POINT,
+					RANK() OVER (PARTITION BY LECCODE, USER_ID ORDER BY LECCODE, USER_ID, CHOICE_POINT DESC, SEQ DESC) AS RNK
+				FROM TB_COMMENT
+			) D ON A.LECCODE = D.LECCODE AND D.RNK = 1
+			WHERE A.LEC_TYPE_CHOICE = 'D'
+		) AA
+		WHERE 1 = 1
+		<if test="SEARCHKEYWORD != null and SEARCHKEYWORD != ''">
+			<choose>
+				<when test='SEARCHTYPE == "CATEGORY_NAME"'>
+					AND CATEGORY_NAME LIKE CONCAT('%', #{SEARCHKEYWORD}, '%')
+				</when>
+				<when test='SEARCHTYPE == "SUBJECT_TITLE"'>
+					AND SUBJECT_TITLE LIKE CONCAT('%', #{SEARCHKEYWORD}, '%')
+				</when>
+				<when test='SEARCHTYPE == "SJT_NM"'>
+					AND SUBJECT_NM LIKE CONCAT('%', #{SEARCHKEYWORD}, '%')
+				</when>
+				<when test='SEARCHTYPE == "SUBJECT_TEACHER_NAME"'>
+					AND SUBJECT_TEACHER_NAME LIKE CONCAT('%', #{SEARCHKEYWORD}, '%')
+				</when>
+				<otherwise>
+					AND (
+						CATEGORY_NAME LIKE CONCAT('%', #{SEARCHKEYWORD}, '%')
+						OR SUBJECT_TITLE LIKE CONCAT('%', #{SEARCHKEYWORD}, '%')
+						OR SUBJECT_NM LIKE CONCAT('%', #{SEARCHKEYWORD}, '%')
+						OR SUBJECT_TEACHER_NAME LIKE CONCAT('%', #{SEARCHKEYWORD}, '%')
+					)
+				</otherwise>
+			</choose>
+		</if>
+	</select>
+
+	<select id="selectLectureReplyDetail" parameterType="hashMap" resultType="hashMap">
+		SELECT
+			A.LECCODE,
+			A.LEARNING_CD,
+			A.CATEGORY_CD,
+			(SELECT NAME FROM TB_CATEGORY_INFO WHERE CODE = A.CATEGORY_CD) AS CATEGORY_NAME,
+			A.SUBJECT_TEACHER,
+			(SELECT USER_NM FROM TB_MA_MEMBER WHERE ISUSE = 'Y' AND USER_ID = A.SUBJECT_TEACHER) AS SUBJECT_TEACHER_NAME,
+			(SELECT SUBJECT_NM FROM TB_SUBJECT_INFO WHERE ISUSE = 'Y' AND SUBJECT_CD = A.SUBJECT_SJT_CD) AS SJT_NM,
+			A.SUBJECT_TITLE
+		FROM TB_LEC_MST A
+		WHERE LECCODE = #{DETAIL_LECCODE}
+	</select>
+
+	<select id="selectLectureReplyDetailComments" parameterType="hashMap" resultType="hashMap">
+		SELECT
+			LECCODE,
+			SEQ,
+			USER_ID,
+			USER_NAME,
+			CONTENT,
+			CHOICE_POINT,
+			DATE_FORMAT(REG_DT, '%Y-%m-%d %H:%i:%s') AS REG_DT
+		FROM TB_COMMENT
+		WHERE LECCODE = #{DETAIL_LECCODE}
+		ORDER BY SEQ DESC
+		LIMIT #{pageRow} OFFSET #{startNo}
+	</select>
+
+	<select id="selectLectureReplyDetailCommentCount" parameterType="hashMap" resultType="int">
+		SELECT COUNT(*) AS CNT
+		FROM TB_COMMENT
+		WHERE LECCODE = #{DETAIL_LECCODE}
+	</select>
+
+	<delete id="deleteLectureReply" parameterType="hashMap">
+		DELETE FROM TB_COMMENT WHERE LECCODE = #{LECCODE} AND SEQ = #{SEQ}
+	</delete>
+
+</mapper>

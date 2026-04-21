@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 200">
+  <defs>
+    <style>
+      .cls-1{fill:#002d56;}
+      .cls-text{font-size:80px; font-family:'Malgun Gothic', 'Apple SD Gothic Neo', sans-serif; font-weight:bold; fill:#002d56;}
+      .cls-sub{font-size:30px; font-family:sans-serif; font-weight:bold; fill:#002d56; letter-spacing: 5px;}
+    </style>
+  </defs>
+  
+  <g transform="translate(20, 20) scale(0.35)">
+     <path class="cls-1" d="M130,280 Q230,220 330,280 L310,300 L150,300 Z" /> 
+     <rect class="cls-1" x="160" y="310" width="30" height="80" />
+     <rect class="cls-1" x="215" y="310" width="30" height="80" />
+     <rect class="cls-1" x="270" y="310" width="30" height="80" />
+     <path class="cls-1" d="M360,150 L420,130 L420,350 L360,350 Z" />
+     <path class="cls-1" d="M100,400 Q150,380 200,420 Q250,460 350,400 Q400,380 420,350 L420,420 L100,420 Z" />
+  </g>
+
+  <text x="200" y="100" class="cls-text">운몽시스템즈</text>
+  <text x="205" y="150" class="cls-sub">UM SYSTEMS</text>
+</svg>

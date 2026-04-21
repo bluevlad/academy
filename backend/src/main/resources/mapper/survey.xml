@@ -1,0 +1,203 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.academy.mapper.SurveyMapper">
+
+    <!-- 설문 문항 (Bank) -->
+    <select id="selectBankList" parameterType="com.academy.survey.service.SurveyVO" resultType="com.academy.survey.service.SurveyVO">
+        SELECT A.QUE_ID AS queId, A.QUE_TITLE AS queTitle, A.QUE_OWNER AS queOwner,
+               A.QUE_COUNT AS queCount, A.QUE_TYPE AS queType, A.ISUSE AS isuse,
+               DATE_FORMAT(A.MOD_DATE, '%Y-%m-%d') AS modDate
+          FROM TB_SURVEY_BANK A
+         WHERE 1=1
+        <if test="searchText != null and searchText != ''">AND A.QUE_TITLE LIKE CONCAT('%', #{searchText}, '%')</if>
+         ORDER BY A.QUE_ID DESC
+         LIMIT #{recordCountPerPage} OFFSET #{firstIndex}
+    </select>
+
+    <select id="selectBankListCount" parameterType="com.academy.survey.service.SurveyVO" resultType="int">
+        SELECT COUNT(*) FROM TB_SURVEY_BANK WHERE 1=1
+        <if test="searchText != null and searchText != ''">AND QUE_TITLE LIKE CONCAT('%', #{searchText}, '%')</if>
+    </select>
+
+    <select id="selectBankDetail" parameterType="com.academy.survey.service.SurveyVO" resultType="com.academy.survey.service.SurveyVO">
+        SELECT QUE_ID AS queId, QUE_OWNER AS queOwner, QUE_TITLE AS queTitle, QUE_DESC AS queDesc,
+               QUE_VIW1 AS queViw1, QUE_VIW2 AS queViw2, QUE_VIW3 AS queViw3, QUE_VIW4 AS queViw4, QUE_VIW5 AS queViw5,
+               QUE_VIW6 AS queViw6, QUE_VIW7 AS queViw7, QUE_VIW8 AS queViw8, QUE_VIW9 AS queViw9, QUE_VIW10 AS queViw10,
+               HINT1 AS hint1, HINT2 AS hint2, HINT3 AS hint3, HINT4 AS hint4, HINT5 AS hint5,
+               HINT6 AS hint6, HINT7 AS hint7, HINT8 AS hint8, HINT9 AS hint9, HINT10 AS hint10,
+               QUE_COUNT AS queCount, QUE_TYPE AS queType, ISUSE AS isuse
+          FROM TB_SURVEY_BANK WHERE QUE_ID = #{queId}
+    </select>
+
+    <insert id="insertBank" parameterType="com.academy.survey.service.SurveyVO">
+        INSERT INTO TB_SURVEY_BANK (QUE_OWNER, QUE_TITLE, QUE_DESC,
+            QUE_VIW1, QUE_VIW2, QUE_VIW3, QUE_VIW4, QUE_VIW5,
+            QUE_VIW6, QUE_VIW7, QUE_VIW8, QUE_VIW9, QUE_VIW10,
+            HINT1, HINT2, HINT3, HINT4, HINT5, HINT6, HINT7, HINT8, HINT9, HINT10,
+            QUE_COUNT, QUE_TYPE, ISUSE, REG_DATE)
+        VALUES (#{queOwner}, #{queTitle}, #{queDesc},
+            #{queViw1}, #{queViw2}, #{queViw3}, #{queViw4}, #{queViw5},
+            #{queViw6}, #{queViw7}, #{queViw8}, #{queViw9}, #{queViw10},
+            #{hint1}, #{hint2}, #{hint3}, #{hint4}, #{hint5}, #{hint6}, #{hint7}, #{hint8}, #{hint9}, #{hint10},
+            #{queCount}, #{queType}, #{isuse}, NOW())
+    </insert>
+
+    <update id="updateBank" parameterType="com.academy.survey.service.SurveyVO">
+        UPDATE TB_SURVEY_BANK SET QUE_OWNER = #{queOwner}, QUE_TITLE = #{queTitle}, QUE_DESC = #{queDesc},
+               QUE_VIW1 = #{queViw1}, QUE_VIW2 = #{queViw2}, QUE_VIW3 = #{queViw3}, QUE_VIW4 = #{queViw4}, QUE_VIW5 = #{queViw5},
+               QUE_VIW6 = #{queViw6}, QUE_VIW7 = #{queViw7}, QUE_VIW8 = #{queViw8}, QUE_VIW9 = #{queViw9}, QUE_VIW10 = #{queViw10},
+               HINT1 = #{hint1}, HINT2 = #{hint2}, HINT3 = #{hint3}, HINT4 = #{hint4}, HINT5 = #{hint5},
+               HINT6 = #{hint6}, HINT7 = #{hint7}, HINT8 = #{hint8}, HINT9 = #{hint9}, HINT10 = #{hint10},
+               QUE_COUNT = #{queCount}, QUE_TYPE = #{queType}, ISUSE = #{isuse}, MOD_DATE = NOW()
+         WHERE QUE_ID = #{queId}
+    </update>
+
+    <delete id="deleteBank" parameterType="com.academy.survey.service.SurveyVO">
+        DELETE FROM TB_SURVEY_BANK WHERE QUE_ID = #{queId}
+    </delete>
+
+    <!-- 설문 세트 (Set) -->
+    <select id="selectSetList" parameterType="com.academy.survey.service.SurveyVO" resultType="com.academy.survey.service.SurveyVO">
+        SELECT A.SET_ID AS setId, A.SET_TITLE AS setTitle, A.SET_DESC AS setDesc, A.ISUSE AS isuse,
+               (SELECT COUNT(*) FROM TB_SURVEY_SET_ITEM WHERE SET_ID = A.SET_ID) AS cnt
+          FROM TB_SURVEY_SET A
+         WHERE 1=1
+        <if test="searchText != null and searchText != ''">AND A.SET_TITLE LIKE CONCAT('%', #{searchText}, '%')</if>
+         ORDER BY A.SET_ID DESC
+         LIMIT #{recordCountPerPage} OFFSET #{firstIndex}
+    </select>
+
+    <select id="selectSetListCount" parameterType="com.academy.survey.service.SurveyVO" resultType="int">
+        SELECT COUNT(*) FROM TB_SURVEY_SET WHERE 1=1
+        <if test="searchText != null and searchText != ''">AND SET_TITLE LIKE CONCAT('%', #{searchText}, '%')</if>
+    </select>
+
+    <select id="selectSetDetail" parameterType="com.academy.survey.service.SurveyVO" resultType="com.academy.survey.service.SurveyVO">
+        SELECT SET_ID AS setId, SET_TITLE AS setTitle, SET_DESC AS setDesc, ISUSE AS isuse
+          FROM TB_SURVEY_SET WHERE SET_ID = #{setId}
+    </select>
+
+    <insert id="insertSet" parameterType="com.academy.survey.service.SurveyVO">
+        INSERT INTO TB_SURVEY_SET (SET_TITLE, SET_DESC, ISUSE, REG_DATE)
+        VALUES (#{setTitle}, #{setDesc}, #{isuse}, NOW())
+    </insert>
+
+    <update id="updateSet" parameterType="com.academy.survey.service.SurveyVO">
+        UPDATE TB_SURVEY_SET SET SET_TITLE = #{setTitle}, SET_DESC = #{setDesc}, ISUSE = #{isuse}, MOD_DATE = NOW()
+         WHERE SET_ID = #{setId}
+    </update>
+
+    <delete id="deleteSet" parameterType="com.academy.survey.service.SurveyVO">
+        DELETE FROM TB_SURVEY_SET WHERE SET_ID = #{setId}
+    </delete>
+
+    <!-- 설문 세트 항목 -->
+    <select id="selectSetItemList" parameterType="com.academy.survey.service.SurveyVO" resultType="com.academy.survey.service.SurveyVO">
+        SELECT A.SET_ID AS setId, A.QUE_ID AS queId, A.QSEQ AS qseq,
+               B.QUE_TITLE AS queTitle, B.QUE_COUNT AS queCount, B.QUE_TYPE AS queType,
+               B.QUE_VIW1 AS queViw1, B.QUE_VIW2 AS queViw2, B.QUE_VIW3 AS queViw3, B.QUE_VIW4 AS queViw4, B.QUE_VIW5 AS queViw5,
+               B.QUE_VIW6 AS queViw6, B.QUE_VIW7 AS queViw7, B.QUE_VIW8 AS queViw8, B.QUE_VIW9 AS queViw9, B.QUE_VIW10 AS queViw10,
+               B.HINT1 AS hint1, B.HINT2 AS hint2, B.HINT3 AS hint3, B.HINT4 AS hint4, B.HINT5 AS hint5,
+               B.HINT6 AS hint6, B.HINT7 AS hint7, B.HINT8 AS hint8, B.HINT9 AS hint9, B.HINT10 AS hint10
+          FROM TB_SURVEY_SET_ITEM A
+          LEFT JOIN TB_SURVEY_BANK B ON A.QUE_ID = B.QUE_ID
+         WHERE A.SET_ID = #{setId}
+         ORDER BY A.QSEQ ASC
+    </select>
+
+    <insert id="insertSetItem" parameterType="com.academy.survey.service.SurveyVO">
+        INSERT INTO TB_SURVEY_SET_ITEM (SET_ID, QUE_ID, QSEQ)
+        VALUES (#{setId}, #{queId}, (SELECT IFNULL(MAX(QSEQ), 0) + 1 FROM TB_SURVEY_SET_ITEM B WHERE B.SET_ID = #{setId}))
+    </insert>
+
+    <update id="updateSetItem" parameterType="com.academy.survey.service.SurveyVO">
+        UPDATE TB_SURVEY_SET_ITEM SET QSEQ = #{qseq} WHERE SET_ID = #{setId} AND QUE_ID = #{queId}
+    </update>
+
+    <delete id="deleteSetItem" parameterType="com.academy.survey.service.SurveyVO">
+        DELETE FROM TB_SURVEY_SET_ITEM WHERE SET_ID = #{setId} AND QUE_ID = #{queId}
+    </delete>
+
+    <!-- 설문 (Survey) -->
+    <select id="selectSurveyList" parameterType="com.academy.survey.service.SurveyVO" resultType="com.academy.survey.service.SurveyVO">
+        SELECT A.SURVEY_ID AS surveyId, A.SURVEY_TITLE AS surveyTitle, A.SURVEY_DESC AS surveyDesc,
+               A.SURVEY_SDAT AS surveySdat, A.SURVEY_EDAT AS surveyEdat, A.SET_ID AS setId, A.ISUSE AS isuse,
+               (SELECT COUNT(*) FROM TB_SURVEY_RST WHERE SURVEY_ID = A.SURVEY_ID) AS cnt
+          FROM TB_SURVEY_MST A
+         WHERE 1=1
+        <if test="searchText != null and searchText != ''">AND A.SURVEY_TITLE LIKE CONCAT('%', #{searchText}, '%')</if>
+         ORDER BY A.SURVEY_ID DESC
+         LIMIT #{recordCountPerPage} OFFSET #{firstIndex}
+    </select>
+
+    <select id="selectSurveyListCount" parameterType="com.academy.survey.service.SurveyVO" resultType="int">
+        SELECT COUNT(*) FROM TB_SURVEY_MST WHERE 1=1
+        <if test="searchText != null and searchText != ''">AND SURVEY_TITLE LIKE CONCAT('%', #{searchText}, '%')</if>
+    </select>
+
+    <select id="selectSurveyDetail" parameterType="com.academy.survey.service.SurveyVO" resultType="com.academy.survey.service.SurveyVO">
+        SELECT A.SURVEY_ID AS surveyId, A.SURVEY_TITLE AS surveyTitle, A.SURVEY_DESC AS surveyDesc,
+               A.SURVEY_SDAT AS surveySdat, A.SURVEY_EDAT AS surveyEdat, A.SET_ID AS setId, A.ISUSE AS isuse,
+               B.SET_TITLE AS setTitle
+          FROM TB_SURVEY_MST A
+          LEFT JOIN TB_SURVEY_SET B ON A.SET_ID = B.SET_ID
+         WHERE A.SURVEY_ID = #{surveyId}
+    </select>
+
+    <insert id="insertSurvey" parameterType="com.academy.survey.service.SurveyVO">
+        INSERT INTO TB_SURVEY_MST (SURVEY_TITLE, SURVEY_DESC, SURVEY_SDAT, SURVEY_EDAT, SET_ID, ISUSE, REG_DATE)
+        VALUES (#{surveyTitle}, #{surveyDesc}, #{surveySdat}, #{surveyEdat}, #{setId}, #{isuse}, NOW())
+    </insert>
+
+    <update id="updateSurvey" parameterType="com.academy.survey.service.SurveyVO">
+        UPDATE TB_SURVEY_MST SET SURVEY_TITLE = #{surveyTitle}, SURVEY_DESC = #{surveyDesc},
+               SURVEY_SDAT = #{surveySdat}, SURVEY_EDAT = #{surveyEdat}, SET_ID = #{setId}, ISUSE = #{isuse}, MOD_DATE = NOW()
+         WHERE SURVEY_ID = #{surveyId}
+    </update>
+
+    <delete id="deleteSurvey" parameterType="com.academy.survey.service.SurveyVO">
+        DELETE FROM TB_SURVEY_MST WHERE SURVEY_ID = #{surveyId}
+    </delete>
+
+    <!-- 설문 결과 -->
+    <select id="selectSurveyResultList" parameterType="com.academy.survey.service.SurveyVO" resultType="com.academy.survey.service.SurveyVO">
+        SELECT B.QUE_ID AS queId, B.QUE_TITLE AS queTitle, B.QUE_COUNT AS queCount, B.QUE_TYPE AS queType,
+               B.QUE_VIW1 AS queViw1, B.QUE_VIW2 AS queViw2, B.QUE_VIW3 AS queViw3, B.QUE_VIW4 AS queViw4, B.QUE_VIW5 AS queViw5,
+               IFNULL(C.A1, 0) AS a1, IFNULL(C.A2, 0) AS a2, IFNULL(C.A3, 0) AS a3, IFNULL(C.A4, 0) AS a4, IFNULL(C.A5, 0) AS a5,
+               IFNULL(C.A6, 0) AS a6, IFNULL(C.A7, 0) AS a7, IFNULL(C.A8, 0) AS a8, IFNULL(C.A9, 0) AS a9, IFNULL(C.A10, 0) AS a10,
+               IFNULL(C.ASUM, 1) AS asum
+          FROM TB_SURVEY_SET_ITEM I
+          LEFT JOIN TB_SURVEY_BANK B ON I.QUE_ID = B.QUE_ID
+          LEFT JOIN (
+              SELECT QUE_ID,
+                     SUM(IF(LOCATE('1', USER_ANSW) > 0, 1, 0)) AS A1,
+                     SUM(IF(LOCATE('2', USER_ANSW) > 0, 1, 0)) AS A2,
+                     SUM(IF(LOCATE('3', USER_ANSW) > 0, 1, 0)) AS A3,
+                     SUM(IF(LOCATE('4', USER_ANSW) > 0, 1, 0)) AS A4,
+                     SUM(IF(LOCATE('5', USER_ANSW) > 0, 1, 0)) AS A5,
+                     SUM(IF(LOCATE('6', USER_ANSW) > 0, 1, 0)) AS A6,
+                     SUM(IF(LOCATE('7', USER_ANSW) > 0, 1, 0)) AS A7,
+                     SUM(IF(LOCATE('8', USER_ANSW) > 0, 1, 0)) AS A8,
+                     SUM(IF(LOCATE('9', USER_ANSW) > 0, 1, 0)) AS A9,
+                     SUM(IF(LOCATE('10', USER_ANSW) > 0, 1, 0)) AS A10,
+                     COUNT(*) AS ASUM
+                FROM TB_SURVEY_RST_ITEM WHERE SURVEY_ID = #{surveyId} GROUP BY QUE_ID
+          ) C ON B.QUE_ID = C.QUE_ID
+          LEFT JOIN TB_SURVEY_MST M ON I.SET_ID = M.SET_ID
+         WHERE M.SURVEY_ID = #{surveyId} AND B.ISUSE = 'Y'
+         ORDER BY I.QSEQ ASC
+    </select>
+
+    <select id="selectAnswerList" parameterType="com.academy.survey.service.SurveyVO" resultType="com.academy.survey.service.SurveyVO">
+        SELECT A.USER_ID AS userId, A.SURVEY_ID AS surveyId, B.QSEQ AS qseq, B.QUE_ID AS queId,
+               B.USER_ANSW AS userAnsw, C.USER_NM AS userNm
+          FROM TB_SURVEY_RST A
+          LEFT JOIN TB_SURVEY_RST_ITEM B ON A.SURVEY_ID = B.SURVEY_ID AND A.USER_ID = B.USER_ID
+          LEFT JOIN TB_MEMBER C ON B.USER_ID = C.USER_ID
+         WHERE A.SURVEY_ID = #{surveyId}
+        <if test="queId > 0">AND B.QUE_ID = #{queId}</if>
+        <if test="qseq > 0">AND B.QSEQ = #{qseq}</if>
+         ORDER BY A.SURVEY_ID, B.QUE_ID, A.USER_ID, B.QSEQ
+    </select>
+
+</mapper>

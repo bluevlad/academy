@@ -1,0 +1,231 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.academy.mapper.CategorySaleMapper">
+
+    <!-- 카테고리별 매출 목록 조회 -->
+    <select id="selectCategorySaleList" parameterType="com.academy.manage.categorySale.service.CategorySaleVO" resultType="com.academy.manage.categorySale.service.CategorySaleVO">
+        SELECT A.SALE_SEQ AS saleSeq,
+               A.CATEGORY_CD AS categoryCd,
+               B.CATEGORY_NM AS categoryNm,
+               A.SALE_DATE AS saleDate,
+               DATE_FORMAT(A.SALE_DATE, '%Y-%m') AS saleMonth,
+               DATE_FORMAT(A.SALE_DATE, '%Y') AS saleYear,
+               A.SALE_AMT AS saleAmt,
+               A.SALE_CNT AS saleCnt,
+               A.REFUND_AMT AS refundAmt,
+               A.REFUND_CNT AS refundCnt,
+               (A.SALE_AMT - A.REFUND_AMT) AS netSaleAmt,
+               (A.SALE_CNT - A.REFUND_CNT) AS netSaleCnt,
+               DATE_FORMAT(A.REG_DATE, '%Y-%m-%d %H:%i:%s') AS regDate
+          FROM TB_CATEGORY_SALE A
+          LEFT JOIN TB_CATEGORY B ON A.CATEGORY_CD = B.CATEGORY_CD
+         WHERE 1=1
+        <if test="categoryCd != null and categoryCd != ''">
+           AND A.CATEGORY_CD = #{categoryCd}
+        </if>
+        <if test="searchStartDate != null and searchStartDate != ''">
+           AND A.SALE_DATE &gt;= #{searchStartDate}
+        </if>
+        <if test="searchEndDate != null and searchEndDate != ''">
+           AND A.SALE_DATE &lt;= #{searchEndDate}
+        </if>
+         ORDER BY A.SALE_DATE DESC, A.CATEGORY_CD
+         LIMIT #{recordCountPerPage} OFFSET #{firstIndex}
+    </select>
+
+    <!-- 카테고리별 매출 목록 카운트 -->
+    <select id="selectCategorySaleListCount" parameterType="com.academy.manage.categorySale.service.CategorySaleVO" resultType="int">
+        SELECT COUNT(*)
+          FROM TB_CATEGORY_SALE A
+         WHERE 1=1
+        <if test="categoryCd != null and categoryCd != ''">
+           AND A.CATEGORY_CD = #{categoryCd}
+        </if>
+        <if test="searchStartDate != null and searchStartDate != ''">
+           AND A.SALE_DATE &gt;= #{searchStartDate}
+        </if>
+        <if test="searchEndDate != null and searchEndDate != ''">
+           AND A.SALE_DATE &lt;= #{searchEndDate}
+        </if>
+    </select>
+
+    <!-- 카테고리별 매출 상세 조회 -->
+    <select id="selectCategorySaleDetail" parameterType="com.academy.manage.categorySale.service.CategorySaleVO" resultType="com.academy.manage.categorySale.service.CategorySaleVO">
+        SELECT A.SALE_SEQ AS saleSeq,
+               A.CATEGORY_CD AS categoryCd,
+               B.CATEGORY_NM AS categoryNm,
+               A.SALE_DATE AS saleDate,
+               A.SALE_AMT AS saleAmt,
+               A.SALE_CNT AS saleCnt,
+               A.REFUND_AMT AS refundAmt,
+               A.REFUND_CNT AS refundCnt,
+               (A.SALE_AMT - A.REFUND_AMT) AS netSaleAmt,
+               (A.SALE_CNT - A.REFUND_CNT) AS netSaleCnt,
+               A.REG_ID AS regId,
+               DATE_FORMAT(A.REG_DATE, '%Y-%m-%d %H:%i:%s') AS regDate,
+               A.MOD_ID AS modId,
+               DATE_FORMAT(A.MOD_DATE, '%Y-%m-%d %H:%i:%s') AS modDate
+          FROM TB_CATEGORY_SALE A
+          LEFT JOIN TB_CATEGORY B ON A.CATEGORY_CD = B.CATEGORY_CD
+         WHERE A.SALE_SEQ = #{saleSeq}
+    </select>
+
+    <!-- 카테고리별 매출 통계 조회 -->
+    <select id="selectCategorySaleStats" parameterType="com.academy.manage.categorySale.service.CategorySaleVO" resultType="com.academy.manage.categorySale.service.CategorySaleVO">
+        SELECT SUM(SALE_AMT) AS totalSaleAmt,
+               AVG(SALE_AMT) AS avgSaleAmt,
+               MAX(SALE_AMT) AS maxSaleAmt,
+               MIN(SALE_AMT) AS minSaleAmt,
+               SUM(SALE_CNT) AS saleCnt,
+               SUM(REFUND_AMT) AS refundAmt,
+               SUM(REFUND_CNT) AS refundCnt,
+               SUM(SALE_AMT - REFUND_AMT) AS netSaleAmt,
+               SUM(SALE_CNT - REFUND_CNT) AS netSaleCnt
+          FROM TB_CATEGORY_SALE
+         WHERE 1=1
+        <if test="categoryCd != null and categoryCd != ''">
+           AND CATEGORY_CD = #{categoryCd}
+        </if>
+        <if test="searchStartDate != null and searchStartDate != ''">
+           AND SALE_DATE &gt;= #{searchStartDate}
+        </if>
+        <if test="searchEndDate != null and searchEndDate != ''">
+           AND SALE_DATE &lt;= #{searchEndDate}
+        </if>
+    </select>
+
+    <!-- 일별 매출 목록 조회 -->
+    <select id="selectDailySaleList" parameterType="com.academy.manage.categorySale.service.CategorySaleVO" resultType="com.academy.manage.categorySale.service.CategorySaleVO">
+        SELECT SALE_DATE AS saleDate,
+               SUM(SALE_AMT) AS dailySaleAmt,
+               SUM(SALE_CNT) AS saleCnt,
+               SUM(REFUND_AMT) AS refundAmt,
+               SUM(SALE_AMT - REFUND_AMT) AS netSaleAmt
+          FROM TB_CATEGORY_SALE
+         WHERE 1=1
+        <if test="categoryCd != null and categoryCd != ''">
+           AND CATEGORY_CD = #{categoryCd}
+        </if>
+        <if test="searchStartDate != null and searchStartDate != ''">
+           AND SALE_DATE &gt;= #{searchStartDate}
+        </if>
+        <if test="searchEndDate != null and searchEndDate != ''">
+           AND SALE_DATE &lt;= #{searchEndDate}
+        </if>
+         GROUP BY SALE_DATE
+         ORDER BY SALE_DATE DESC
+    </select>
+
+    <!-- 월별 매출 목록 조회 -->
+    <select id="selectMonthlySaleList" parameterType="com.academy.manage.categorySale.service.CategorySaleVO" resultType="com.academy.manage.categorySale.service.CategorySaleVO">
+        SELECT DATE_FORMAT(SALE_DATE, '%Y-%m') AS saleMonth,
+               SUM(SALE_AMT) AS monthlySaleAmt,
+               SUM(SALE_CNT) AS saleCnt,
+               SUM(REFUND_AMT) AS refundAmt,
+               SUM(SALE_AMT - REFUND_AMT) AS netSaleAmt
+          FROM TB_CATEGORY_SALE
+         WHERE 1=1
+        <if test="categoryCd != null and categoryCd != ''">
+           AND CATEGORY_CD = #{categoryCd}
+        </if>
+        <if test="searchStartDate != null and searchStartDate != ''">
+           AND SALE_DATE &gt;= #{searchStartDate}
+        </if>
+        <if test="searchEndDate != null and searchEndDate != ''">
+           AND SALE_DATE &lt;= #{searchEndDate}
+        </if>
+         GROUP BY DATE_FORMAT(SALE_DATE, '%Y-%m')
+         ORDER BY saleMonth DESC
+    </select>
+
+    <!-- 년별 매출 목록 조회 -->
+    <select id="selectYearlySaleList" parameterType="com.academy.manage.categorySale.service.CategorySaleVO" resultType="com.academy.manage.categorySale.service.CategorySaleVO">
+        SELECT DATE_FORMAT(SALE_DATE, '%Y') AS saleYear,
+               SUM(SALE_AMT) AS yearlySaleAmt,
+               SUM(SALE_CNT) AS saleCnt,
+               SUM(REFUND_AMT) AS refundAmt,
+               SUM(SALE_AMT - REFUND_AMT) AS netSaleAmt
+          FROM TB_CATEGORY_SALE
+         WHERE 1=1
+        <if test="categoryCd != null and categoryCd != ''">
+           AND CATEGORY_CD = #{categoryCd}
+        </if>
+        <if test="searchStartDate != null and searchStartDate != ''">
+           AND SALE_DATE &gt;= #{searchStartDate}
+        </if>
+        <if test="searchEndDate != null and searchEndDate != ''">
+           AND SALE_DATE &lt;= #{searchEndDate}
+        </if>
+         GROUP BY DATE_FORMAT(SALE_DATE, '%Y')
+         ORDER BY saleYear DESC
+    </select>
+
+    <!-- 카테고리 목록 조회 -->
+    <select id="selectCategoryList" parameterType="com.academy.manage.categorySale.service.CategorySaleVO" resultType="com.academy.manage.categorySale.service.CategorySaleVO">
+        SELECT CATEGORY_CD AS categoryCd,
+               CATEGORY_NM AS categoryNm,
+               PARENT_CD AS parentCd
+          FROM TB_CATEGORY
+         WHERE ISUSE = 'Y'
+         ORDER BY SORT_NO, CATEGORY_NM
+    </select>
+
+    <!-- 카테고리별 매출 비율 조회 -->
+    <select id="selectCategorySaleRateList" parameterType="com.academy.manage.categorySale.service.CategorySaleVO" resultType="com.academy.manage.categorySale.service.CategorySaleVO">
+        SELECT A.CATEGORY_CD AS categoryCd,
+               B.CATEGORY_NM AS categoryNm,
+               SUM(A.SALE_AMT) AS saleAmt,
+               ROUND(SUM(A.SALE_AMT) * 100.0 /
+                     (SELECT SUM(SALE_AMT) FROM TB_CATEGORY_SALE
+                       WHERE 1=1
+                      <if test="searchStartDate != null and searchStartDate != ''">
+                         AND SALE_DATE &gt;= #{searchStartDate}
+                      </if>
+                      <if test="searchEndDate != null and searchEndDate != ''">
+                         AND SALE_DATE &lt;= #{searchEndDate}
+                      </if>
+                     ), 2) AS saleRate
+          FROM TB_CATEGORY_SALE A
+          LEFT JOIN TB_CATEGORY B ON A.CATEGORY_CD = B.CATEGORY_CD
+         WHERE 1=1
+        <if test="searchStartDate != null and searchStartDate != ''">
+           AND A.SALE_DATE &gt;= #{searchStartDate}
+        </if>
+        <if test="searchEndDate != null and searchEndDate != ''">
+           AND A.SALE_DATE &lt;= #{searchEndDate}
+        </if>
+         GROUP BY A.CATEGORY_CD, B.CATEGORY_NM
+         ORDER BY saleAmt DESC
+    </select>
+
+    <!-- 매출 데이터 등록 -->
+    <insert id="insertCategorySale" parameterType="com.academy.manage.categorySale.service.CategorySaleVO">
+        INSERT INTO TB_CATEGORY_SALE (
+            CATEGORY_CD, SALE_DATE, SALE_AMT, SALE_CNT,
+            REFUND_AMT, REFUND_CNT, REG_ID, REG_DATE
+        ) VALUES (
+            #{categoryCd}, #{saleDate}, #{saleAmt}, #{saleCnt},
+            IFNULL(#{refundAmt}, 0), IFNULL(#{refundCnt}, 0), #{regId}, NOW()
+        )
+    </insert>
+
+    <!-- 매출 데이터 수정 -->
+    <update id="updateCategorySale" parameterType="com.academy.manage.categorySale.service.CategorySaleVO">
+        UPDATE TB_CATEGORY_SALE
+           SET CATEGORY_CD = #{categoryCd},
+               SALE_DATE = #{saleDate},
+               SALE_AMT = #{saleAmt},
+               SALE_CNT = #{saleCnt},
+               REFUND_AMT = #{refundAmt},
+               REFUND_CNT = #{refundCnt},
+               MOD_ID = #{modId},
+               MOD_DATE = NOW()
+         WHERE SALE_SEQ = #{saleSeq}
+    </update>
+
+    <!-- 매출 데이터 삭제 -->
+    <delete id="deleteCategorySale" parameterType="com.academy.manage.categorySale.service.CategorySaleVO">
+        DELETE FROM TB_CATEGORY_SALE WHERE SALE_SEQ = #{saleSeq}
+    </delete>
+
+</mapper>

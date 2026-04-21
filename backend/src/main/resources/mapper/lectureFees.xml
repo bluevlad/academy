@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.academy.mapper.LectureFeesMapper">
+
+    <select id="selectLectureFeesList" parameterType="com.academy.mocktest.lectureFees.service.LectureFeesVO" resultType="com.academy.mocktest.lectureFees.service.LectureFeesVO">
+        SELECT A.FEE_SEQ AS feeSeq, A.FEE_TYPE AS feeType,
+               CASE A.FEE_TYPE WHEN 'SINGLE' THEN '단과' WHEN 'PACKAGE' THEN '패키지' ELSE A.FEE_TYPE END AS feeTypeNm,
+               A.FEE_NM AS feeNm, A.PRICE AS price, A.SALE_PRICE AS salePrice, A.DISCOUNT_RATE AS discountRate,
+               A.EXAM_YEAR AS examYear, A.CATEGORY_CD AS categoryCd, C.CATEGORY_NM AS categoryNm,
+               A.SALE_YN AS saleYn, A.ISUSE AS isuse, DATE_FORMAT(A.REG_DATE, '%Y-%m-%d') AS regDate
+          FROM TB_MOCK_LECTURE_FEES A
+          LEFT JOIN TB_CATEGORY C ON A.CATEGORY_CD = C.CATEGORY_CD
+         WHERE A.ISUSE = 'Y'
+        <if test="feeType != null and feeType != ''">AND A.FEE_TYPE = #{feeType}</if>
+        <if test="searchExamYear != null and searchExamYear != ''">AND A.EXAM_YEAR = #{searchExamYear}</if>
+        <if test="searchCategoryCd != null and searchCategoryCd != ''">AND A.CATEGORY_CD = #{searchCategoryCd}</if>
+        <if test="searchSaleYn != null and searchSaleYn != ''">AND A.SALE_YN = #{searchSaleYn}</if>
+         ORDER BY A.EXAM_YEAR DESC, A.SORT_NO, A.FEE_SEQ DESC
+         LIMIT #{recordCountPerPage} OFFSET #{firstIndex}
+    </select>
+
+    <select id="selectLectureFeesListCount" parameterType="com.academy.mocktest.lectureFees.service.LectureFeesVO" resultType="int">
+        SELECT COUNT(*) FROM TB_MOCK_LECTURE_FEES A WHERE A.ISUSE = 'Y'
+        <if test="feeType != null and feeType != ''">AND A.FEE_TYPE = #{feeType}</if>
+        <if test="searchExamYear != null and searchExamYear != ''">AND A.EXAM_YEAR = #{searchExamYear}</if>
+        <if test="searchCategoryCd != null and searchCategoryCd != ''">AND A.CATEGORY_CD = #{searchCategoryCd}</if>
+        <if test="searchSaleYn != null and searchSaleYn != ''">AND A.SALE_YN = #{searchSaleYn}</if>
+    </select>
+
+    <select id="selectLectureFeesDetail" parameterType="com.academy.mocktest.lectureFees.service.LectureFeesVO" resultType="com.academy.mocktest.lectureFees.service.LectureFeesVO">
+        SELECT FEE_SEQ AS feeSeq, FEE_TYPE AS feeType, FEE_NM AS feeNm, PRICE AS price, SALE_PRICE AS salePrice,
+               DISCOUNT_RATE AS discountRate, DISCOUNT_AMT AS discountAmt, EXAM_YEAR AS examYear,
+               CATEGORY_CD AS categoryCd, SUBJECT_CD AS subjectCd, START_DATE AS startDate, END_DATE AS endDate,
+               LIMIT_DAY AS limitDay, SALE_YN AS saleYn, ISUSE AS isuse, SORT_NO AS sortNo,
+               REG_ID AS regId, DATE_FORMAT(REG_DATE, '%Y-%m-%d %H:%i:%s') AS regDate
+          FROM TB_MOCK_LECTURE_FEES WHERE FEE_SEQ = #{feeSeq}
+    </select>
+
+    <insert id="insertLectureFees" parameterType="com.academy.mocktest.lectureFees.service.LectureFeesVO">
+        INSERT INTO TB_MOCK_LECTURE_FEES (FEE_TYPE, FEE_NM, PRICE, SALE_PRICE, DISCOUNT_RATE, DISCOUNT_AMT, EXAM_YEAR,
+            CATEGORY_CD, SUBJECT_CD, START_DATE, END_DATE, LIMIT_DAY, SALE_YN, ISUSE, SORT_NO, REG_ID, REG_DATE)
+        VALUES (#{feeType}, #{feeNm}, #{price}, #{salePrice}, #{discountRate}, #{discountAmt}, #{examYear},
+            #{categoryCd}, #{subjectCd}, #{startDate}, #{endDate}, #{limitDay}, IFNULL(#{saleYn}, 'Y'), 'Y', #{sortNo}, #{regId}, NOW())
+    </insert>
+
+    <update id="updateLectureFees" parameterType="com.academy.mocktest.lectureFees.service.LectureFeesVO">
+        UPDATE TB_MOCK_LECTURE_FEES SET FEE_TYPE = #{feeType}, FEE_NM = #{feeNm}, PRICE = #{price}, SALE_PRICE = #{salePrice},
+               DISCOUNT_RATE = #{discountRate}, DISCOUNT_AMT = #{discountAmt}, EXAM_YEAR = #{examYear}, CATEGORY_CD = #{categoryCd},
+               SUBJECT_CD = #{subjectCd}, START_DATE = #{startDate}, END_DATE = #{endDate}, LIMIT_DAY = #{limitDay},
+               SALE_YN = #{saleYn}, SORT_NO = #{sortNo}, MOD_ID = #{modId}, MOD_DATE = NOW()
+         WHERE FEE_SEQ = #{feeSeq}
+    </update>
+
+    <update id="deleteLectureFees" parameterType="com.academy.mocktest.lectureFees.service.LectureFeesVO">
+        UPDATE TB_MOCK_LECTURE_FEES SET ISUSE = 'N', MOD_ID = #{modId}, MOD_DATE = NOW() WHERE FEE_SEQ = #{feeSeq}
+    </update>
+
+    <select id="selectPackageFeesList" parameterType="com.academy.mocktest.lectureFees.service.LectureFeesVO" resultType="com.academy.mocktest.lectureFees.service.LectureFeesVO">
+        SELECT FEE_SEQ AS feeSeq, FEE_NM AS feeNm, PRICE AS price, SALE_PRICE AS salePrice, EXAM_YEAR AS examYear
+          FROM TB_MOCK_LECTURE_FEES WHERE FEE_TYPE = 'PACKAGE' AND ISUSE = 'Y' AND SALE_YN = 'Y' ORDER BY EXAM_YEAR DESC, SORT_NO
+    </select>
+
+    <select id="selectExamYearList" parameterType="com.academy.mocktest.lectureFees.service.LectureFeesVO" resultType="com.academy.mocktest.lectureFees.service.LectureFeesVO">
+        SELECT DISTINCT EXAM_YEAR AS examYear FROM TB_MOCK_LECTURE_FEES WHERE ISUSE = 'Y' ORDER BY EXAM_YEAR DESC
+    </select>
+
+</mapper>

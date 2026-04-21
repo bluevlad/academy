@@ -1,0 +1,691 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.academy.mapper.FreeOrderMapper">
+
+    <!-- =====================================================
+         수강신청 관련
+         ===================================================== -->
+
+    <!-- 수강신청 회원 목록 조회 -->
+    <select id="selectMemberFreeOrderList" parameterType="com.academy.freeOrder.service.FreeOrderVO" resultType="org.json.simple.JSONObject">
+        SELECT
+            USER_ID,
+            USER_NM,
+            BIRTH_DAY,
+            PHONE_NO,
+            TEL_NO,
+            EMAIL
+        FROM TB_MA_MEMBER
+        WHERE USER_ROLE = 'USER'
+        <if test="keyword != null and keyword != ''">
+            AND (USER_NM LIKE CONCAT('%', #{keyword}, '%') OR USER_ID LIKE CONCAT('%', #{keyword}, '%'))
+        </if>
+        ORDER BY REG_DT DESC
+        LIMIT #{recordCountPerPage} OFFSET #{firstIndex}
+    </select>
+
+    <!-- 수강신청 회원 목록 건수 조회 -->
+    <select id="selectMemberFreeOrderListCount" parameterType="com.academy.freeOrder.service.FreeOrderVO" resultType="int">
+        SELECT COUNT(*)
+        FROM TB_MA_MEMBER
+        WHERE USER_ROLE = 'USER'
+        <if test="keyword != null and keyword != ''">
+            AND (USER_NM LIKE CONCAT('%', #{keyword}, '%') OR USER_ID LIKE CONCAT('%', #{keyword}, '%'))
+        </if>
+    </select>
+
+    <!-- 강의 마스터 정보 조회 (수강신청 등록 팝업용) -->
+    <select id="selectLectureMstInfo" parameterType="com.academy.freeOrder.service.FreeOrderVO" resultType="org.json.simple.JSONObject">
+        SELECT
+            a.SUBJECT_JANG,
+            a.SUBJECT_PASS,
+            a.SEQ,
+            a.LECCODE,
+            a.CATEGORY_CD AS CAT_CD,
+            b.NAME AS CAT_NM,
+            a.LEARNING_CD AS MENU_ID,
+            c.NAME AS MENU_NM,
+            a.SUBJECT_TEACHER,
+            d.USER_NM,
+            a.SUBJECT_TITLE,
+            a.SUBJECT_DESC,
+            a.SUBJECT_MEMO,
+            a.SUBJECT_KEYWORD,
+            a.SUBJECT_PERIOD,
+            a.SUBJECT_OFF_OPEN_YEAR,
+            a.SUBJECT_OFF_OPEN_MONTH,
+            a.SUBJECT_DISCOUNT,
+            a.SUBJECT_POINT,
+            a.SUBJECT_MOVIE,
+            a.SUBJECT_PMP,
+            a.SUBJECT_MOVIE_PMP,
+            a.SUBJECT_SUMNAIL,
+            a.SUBJECT_EVENT_IMAGE,
+            a.SUBJECT_OUTSIDE,
+            a.SUBJECT_OPTION,
+            a.SUBJECT_ISUSE,
+            a.UPD_ID AS UPDATE_ID,
+            a.REG_DT,
+            a.UPD_DT AS UPDATE_DT,
+            a.SUBJECT_SJT_CD,
+            a.LEC_TYPE_CHOICE,
+            a.SUBJECT_OFF_OPEN_DAY,
+            a.SUBJECT_VOD_DEFAULT_PATH,
+            a.SUBJECT_WIDE_DEFAULT_PATH,
+            a.SUBJECT_PMP_DEFAULT_PATH,
+            a.SUBJECT_PRICE,
+            a.SUBJECT_MP4_DEFAULT_PATH,
+            IFNULL(a.RE_COURSE, 'N') AS RE_COURSE,
+            a.SUBJECT_MOVIE_MP4,
+            a.SUBJECT_MOVIE_VOD_MP4,
+            a.LEC_SCHEDULE,
+            DATE_FORMAT(NOW(), '%Y%m%d') AS TO_DATE
+        FROM TB_LEC_MST a
+        LEFT OUTER JOIN TB_CATEGORY_INFO b ON a.CATEGORY_CD = b.CODE
+        LEFT OUTER JOIN TB_LEARNING_FORM_INFO c ON a.LEARNING_CD = c.CODE AND c.LEC_DIV = 'LEC_A'
+        LEFT OUTER JOIN TB_MA_MEMBER d ON a.SUBJECT_TEACHER = d.USER_ID
+        WHERE a.LECCODE = #{leccode}
+    </select>
+
+    <!-- 강의 마스터 정보 조회 (수강변경 팝업용 - 이전 강의) -->
+    <select id="selectLectureMstInfoPrev" parameterType="com.academy.freeOrder.service.FreeOrderVO" resultType="org.json.simple.JSONObject">
+        SELECT
+            a.SUBJECT_JANG,
+            a.SUBJECT_PASS,
+            a.SEQ,
+            a.LECCODE,
+            a.CATEGORY_CD AS CAT_CD,
+            b.NAME AS CAT_NM,
+            a.LEARNING_CD AS MENU_ID,
+            c.NAME AS MENU_NM,
+            a.SUBJECT_TEACHER,
+            d.USER_NM,
+            a.SUBJECT_TITLE,
+            a.SUBJECT_DESC,
+            a.SUBJECT_MEMO,
+            a.SUBJECT_KEYWORD,
+            a.SUBJECT_PERIOD,
+            a.SUBJECT_OFF_OPEN_YEAR,
+            a.SUBJECT_OFF_OPEN_MONTH,
+            a.SUBJECT_DISCOUNT,
+            a.SUBJECT_POINT,
+            a.SUBJECT_MOVIE,
+            a.SUBJECT_PMP,
+            a.SUBJECT_MOVIE_PMP,
+            a.SUBJECT_SUMNAIL,
+            a.SUBJECT_EVENT_IMAGE,
+            a.SUBJECT_OUTSIDE,
+            a.SUBJECT_OPTION,
+            a.SUBJECT_ISUSE,
+            a.UPD_ID AS UPDATE_ID,
+            a.REG_DT,
+            a.UPD_DT AS UPDATE_DT,
+            a.SUBJECT_SJT_CD,
+            a.LEC_TYPE_CHOICE,
+            a.SUBJECT_OFF_OPEN_DAY,
+            a.SUBJECT_VOD_DEFAULT_PATH,
+            a.SUBJECT_PMP_DEFAULT_PATH,
+            a.SUBJECT_PRICE,
+            a.SUBJECT_MP4_DEFAULT_PATH,
+            IFNULL(a.RE_COURSE, 'N') AS RE_COURSE,
+            a.SUBJECT_MOVIE_MP4,
+            a.SUBJECT_MOVIE_VOD_MP4,
+            a.LEC_SCHEDULE,
+            DATE_FORMAT(NOW(), '%Y%m%d') AS TO_DATE
+        FROM TB_LEC_MST a
+        LEFT OUTER JOIN TB_CATEGORY_INFO b ON a.CATEGORY_CD = b.CODE
+        LEFT OUTER JOIN TB_LEARNING_FORM_INFO c ON a.LEARNING_CD = c.CODE AND c.LEC_DIV = 'LEC_A'
+        LEFT OUTER JOIN TB_MA_MEMBER d ON a.SUBJECT_TEACHER = d.USER_ID
+        WHERE a.LECCODE = #{packageNo}
+    </select>
+
+    <!-- =====================================================
+         강의선택 팝업 관련
+         ===================================================== -->
+
+    <!-- 카테고리 목록 조회 -->
+    <select id="selectCategoryList" parameterType="com.academy.freeOrder.service.FreeOrderVO" resultType="org.json.simple.JSONObject">
+        SELECT
+            CODE,
+            NAME
+        FROM TB_CATEGORY_INFO
+        WHERE ISUSE = 'Y'
+        AND CODE IS NOT NULL
+        AND CODE != 'HOME'
+        AND CODE != '999'
+        AND P_CODE = 'CLASSCODE'
+        ORDER BY CODE ASC
+    </select>
+
+    <!-- 학습형태 목록 조회 -->
+    <select id="selectLearningFormList" parameterType="com.academy.freeOrder.service.FreeOrderVO" resultType="org.json.simple.JSONObject">
+        SELECT
+            CODE,
+            CONCAT(
+                (SELECT CODE_NM FROM TB_BA_CONFIG_CD WHERE SYS_CD = 'LEC_FORM' AND CODE_CD = A.LEC_DIV AND ISUSE = 'Y'),
+                '-',
+                NAME
+            ) AS NAME
+        FROM TB_LEARNING_FORM_INFO A
+        WHERE ISUSE = 'Y'
+        ORDER BY CODE
+    </select>
+
+    <!-- 과목 목록 조회 -->
+    <select id="selectSubjectList" parameterType="com.academy.freeOrder.service.FreeOrderVO" resultType="org.json.simple.JSONObject">
+        SELECT
+            SUBJECT_CD,
+            SUBJECT_NM
+        FROM TB_SUBJECT_INFO
+        WHERE ISUSE = 'Y'
+        ORDER BY SUBJECT_CD
+    </select>
+
+    <!-- 강의선택 팝업 목록 조회 -->
+    <select id="selectLectureListForFreeOrder" parameterType="com.academy.freeOrder.service.FreeOrderVO" resultType="org.json.simple.JSONObject">
+        SELECT
+            a.SEQ,
+            a.LECCODE,
+            a.CATEGORY_CD,
+            b.NAME AS CAT_NM,
+            a.LEARNING_CD AS MENU_ID,
+            c.NAME AS MENU_NM,
+            a.SUBJECT_TITLE,
+            a.SUBJECT_OFF_OPEN_MONTH,
+            a.SUBJECT_OFF_OPEN_YEAR,
+            a.REG_DT,
+            d.USER_NM,
+            a.SUBJECT_ISUSE,
+            e.SUBJECT_NM,
+            f.BRIDGE_LECCODE,
+            a.SUBJECT_DISCOUNT,
+            a.SUBJECT_PRICE,
+            a.SUBJECT_MOVIE,
+            a.SUBJECT_PERIOD
+        FROM TB_LEC_MST a
+        LEFT OUTER JOIN TB_CATEGORY_INFO b ON a.CATEGORY_CD = b.CODE
+        LEFT OUTER JOIN TB_LEARNING_FORM_INFO c ON a.LEARNING_CD = c.CODE
+        LEFT OUTER JOIN TB_MA_MEMBER d ON a.SUBJECT_TEACHER = d.USER_ID
+        LEFT OUTER JOIN TB_SUBJECT_INFO e ON a.SUBJECT_SJT_CD = e.SUBJECT_CD
+        LEFT OUTER JOIN TB_LEC_BRIDGE f ON a.LECCODE = f.LECCODE
+        WHERE a.LEC_TYPE_CHOICE IN ('D', 'J', 'N', 'P', 'Y')
+        <if test="sCatCd != null and sCatCd != ''">
+            AND a.CATEGORY_CD = #{sCatCd}
+        </if>
+        <if test="sMenuId != null and sMenuId != ''">
+            AND a.LEARNING_CD = #{sMenuId}
+        </if>
+        <if test="sSjtCd != null and sSjtCd != ''">
+            AND a.SUBJECT_SJT_CD = #{sSjtCd}
+        </if>
+        <if test="searchKeyword != null and searchKeyword != ''">
+            <choose>
+                <when test="searchType == '1'">
+                    AND d.USER_NM LIKE CONCAT('%', #{searchKeyword}, '%')
+                </when>
+                <when test="searchType == '2'">
+                    AND a.LECCODE LIKE CONCAT('%', #{searchKeyword}, '%')
+                </when>
+                <when test="searchType == '3'">
+                    AND a.SUBJECT_TITLE LIKE CONCAT('%', #{searchKeyword}, '%')
+                </when>
+            </choose>
+        </if>
+        ORDER BY a.LEC_TYPE_CHOICE ASC, a.SUBJECT_SJT_CD ASC, a.SEQ DESC,
+                 CONCAT(a.SUBJECT_OFF_OPEN_YEAR, a.SUBJECT_OFF_OPEN_MONTH, a.SUBJECT_OFF_OPEN_DAY) DESC
+        LIMIT #{recordCountPerPage} OFFSET #{firstIndex}
+    </select>
+
+    <!-- 강의선택 팝업 목록 건수 조회 -->
+    <select id="selectLectureListForFreeOrderCount" parameterType="com.academy.freeOrder.service.FreeOrderVO" resultType="int">
+        SELECT COUNT(*)
+        FROM TB_LEC_MST a
+        LEFT OUTER JOIN TB_CATEGORY_INFO b ON a.CATEGORY_CD = b.CODE
+        LEFT OUTER JOIN TB_LEARNING_FORM_INFO c ON a.LEARNING_CD = c.CODE AND c.LEC_DIV = 'LEC_A'
+        LEFT OUTER JOIN TB_MA_MEMBER d ON a.SUBJECT_TEACHER = d.USER_ID
+        LEFT OUTER JOIN TB_SUBJECT_INFO e ON a.SUBJECT_SJT_CD = e.SUBJECT_CD
+        LEFT OUTER JOIN TB_LEC_BRIDGE f ON a.LECCODE = f.LECCODE
+        WHERE a.LEC_TYPE_CHOICE IN ('D', 'J', 'N', 'P', 'Y')
+        <if test="sCatCd != null and sCatCd != ''">
+            AND a.CATEGORY_CD = #{sCatCd}
+        </if>
+        <if test="sMenuId != null and sMenuId != ''">
+            AND a.LEARNING_CD = #{sMenuId}
+        </if>
+        <if test="sSjtCd != null and sSjtCd != ''">
+            AND a.SUBJECT_SJT_CD = #{sSjtCd}
+        </if>
+        <if test="searchKeyword != null and searchKeyword != ''">
+            <choose>
+                <when test="searchType == '1'">
+                    AND d.USER_NM LIKE CONCAT('%', #{searchKeyword}, '%')
+                </when>
+                <when test="searchType == '2'">
+                    AND a.LECCODE LIKE CONCAT('%', #{searchKeyword}, '%')
+                </when>
+                <when test="searchType == '3'">
+                    AND a.SUBJECT_TITLE LIKE CONCAT('%', #{searchKeyword}, '%')
+                </when>
+            </choose>
+        </if>
+    </select>
+
+    <!-- =====================================================
+         수강신청 등록 관련
+         ===================================================== -->
+
+    <!-- 주문번호 채번 (MySQL 함수 또는 시퀀스 대체) -->
+    <select id="selectNextOrderNo" parameterType="com.academy.freeOrder.service.FreeOrderVO" resultType="String">
+        SELECT CONCAT(#{ordernoCount}, DATE_FORMAT(NOW(), '%Y%m%d'),
+               LPAD(IFNULL(
+                   (SELECT MAX(CAST(SUBSTRING(ORDERNO, 10) AS UNSIGNED)) + 1
+                    FROM TB_ORDERS
+                    WHERE ORDERNO LIKE CONCAT(#{ordernoCount}, DATE_FORMAT(NOW(), '%Y%m%d'), '%')),
+                   1), 5, '0')
+        ) AS ORDERNO_COUNT
+    </select>
+
+    <!-- 사용자 존재여부 확인 -->
+    <select id="selectMemberExists" parameterType="com.academy.freeOrder.service.FreeOrderVO" resultType="org.json.simple.JSONObject">
+        SELECT USER_ID, USER_NM
+        FROM TB_MA_MEMBER
+        WHERE USER_ID = #{userid}
+    </select>
+
+    <!-- 주문관리번호 등록 (tb_order_mgnt_no) -->
+    <insert id="insertOrderMgntNo" parameterType="com.academy.freeOrder.service.FreeOrderVO">
+        INSERT INTO TB_ORDER_MGNT_NO (
+            ORDERNO,
+            MGNTNO,
+            CNT,
+            ISCANCEL,
+            PRICE,
+            STATUSCODE,
+            CONFIRMDATE,
+            SDATE,
+            ISCONFIRM,
+            WMV_PMP,
+            ORDERURL,
+            OPEN_ADMIN_ID,
+            PTYPE,
+            MEMO
+        ) VALUES (
+            #{orderno},
+            #{leccode},
+            1,
+            0,
+            #{subjectPrice},
+            #{statuscode},
+            NOW(),
+            #{startDate},
+            NOW(),
+            #{wmvCheck},
+            #{userIp},
+            #{userId},
+            SUBSTRING(#{leccode}, 1, 1),
+            #{memo}
+        )
+    </insert>
+
+    <!-- 주문 등록 (tb_orders) -->
+    <insert id="insertOrders" parameterType="com.academy.freeOrder.service.FreeOrderVO">
+        INSERT INTO TB_ORDERS (
+            ORDERNO,
+            USER_ID,
+            USER_NM,
+            TEL_NO,
+            PHONE_NO,
+            ZIP_CODE,
+            ADDRESS1,
+            ADDRESS2,
+            EMAIL,
+            REG_DT,
+            OFF_LINE
+        )
+        SELECT
+            #{orderno},
+            #{userid},
+            USER_NM,
+            TEL_NO,
+            PHONE_NO,
+            ZIP_CODE,
+            ADDRESS1,
+            ADDRESS2,
+            EMAIL,
+            NOW(),
+            '0'
+        FROM TB_MA_MEMBER
+        WHERE USER_ID = #{userid}
+    </insert>
+
+    <!-- 결제승인 등록 (tb_approvals) -->
+    <insert id="insertApprovals" parameterType="com.academy.freeOrder.service.FreeOrderVO">
+        INSERT INTO TB_APPROVALS (
+            ORDERNO,
+            PRICE,
+            ADDPRICE,
+            PAYCODE,
+            ACCTNOCODE,
+            PAYNAME,
+            POINT,
+            REG_DT
+        )
+        SELECT
+            #{orderno},
+            #{subjectPrice},
+            0,
+            'PAY100',
+            'ACT110',
+            USER_NM,
+            0,
+            NOW()
+        FROM TB_MA_MEMBER
+        WHERE USER_ID = #{userid}
+    </insert>
+
+    <!-- 수강신청 등록 (TB_MYLECTURE) -->
+    <insert id="insertMyLecture" parameterType="com.academy.freeOrder.service.FreeOrderVO">
+        INSERT INTO TB_MYLECTURE (
+            ORDERNO,
+            USERID,
+            PACKAGE_NO,
+            LECTURE_NO,
+            START_DATE,
+            END_DATE,
+            PERIOD,
+            STUDY_PERCENT,
+            PLAYYN,
+            REG_DT
+        ) VALUES (
+            #{orderno},
+            #{userid},
+            #{mgntno},
+            #{leccode},
+            STR_TO_DATE(#{startDate}, '%Y%m%d'),
+            DATE_ADD(STR_TO_DATE(#{startDate}, '%Y%m%d'), INTERVAL #{subjectPeriod} - 1 DAY),
+            #{subjectPeriod},
+            0,
+            'Y',
+            NOW()
+        )
+    </insert>
+
+    <!-- 연회원패키지 등록 (TB_ORDER_YEARPACKAGE) -->
+    <insert id="insertOrderYearPackage" parameterType="com.academy.freeOrder.service.FreeOrderVO">
+        INSERT INTO TB_ORDER_YEARPACKAGE (
+            ORDERNO,
+            PACKAGE_NO,
+            SUBJECT_TEACHER,
+            LEARNING_CD,
+            REG_DT,
+            START_DATE,
+            END_DATE
+        )
+        SELECT
+            #{orderno},
+            #{mgntno},
+            B.SUBJECT_TEACHER,
+            'M0101',
+            NOW(),
+            NOW(),
+            DATE_ADD(NOW(), INTERVAL #{subjectPeriod} - 1 DAY)
+        FROM TB_LEC_JONG A
+        INNER JOIN TB_LEC_MST B ON A.MST_LECCODE = B.LECCODE
+        WHERE A.LECCODE = #{mgntno}
+        GROUP BY B.SUBJECT_TEACHER
+    </insert>
+
+    <!-- 종합반 강좌 목록 조회 -->
+    <select id="selectPackageLectureList" parameterType="com.academy.freeOrder.service.FreeOrderVO" resultType="org.json.simple.JSONObject">
+        SELECT MST_LECCODE
+        FROM TB_LEC_JONG
+        WHERE LECCODE = #{leccode}
+    </select>
+
+    <!-- =====================================================
+         수강변경 관련
+         ===================================================== -->
+
+    <!-- 수강변경 목록 조회 -->
+    <select id="selectChangeLectureList" parameterType="com.academy.freeOrder.service.FreeOrderVO" resultType="org.json.simple.JSONObject">
+        SELECT
+            a.ORDERNO,
+            a.USER_ID,
+            a.USER_NM AS USER_NAME,
+            b.MGNTNO AS PACKAGE_NO,
+            d.SUBJECT_TITLE AS PACKAGE_NAME,
+            b.PRICE,
+            b.STATUSCODE,
+            CASE b.STATUSCODE
+                WHEN 'DLV100' THEN '입금확인중'
+                WHEN 'DLV105' THEN '입금완료'
+                WHEN 'DLV110' THEN '배송준비중'
+                WHEN 'DLV120' THEN '배송중'
+                WHEN 'DLV130' THEN '배송완료'
+                WHEN 'DLV140' THEN '취소요청'
+                WHEN 'DLV150' THEN '취소완료'
+                WHEN 'DLV160' THEN '교환요청'
+                WHEN 'DLV170' THEN '교환배송중'
+                WHEN 'DLV180' THEN '교환완료'
+                WHEN 'DLV220' THEN '환불요청'
+                WHEN 'DLV230' THEN '환불완료'
+                WHEN 'DLV240' THEN '결제에러'
+            END AS STATUSNAME,
+            DATE_FORMAT(a.REG_DT, '%Y-%m-%d %H:%i:%s') AS REGDATE
+        FROM TB_ORDERS a
+        INNER JOIN TB_ORDER_MGNT_NO b ON a.ORDERNO = b.ORDERNO
+        INNER JOIN TB_LEC_MST d ON b.MGNTNO = d.LECCODE
+        INNER JOIN TB_MA_MEMBER e ON a.USER_ID = e.USER_ID
+        WHERE b.PTYPE != 'L'
+        <if test="keyword != null and keyword != ''">
+            AND (a.USER_NM LIKE CONCAT('%', #{keyword}, '%') OR a.USER_ID LIKE CONCAT('%', #{keyword}, '%'))
+        </if>
+        ORDER BY a.REG_DT DESC, a.USER_NM, b.STATUSCODE
+        LIMIT #{recordCountPerPage} OFFSET #{firstIndex}
+    </select>
+
+    <!-- 수강변경 목록 건수 조회 -->
+    <select id="selectChangeLectureListCount" parameterType="com.academy.freeOrder.service.FreeOrderVO" resultType="int">
+        SELECT COUNT(*)
+        FROM TB_ORDERS a
+        INNER JOIN TB_ORDER_MGNT_NO b ON a.ORDERNO = b.ORDERNO
+        INNER JOIN TB_LEC_MST d ON b.MGNTNO = d.LECCODE
+        INNER JOIN TB_MA_MEMBER e ON a.USER_ID = e.USER_ID
+        WHERE b.PTYPE != 'L'
+        <if test="keyword != null and keyword != ''">
+            AND (a.USER_NM LIKE CONCAT('%', #{keyword}, '%') OR a.USER_ID LIKE CONCAT('%', #{keyword}, '%'))
+        </if>
+    </select>
+
+    <!-- 수강변경 상세 목록 조회 (강의/도서 정보) -->
+    <select id="selectChangeViewList" parameterType="com.academy.freeOrder.service.FreeOrderVO" resultType="org.json.simple.JSONObject">
+        SELECT * FROM (
+            SELECT
+                a.LECCODE AS PACKAGE_NO,
+                a.SUBJECT_TITLE AS PACKAGE_NAME,
+                b.SDATE,
+                c.ORDERNO,
+                c.USER_ID AS USERID,
+                '동영상강좌' AS GBNNAME,
+                a.SUBJECT_TITLE AS NAME,
+                a.SUBJECT_PRICE AS PRICE,
+                a.SUBJECT_DISCOUNT AS RATE,
+                b.PRICE AS REALPRICE,
+                b.CNT,
+                b.STATUSCODE,
+                b.WMV_PMP,
+                IFNULL((SELECT NEW_PACKAGE_NO FROM TB_RENEW_HISTORY WHERE ORDERNO = b.ORDERNO AND NEW_PACKAGE_NO = b.MGNTNO), '') AS NEW_PACKAGE_NO1,
+                (b.PRICE * b.CNT) AS TOT_PRICE,
+                CASE b.STATUSCODE
+                    WHEN 'DLV100' THEN '입금확인중'
+                    WHEN 'DLV105' THEN '입금완료'
+                    WHEN 'DLV110' THEN '배송준비중'
+                    WHEN 'DLV120' THEN '배송중'
+                    WHEN 'DLV130' THEN '배송완료'
+                    WHEN 'DLV140' THEN '취소요청'
+                    WHEN 'DLV150' THEN '취소완료'
+                    WHEN 'DLV160' THEN '교환요청'
+                    WHEN 'DLV170' THEN '교환배송중'
+                    WHEN 'DLV180' THEN '교환완료'
+                    WHEN 'DLV220' THEN '환불요청'
+                    WHEN 'DLV230' THEN '환불완료'
+                    WHEN 'DLV240' THEN '결제에러'
+                END AS STATUSCODENAME,
+                IFNULL(f.OLD_PACKAGE_NO, '') AS OLD_PACKAGE_NO2,
+                IFNULL(f.NEW_PACKAGE_NO, '') AS NEW_PACKAGE_NO2,
+                b.ISCANCEL,
+                b.ISCONFIRM,
+                b.CANCELDATE
+            FROM TB_LEC_MST a
+            INNER JOIN TB_ORDER_MGNT_NO b ON a.LECCODE = b.MGNTNO
+            LEFT OUTER JOIN TB_RENEW_HISTORY f ON f.ORDERNO = b.ORDERNO AND f.OLD_PACKAGE_NO = b.MGNTNO
+            INNER JOIN TB_ORDERS c ON b.ORDERNO = c.ORDERNO
+            WHERE c.ORDERNO = #{orderno}
+
+            UNION ALL
+
+            SELECT
+                a.RSC_ID AS PACKAGE_NO,
+                a.BOOK_NM AS PACKAGE_NAME,
+                b.SDATE,
+                c.ORDERNO,
+                c.USER_ID AS USERID,
+                '도서' AS GBNNAME,
+                a.BOOK_NM AS NAME,
+                a.PRICE AS PRICE,
+                a.DISCOUNT AS RATE,
+                b.PRICE AS REALPRICE,
+                b.CNT,
+                b.STATUSCODE,
+                '도서' AS WMV_PMP,
+                IFNULL((SELECT NEW_PACKAGE_NO FROM TB_RENEW_HISTORY WHERE ORDERNO = b.ORDERNO AND NEW_PACKAGE_NO = b.MGNTNO), '') AS NEW_PACKAGE_NO1,
+                (b.PRICE * b.CNT) AS TOT_PRICE,
+                CASE b.STATUSCODE
+                    WHEN 'DLV100' THEN '입금확인중'
+                    WHEN 'DLV105' THEN '입금완료'
+                    WHEN 'DLV110' THEN '배송준비중'
+                    WHEN 'DLV120' THEN '배송중'
+                    WHEN 'DLV130' THEN '배송완료'
+                    WHEN 'DLV140' THEN '취소요청'
+                    WHEN 'DLV150' THEN '취소완료'
+                    WHEN 'DLV160' THEN '교환요청'
+                    WHEN 'DLV170' THEN '교환배송중'
+                    WHEN 'DLV180' THEN '교환완료'
+                    WHEN 'DLV220' THEN '환불요청'
+                    WHEN 'DLV230' THEN '환불완료'
+                    WHEN 'DLV240' THEN '결제에러'
+                END AS STATUSCODENAME,
+                IFNULL(f.OLD_PACKAGE_NO, '') AS OLD_PACKAGE_NO2,
+                IFNULL(f.NEW_PACKAGE_NO, '') AS NEW_PACKAGE_NO2,
+                b.ISCANCEL,
+                b.ISCONFIRM,
+                b.CANCELDATE
+            FROM TB_CA_BOOK a
+            INNER JOIN TB_ORDER_MGNT_NO b ON a.RSC_ID = b.MGNTNO
+            LEFT OUTER JOIN TB_RENEW_HISTORY f ON f.ORDERNO = b.ORDERNO AND f.OLD_PACKAGE_NO = b.MGNTNO
+            INNER JOIN TB_ORDERS c ON b.ORDERNO = c.ORDERNO
+            WHERE c.ORDERNO = #{orderno}
+        ) TBL
+        ORDER BY ISCONFIRM DESC, CANCELDATE DESC
+    </select>
+
+    <!-- 수강변경 상세 목록 조회 (주문자 정보) -->
+    <select id="selectChangeViewOrderInfo" parameterType="com.academy.freeOrder.service.FreeOrderVO" resultType="org.json.simple.JSONObject">
+        SELECT
+            a.*,
+            b.BIRTH_DAY AS BIRTH_DT
+        FROM TB_ORDERS a
+        LEFT OUTER JOIN TB_MA_MEMBER b ON a.USER_ID = b.USER_ID
+        WHERE a.ORDERNO = #{orderno}
+    </select>
+
+    <!-- 주문 취소 처리 (수강변경 시) -->
+    <update id="updateOrderCancel" parameterType="com.academy.freeOrder.service.FreeOrderVO">
+        UPDATE TB_ORDER_MGNT_NO
+        SET
+            ISCANCEL = '1',
+            STATUSCODE = 'DLV150',
+            CANCELDATE = NOW()
+        WHERE ORDERNO = #{orderno}
+        AND MGNTNO = #{leccode2}
+    </update>
+
+    <!-- 수강변경 이력 등록 (TB_RENEW_HISTORY) -->
+    <insert id="insertRenewHistory" parameterType="com.academy.freeOrder.service.FreeOrderVO">
+        INSERT INTO TB_RENEW_HISTORY (
+            ORDERNO,
+            OLD_PACKAGE_NO,
+            NEW_PACKAGE_NO,
+            REGDATE
+        ) VALUES (
+            #{orderno},
+            #{leccode2},
+            #{leccode},
+            NOW()
+        )
+    </insert>
+
+    <!-- =====================================================
+         주문 상세 관련
+         ===================================================== -->
+
+    <!-- 결제승인 상세 조회 -->
+    <select id="selectApprovalsDetail" parameterType="com.academy.freeOrder.service.FreeOrderVO" resultType="org.json.simple.JSONObject">
+        SELECT
+            b.PRICE,
+            a.ADDPRICE,
+            a.PAYCODE AS PAYCODENAME,
+            CASE WHEN a.PAYCODE = 'PAY120' THEN a.VACCT ELSE ' ' END AS ACCTNONAME,
+            CASE WHEN a.VCDBANK = '' THEN NULL ELSE a.VCDBANK END AS VCDBANK,
+            a.PAYNAME,
+            a.PAYCODE,
+            a.POINT,
+            a.RETURNVALUE,
+            a.VACCT,
+            c.TID
+        FROM TB_APPROVALS a
+        INNER JOIN (
+            SELECT ORDERNO, SUM(PRICE * CNT) AS PRICE
+            FROM TB_ORDER_MGNT_NO
+            WHERE ORDERNO = #{orderno}
+            GROUP BY ORDERNO
+        ) b ON a.ORDERNO = b.ORDERNO
+        INNER JOIN TB_ORDERS c ON a.ORDERNO = c.ORDERNO
+        WHERE a.ORDERNO = #{orderno}
+    </select>
+
+    <!-- 배송정보 건수 조회 -->
+    <select id="selectDeliversCount" parameterType="com.academy.freeOrder.service.FreeOrderVO" resultType="int">
+        SELECT COUNT(*)
+        FROM TB_DELIVERS
+        WHERE ORDERNO = #{orderno}
+    </select>
+
+    <!-- 배송정보 상세 조회 -->
+    <select id="selectDeliversDetail" parameterType="com.academy.freeOrder.service.FreeOrderVO" resultType="org.json.simple.JSONObject">
+        SELECT
+            a.SENDNO,
+            a.USERNAME,
+            a.TELNO,
+            a.CELLNO,
+            a.ZIPCD,
+            SUBSTRING(a.ZIPCD, 1, 3) AS ZIPCD_SET1,
+            CASE
+                WHEN LENGTH(a.ZIPCD) = 6 THEN SUBSTRING(a.ZIPCD, 4, 3)
+                ELSE SUBSTRING(a.ZIPCD, 5, 3)
+            END AS ZIPCD_SET2,
+            a.ADDR,
+            a.MEMO,
+            a.SENDDATE,
+            a.DLEORDER,
+            CASE a.DLEORDER
+                WHEN 'DLE100' THEN '택배수령'
+                WHEN 'DLE110' THEN '직접수령'
+                ELSE '택배수령'
+            END AS DLEORDER_NM
+        FROM TB_DELIVERS a
+        WHERE a.ORDERNO = #{orderno}
+    </select>
+
+</mapper>

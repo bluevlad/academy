@@ -1,0 +1,35 @@
+name: Deploy to Production
+
+on:
+  push:
+    branches: [ "prod" ]
+
+jobs:
+  deploy:
+    name: Deploy on Self-Hosted Runner
+    runs-on: self-hosted
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Detect OS and set compose command
+      id: detect
+      shell: bash
+      run: |
+        OS=$(uname -s)
+        echo "os=$OS" >> $GITHUB_OUTPUT
+        if [ "$OS" = "Darwin" ]; then
+          echo "compose_file=docker-compose.yml" >> $GITHUB_OUTPUT
+        else
+          echo "compose_file=docker-compose.local.yml" >> $GITHUB_OUTPUT
+        fi
+
+    - name: Docker Compose Down
+      shell: bash
+      run: docker compose -f ${{ steps.detect.outputs.compose_file }} down --remove-orphans
+      continue-on-error: true
+
+    - name: Docker Compose Build and Up
+      shell: bash
+      run: docker compose -f ${{ steps.detect.outputs.compose_file }} up -d --build

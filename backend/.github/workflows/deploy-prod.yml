@@ -1,0 +1,60 @@
+name: Deploy Backend to Production
+
+on:
+  push:
+    branches: [ "prod" ]
+
+jobs:
+  deploy:
+    name: Deploy API on Self-Hosted Runner
+    runs-on: self-hosted
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Detect OS and set compose command
+      id: detect
+      shell: bash
+      run: |
+        OS=$(uname -s)
+        echo "os=$OS" >> $GITHUB_OUTPUT
+        if [ "$OS" = "Darwin" ]; then
+          echo "compose_file=docker-compose.yml" >> $GITHUB_OUTPUT
+        else
+          echo "compose_file=docker-compose.local.yml" >> $GITHUB_OUTPUT
+        fi
+
+    - name: Create .env file
+      shell: bash
+      run: |
+        cat > .env << 'ENVEOF'
+        DB_URL=${{ secrets.DB_URL }}
+        DB_USERNAME=${{ secrets.DB_USERNAME }}
+        DB_PASSWORD=${{ secrets.DB_PASSWORD }}
+        GOOGLE_CLIENT_ID=${{ secrets.GOOGLE_CLIENT_ID }}
+        GOOGLE_CLIENT_SECRET=${{ secrets.GOOGLE_CLIENT_SECRET }}
+        SUPER_ADMIN_EMAILS=${{ secrets.SUPER_ADMIN_EMAILS }}
+        ENVEOF
+        sed -i.bak 's/^        //' .env && rm -f .env.bak
+
+    - name: Docker Compose Down
+      shell: bash
+      run: docker compose -f ${{ steps.detect.outputs.compose_file }} down --remove-orphans
+      continue-on-error: true
+
+    - name: Docker Compose Build and Up
+      shell: bash
+      run: docker compose -f ${{ steps.detect.outputs.compose_file }} up -d --build
+
+    - name: Health Check
+      shell: bash
+      run: |
+        echo "Waiting for application to start..."
+        sleep 15
+        HTTP_CODE=$(curl -s -o /dev/null -w "%{http_code}" http://localhost:9001/actuator/health --max-time 10 || true)
+        if [ "$HTTP_CODE" = "200" ]; then
+          echo "Health check passed: $HTTP_CODE"
+        else
+          echo "Warning: Health check returned $HTTP_CODE - container may still be starting up. Check manually."
+        fi

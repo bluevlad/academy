@@ -1,0 +1,48 @@
+# ====== Build output ======
+target/
+build/
+out/
+*.class
+*.jar
+*.war
+
+# ====== IDE ======
+.idea/
+*.iml
+.vscode/
+.settings/
+.classpath
+.project
+nbproject/
+
+# ====== Node / FE ======
+node_modules/
+dist/
+.vite/
+.next/
+.turbo/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# ====== Env / Secrets ======
+.env
+.env.*
+!.env.example
+
+# ====== Logs ======
+*.log
+logs/
+
+# ====== OS ======
+.DS_Store
+Thumbs.db
+
+# ====== Claude Code settings ======
+.claude/settings.local.json
+
+# ====== Legacy (이력 보존용, 별도 관리) ======
+# legacy/ 실 파일은 로컬 안전망용 사본. Git 이력에는 포함하지 않는다.
+# 각 원본 repo (github) 이 SSOT. legacy/README.md 만 commit.
+legacy/*
+!legacy/README.md

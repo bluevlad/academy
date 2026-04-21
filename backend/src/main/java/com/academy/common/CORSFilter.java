@@ -1,0 +1,81 @@
+package com.academy.common;
+
+import java.io.IOException;
+
+import jakarta.servlet.Filter;
+import jakarta.servlet.FilterChain;
+import jakarta.servlet.FilterConfig;
+import jakarta.servlet.ServletException;
+import jakarta.servlet.ServletRequest;
+import jakarta.servlet.ServletResponse;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
+
+/**
+ * Servlet Filter implementation class CORSFilter
+ */
+// Enable it for Servlet 3.x implementations
+/* @ WebFilter(asyncSupported = true, urlPatterns = { "/*" }) */
+public class CORSFilter implements Filter {
+
+    /**
+     * Default constructor.
+     */
+    public CORSFilter() {
+    }
+
+    /**
+     * @see Filter#destroy()
+     */
+    @Override
+    public void destroy() {
+    }
+
+    /**
+     * @see Filter#doFilter(ServletRequest, ServletResponse, FilterChain)
+     */
+    @Override
+    public void doFilter(ServletRequest servletRequest, ServletResponse servletResponse, FilterChain chain)
+            throws IOException, ServletException {
+
+        ((HttpServletResponse) servletResponse).setHeader("Access-Control-Max-Age", "3600");
+        ((HttpServletResponse) servletResponse).setHeader("Access-Control-Allow-Headers",
+                "x-requested-with, authorization, origin, content-type, accept");
+        ((HttpServletResponse) servletResponse).setHeader("Access-Control-Allow-Credentials", "true");
+        HttpServletRequest request = (HttpServletRequest) servletRequest;
+        String origin = request.getHeader("Origin");
+        if (origin != null && (origin.equals("http://study.unmong.com:3000") ||
+                origin.equals("http://academy.unmong.com:9001") ||
+                origin.equals("http://localhost:3000") ||
+                origin.equals("http://academy.unmong.com:3000"))) {
+            ((HttpServletResponse) servletResponse).setHeader("Access-Control-Allow-Origin", origin);
+        }
+
+        ((HttpServletResponse) servletResponse).setHeader("Access-Control-Allow-Methods",
+                "HEAD, GET, POST, PUT, DELETE, OPTIONS");
+
+        // System.out.println("CORSFilter HTTP Request: " + request.getMethod());
+
+        // Authorize (allow) all domains to consume the content
+
+        HttpServletResponse resp = (HttpServletResponse) servletResponse;
+
+        // For HTTP OPTIONS verb/method reply with ACCEPTED status code -- per CORS
+        // handshake
+        if (request.getMethod().equals("OPTIONS")) {
+            resp.setStatus(HttpServletResponse.SC_ACCEPTED);
+            return;
+        }
+
+        // pass the request along the filter chain
+        chain.doFilter(request, servletResponse);
+    }
+
+    /**
+     * @see Filter#init(FilterConfig)
+     */
+    @Override
+    public void init(FilterConfig fConfig) throws ServletException {
+    }
+
+}

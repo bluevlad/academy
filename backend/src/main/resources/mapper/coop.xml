@@ -1,0 +1,488 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+    수정일              수정자           수정내용
+  ===========      =========    =================
+ *2025.12.11       system       제휴사 관리 매퍼 신규 생성 (MySQL 버전)
+-->
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.academy.mapper.CoopMapper">
+
+    <!-- =====================================================
+         제휴사 마스터 (COOP_MST) 관련
+         ===================================================== -->
+
+    <!-- 제휴사 목록 조회 -->
+    <select id="selectCoopList" parameterType="com.academy.coop.service.CoopVO" resultType="org.json.simple.JSONObject">
+        SELECT
+            A.COOP_CD,
+            A.COOP_NM,
+            A.DISCOUNT_PER,
+            A.COOP_DESC,
+            DATE_FORMAT(A.REG_DT, '%Y-%m-%d') AS REG_DT,
+            (SELECT COUNT(USER_IP) FROM COOP_USE_IP WHERE COOP_CD = A.COOP_CD) AS IP_CNT
+        FROM COOP_MST A
+        WHERE 1=1
+        <if test="searchText != null and searchText != ''">
+            AND (A.COOP_CD LIKE CONCAT('%', #{searchText}, '%')
+                 OR A.COOP_NM LIKE CONCAT('%', #{searchText}, '%'))
+        </if>
+        ORDER BY A.REG_DT DESC
+        LIMIT #{recordCountPerPage} OFFSET #{firstIndex}
+    </select>
+
+    <!-- 제휴사 목록 건수 조회 -->
+    <select id="selectCoopListCount" parameterType="com.academy.coop.service.CoopVO" resultType="int">
+        SELECT COUNT(*) AS CNT
+        FROM COOP_MST A
+        WHERE 1=1
+        <if test="searchText != null and searchText != ''">
+            AND (A.COOP_CD LIKE CONCAT('%', #{searchText}, '%')
+                 OR A.COOP_NM LIKE CONCAT('%', #{searchText}, '%'))
+        </if>
+    </select>
+
+    <!-- 제휴사 상세 조회 -->
+    <select id="selectCoopDetail" parameterType="com.academy.coop.service.CoopVO" resultType="org.json.simple.JSONObject">
+        SELECT
+            COOP_CD,
+            COOP_NM,
+            DISCOUNT_PER,
+            COOP_DESC,
+            REG_DT
+        FROM COOP_MST
+        WHERE COOP_CD = #{coopCd}
+    </select>
+
+    <!-- 제휴사 등록 -->
+    <insert id="insertCoop" parameterType="com.academy.coop.service.CoopVO">
+        INSERT INTO COOP_MST (
+            COOP_CD,
+            COOP_NM,
+            DISCOUNT_PER,
+            COOP_DESC,
+            REG_DT
+        ) VALUES (
+            #{coopCd},
+            #{coopNm},
+            #{discountPer},
+            #{coopDesc},
+            now()
+        )
+    </insert>
+
+    <!-- 제휴사 수정 -->
+    <update id="updateCoop" parameterType="com.academy.coop.service.CoopVO">
+        UPDATE COOP_MST
+        SET
+            COOP_NM = #{coopNm},
+            DISCOUNT_PER = #{discountPer},
+            COOP_DESC = #{coopDesc}
+        WHERE COOP_CD = #{coopCd}
+    </update>
+
+    <!-- 제휴사 삭제 -->
+    <delete id="deleteCoop" parameterType="com.academy.coop.service.CoopVO">
+        DELETE FROM COOP_MST WHERE COOP_CD = #{coopCd}
+    </delete>
+
+
+    <!-- =====================================================
+         제휴사 IP (COOP_USE_IP) 관련
+         ===================================================== -->
+
+    <!-- 제휴사 IP 목록 조회 -->
+    <select id="selectCoopIpList" parameterType="com.academy.coop.service.CoopIpVO" resultType="org.json.simple.JSONObject">
+        SELECT
+            COOP_CD,
+            USER_IP,
+            DATE_FORMAT(REG_DT, '%Y-%m-%d') AS REG_DT
+        FROM COOP_USE_IP
+        WHERE COOP_CD = #{coopCd}
+        ORDER BY REG_DT DESC
+    </select>
+
+    <!-- 제휴사 IP 등록 -->
+    <insert id="insertCoopIp" parameterType="com.academy.coop.service.CoopIpVO">
+        INSERT INTO COOP_USE_IP (
+            COOP_CD,
+            USER_IP,
+            REG_DT
+        ) VALUES (
+            #{coopCd},
+            #{userIp},
+            now()
+        )
+    </insert>
+
+    <!-- 제휴사 IP 삭제 -->
+    <delete id="deleteCoopIp" parameterType="com.academy.coop.service.CoopIpVO">
+        DELETE FROM COOP_USE_IP
+        WHERE COOP_CD = #{coopCd}
+        AND USER_IP = #{oldUserIp}
+    </delete>
+
+
+    <!-- =====================================================
+         제휴사 게시판 (TB_BOARD_MEMBERSHIP) 관련
+         ===================================================== -->
+
+    <!-- 제휴사 게시판 목록 조회 -->
+    <select id="selectCoopBoardList" parameterType="com.academy.coop.service.CoopBoardVO" resultType="org.json.simple.JSONObject">
+        SELECT
+            COOP_BOARD_SEQ,
+            OPEN_YN,
+            CREATENAME,
+            SUBJECT,
+            CONTENT,
+            FILE_PATH,
+            FILE_NAME,
+            REAL_FILE_NAME,
+            THUMBNAIL_FILE_PATH,
+            THUMBNAIL_FILE_NAME,
+            THUMBNAIL_FILE_REAL_NAME,
+            NOTICE_TOP_YN,
+            RECOMMEND,
+            COOP_TYPE,
+            COOP_AREA,
+            COOP_CATE,
+            DATE_FORMAT(REG_DT, '%Y-%m-%d') AS REG_DT,
+            REG_ID,
+            DATE_FORMAT(UPD_DT, '%Y-%m-%d') AS UPD_DT,
+            UPD_ID,
+            HITS,
+            COOP_RANK
+        FROM TB_BOARD_MEMBERSHIP
+        WHERE 1=1
+        <if test="searchCoopArea != null and searchCoopArea != ''">
+            AND COOP_AREA = #{searchCoopArea}
+        </if>
+        <if test="searchCoopCate != null and searchCoopCate != ''">
+            AND COOP_CATE = #{searchCoopCate}
+        </if>
+        <if test="searchKind != null and searchKind != ''">
+            <choose>
+                <when test='searchKind == "SEARCHSUBJECT"'>
+                    AND SUBJECT LIKE CONCAT('%', #{searchText}, '%')
+                </when>
+                <when test='searchKind == "SEARCHNAME"'>
+                    AND CREATENAME LIKE CONCAT('%', #{searchText}, '%')
+                </when>
+                <when test='searchKind == "SEARCHCONTENT"'>
+                    AND CONTENT LIKE CONCAT('%', #{searchText}, '%')
+                </when>
+                <when test='searchKind == "ALL"'>
+                    AND (SUBJECT LIKE CONCAT('%', #{searchText}, '%')
+                         OR CREATENAME LIKE CONCAT('%', #{searchText}, '%')
+                         OR CONTENT LIKE CONCAT('%', #{searchText}, '%'))
+                </when>
+            </choose>
+        </if>
+        ORDER BY REG_DT DESC
+        LIMIT #{recordCountPerPage} OFFSET #{firstIndex}
+    </select>
+
+    <!-- 제휴사 게시판 목록 건수 조회 -->
+    <select id="selectCoopBoardListCount" parameterType="com.academy.coop.service.CoopBoardVO" resultType="int">
+        SELECT COUNT(*) AS CNT
+        FROM TB_BOARD_MEMBERSHIP
+        WHERE 1=1
+        <if test="searchCoopArea != null and searchCoopArea != ''">
+            AND COOP_AREA = #{searchCoopArea}
+        </if>
+        <if test="searchCoopCate != null and searchCoopCate != ''">
+            AND COOP_CATE = #{searchCoopCate}
+        </if>
+        <if test="searchKind != null and searchKind != ''">
+            <choose>
+                <when test='searchKind == "SEARCHSUBJECT"'>
+                    AND SUBJECT LIKE CONCAT('%', #{searchText}, '%')
+                </when>
+                <when test='searchKind == "SEARCHNAME"'>
+                    AND CREATENAME LIKE CONCAT('%', #{searchText}, '%')
+                </when>
+                <when test='searchKind == "SEARCHCONTENT"'>
+                    AND CONTENT LIKE CONCAT('%', #{searchText}, '%')
+                </when>
+                <when test='searchKind == "ALL"'>
+                    AND (SUBJECT LIKE CONCAT('%', #{searchText}, '%')
+                         OR CREATENAME LIKE CONCAT('%', #{searchText}, '%')
+                         OR CONTENT LIKE CONCAT('%', #{searchText}, '%'))
+                </when>
+            </choose>
+        </if>
+    </select>
+
+    <!-- 제휴사 게시판 상세 조회 -->
+    <select id="selectCoopBoardDetail" parameterType="com.academy.coop.service.CoopBoardVO" resultType="org.json.simple.JSONObject">
+        SELECT
+            COOP_BOARD_SEQ,
+            OPEN_YN,
+            CREATENAME,
+            SUBJECT,
+            CONTENT,
+            FILE_PATH,
+            FILE_NAME,
+            REAL_FILE_NAME,
+            THUMBNAIL_FILE_PATH,
+            THUMBNAIL_FILE_NAME,
+            THUMBNAIL_FILE_REAL_NAME,
+            NOTICE_TOP_YN,
+            RECOMMEND,
+            COOP_TYPE,
+            COOP_AREA,
+            COOP_CATE,
+            REG_DT,
+            REG_ID,
+            UPD_DT,
+            UPD_ID,
+            HITS
+        FROM TB_BOARD_MEMBERSHIP
+        WHERE COOP_BOARD_SEQ = #{coopBoardSeq}
+    </select>
+
+    <!-- 제휴사 게시판 등록 -->
+    <insert id="insertCoopBoard" parameterType="com.academy.coop.service.CoopBoardVO">
+        INSERT INTO TB_BOARD_MEMBERSHIP (
+            OPEN_YN,
+            CREATENAME,
+            SUBJECT,
+            CONTENT,
+            <if test="fileName != null and fileName != ''">
+            FILE_PATH,
+            FILE_NAME,
+            REAL_FILE_NAME,
+            </if>
+            <if test="thumbnailFileName != null and thumbnailFileName != ''">
+            THUMBNAIL_FILE_PATH,
+            THUMBNAIL_FILE_NAME,
+            THUMBNAIL_FILE_REAL_NAME,
+            </if>
+            NOTICE_TOP_YN,
+            RECOMMEND,
+            COOP_TYPE,
+            COOP_AREA,
+            COOP_CATE,
+            REG_DT,
+            REG_ID,
+            UPD_DT,
+            UPD_ID
+        ) VALUES (
+            #{openYn},
+            #{createName},
+            #{subject},
+            #{content},
+            <if test="fileName != null and fileName != ''">
+            #{filePath},
+            #{fileName},
+            #{realFileName},
+            </if>
+            <if test="thumbnailFileName != null and thumbnailFileName != ''">
+            #{thumbnailFilePath},
+            #{thumbnailFileName},
+            #{thumbnailFileRealName},
+            </if>
+            #{noticeTopYn},
+            #{recommend},
+            #{coopType},
+            #{coopArea},
+            #{coopCate},
+            now(),
+            #{regId},
+            now(),
+            #{updId}
+        )
+    </insert>
+
+    <!-- 제휴사 게시판 수정 -->
+    <update id="updateCoopBoard" parameterType="com.academy.coop.service.CoopBoardVO">
+        UPDATE TB_BOARD_MEMBERSHIP
+        SET
+            OPEN_YN = #{openYn},
+            CREATENAME = #{createName},
+            SUBJECT = #{subject},
+            CONTENT = #{content},
+            <if test="fileName != null and fileName != ''">
+            FILE_PATH = #{filePath},
+            FILE_NAME = #{fileName},
+            REAL_FILE_NAME = #{realFileName},
+            </if>
+            <if test="thumbnailFilePath != null and thumbnailFilePath != ''">
+            THUMBNAIL_FILE_PATH = #{thumbnailFilePath},
+            THUMBNAIL_FILE_NAME = #{thumbnailFileName},
+            THUMBNAIL_FILE_REAL_NAME = #{thumbnailFileRealName},
+            </if>
+            NOTICE_TOP_YN = #{noticeTopYn},
+            RECOMMEND = #{recommend},
+            COOP_TYPE = #{coopType},
+            COOP_AREA = #{coopArea},
+            COOP_CATE = #{coopCate},
+            UPD_DT = now(),
+            UPD_ID = #{updId}
+        WHERE COOP_BOARD_SEQ = #{coopBoardSeq}
+    </update>
+
+    <!-- 제휴사 게시판 삭제 -->
+    <delete id="deleteCoopBoard" parameterType="com.academy.coop.service.CoopBoardVO">
+        DELETE FROM TB_BOARD_MEMBERSHIP
+        WHERE COOP_BOARD_SEQ = #{coopBoardSeq}
+    </delete>
+
+    <!-- 제휴사 게시판 정렬순서 수정 -->
+    <update id="updateCoopBoardRank" parameterType="com.academy.coop.service.CoopBoardVO">
+        UPDATE TB_BOARD_MEMBERSHIP
+        SET COOP_RANK = #{coopRank}
+        WHERE COOP_BOARD_SEQ = #{coopBoardSeq}
+    </update>
+
+    <!-- 제휴사 게시판 파일 삭제 (파일 경로 초기화) -->
+    <update id="updateCoopBoardDeleteFile" parameterType="com.academy.coop.service.CoopBoardVO">
+        UPDATE TB_BOARD_MEMBERSHIP
+        SET
+            <if test='fileType == "default"'>
+            FILE_PATH = '',
+            FILE_NAME = '',
+            REAL_FILE_NAME = ''
+            </if>
+            <if test='fileType == "thumb"'>
+            THUMBNAIL_FILE_PATH = '',
+            THUMBNAIL_FILE_NAME = '',
+            THUMBNAIL_FILE_REAL_NAME = ''
+            </if>
+        WHERE COOP_BOARD_SEQ = #{coopBoardSeq}
+    </update>
+
+    <!-- 제휴사 코드 목록 조회 -->
+    <select id="selectCoopCodeList" parameterType="com.academy.coop.service.CoopBoardVO" resultType="org.json.simple.JSONObject">
+        SELECT
+            SYS_CD,
+            SYS_NM,
+            CODE_NO,
+            CODE_CD,
+            CODE_NM,
+            CODE_VAL
+        FROM TB_BA_CONFIG_CD
+        WHERE SYS_CD = #{searchKeyword}
+        AND CODE_CD != 'AL'
+        ORDER BY CAST(CODE_NO AS UNSIGNED) ASC
+    </select>
+
+
+    <!-- =====================================================
+         제휴사 주문 관련
+         ===================================================== -->
+
+    <!-- 제휴사 주문 목록 조회 (간략화) -->
+    <select id="selectCoopOrderList" parameterType="com.academy.coop.service.CoopOrderVO" resultType="org.json.simple.JSONObject">
+        SELECT DISTINCT
+            A.ORDERNO,
+            A.USER_ID AS ORDERS_USERID,
+            A.USER_NM AS ORDERS_USERNAME,
+            A.TEL_NO AS ORDERS_TELNO,
+            A.PHONE_NO AS ORDERS_CELLNO,
+            A.ZIP_CODE AS ORDERS_ZIPCD,
+            A.ADDRESS1 AS ORDERS_ADDR,
+            A.EMAIL AS ORDERS_EMAIL,
+            DATE_FORMAT(A.REG_DT, '%Y-%m-%d') AS ORDERS_REGDATE,
+            C.PRICE AS APPROVALS_PRICE,
+            IFNULL(C.ADDPRICE, 0) AS APPROVALS_ADDPRICE,
+            C.PAYCODE AS APPROVALS_PAYCODE,
+            C.PAYNAME AS APPROVALS_PAYNAME,
+            C.POINT AS APPROVALS_POINT
+        FROM TB_ORDERS A
+        INNER JOIN TB_MEMBER M ON A.USER_ID = M.USER_ID
+        LEFT JOIN TB_APPROVALS C ON C.ORDERNO = A.ORDERNO
+        WHERE M.COOP_CD = #{coopCd}
+        <if test="searchStartDate != null and searchStartDate != ''">
+            AND DATE_FORMAT(A.REG_DT, '%Y%m%d') BETWEEN #{searchStartDate} AND #{searchEndDate}
+        </if>
+        <if test="orderStatusCode != null and orderStatusCode != ''">
+            AND A.ORDERNO IN (
+                SELECT ORDERNO FROM TB_ORDER_MGNT_NO
+                WHERE ORDERNO = A.ORDERNO AND STATUSCODE = #{orderStatusCode}
+            )
+        </if>
+        <if test="payCode != null and payCode != ''">
+            AND C.PAYCODE = #{payCode}
+        </if>
+        <if test="searchKey != null and searchKey != ''">
+            AND (A.ORDERNO LIKE CONCAT('%', #{searchKey}, '%')
+                 OR A.USER_ID LIKE CONCAT('%', #{searchKey}, '%')
+                 OR A.USER_NM LIKE CONCAT('%', #{searchKey}, '%'))
+        </if>
+        ORDER BY A.REG_DT DESC
+        LIMIT #{recordCountPerPage} OFFSET #{firstIndex}
+    </select>
+
+    <!-- 제휴사 주문 목록 건수 조회 -->
+    <select id="selectCoopOrderListCount" parameterType="com.academy.coop.service.CoopOrderVO" resultType="int">
+        SELECT COUNT(DISTINCT A.ORDERNO) AS CNT
+        FROM TB_ORDERS A
+        INNER JOIN TB_MEMBER M ON A.USER_ID = M.USER_ID
+        LEFT JOIN TB_APPROVALS C ON C.ORDERNO = A.ORDERNO
+        WHERE M.COOP_CD = #{coopCd}
+        <if test="searchStartDate != null and searchStartDate != ''">
+            AND DATE_FORMAT(A.REG_DT, '%Y%m%d') BETWEEN #{searchStartDate} AND #{searchEndDate}
+        </if>
+        <if test="orderStatusCode != null and orderStatusCode != ''">
+            AND A.ORDERNO IN (
+                SELECT ORDERNO FROM TB_ORDER_MGNT_NO
+                WHERE ORDERNO = A.ORDERNO AND STATUSCODE = #{orderStatusCode}
+            )
+        </if>
+        <if test="payCode != null and payCode != ''">
+            AND C.PAYCODE = #{payCode}
+        </if>
+        <if test="searchKey != null and searchKey != ''">
+            AND (A.ORDERNO LIKE CONCAT('%', #{searchKey}, '%')
+                 OR A.USER_ID LIKE CONCAT('%', #{searchKey}, '%')
+                 OR A.USER_NM LIKE CONCAT('%', #{searchKey}, '%'))
+        </if>
+    </select>
+
+    <!-- 제휴사 결제 상세 목록 조회 -->
+    <select id="selectCoopPayDetailList" parameterType="com.academy.coop.service.CoopOrderVO" resultType="org.json.simple.JSONObject">
+        SELECT
+            B.USER_ID AS USERID,
+            B.USER_NM,
+            L.SUBJECT_TITLE,
+            DATE_FORMAT(ML.REG_DT, '%Y-%m-%d') AS REG_DT,
+            DATE_FORMAT(ML.START_DATE, '%Y-%m-%d') AS START_DATE,
+            DATE_FORMAT(ML.END_DATE, '%Y-%m-%d') AS END_DATE,
+            IFNULL(O.PRICE, 0) AS TOTAL_PAY,
+            CASE A.PAYCODE
+                WHEN 'PAY110' THEN '신용카드'
+                WHEN 'PAY120' THEN '가상계좌'
+                WHEN 'PAY130' THEN '계좌이체'
+                WHEN 'PAY100' THEN '무통장입금'
+                ELSE A.PAYCODE
+            END AS PAYCODE,
+            CASE A.PAYCODE
+                WHEN 'PAY110' THEN 3.04
+                WHEN 'PAY120' THEN 275
+                WHEN 'PAY130' THEN 1.43
+                WHEN 'PAY100' THEN 0
+                ELSE 0
+            END AS SUSU,
+            ROUND(CASE A.PAYCODE
+                WHEN 'PAY110' THEN IFNULL(O.PRICE, 0) * 0.036
+                WHEN 'PAY120' THEN 275
+                WHEN 'PAY130' THEN IFNULL(O.PRICE, 0) * 0.0143
+                WHEN 'PAY100' THEN 0
+                ELSE 0
+            END, 0) AS SUSU_PAY
+        FROM TB_MYLECTURE ML
+        INNER JOIN TB_MEMBER B ON ML.USERID = B.USER_ID
+        INNER JOIN TB_ORDERS OD ON ML.ORDERNO = OD.ORDERNO
+        INNER JOIN TB_ORDER_MGNT_NO O ON ML.ORDERNO = O.ORDERNO AND ML.PACKAGE_NO = O.MGNTNO
+        INNER JOIN TB_APPROVALS A ON ML.ORDERNO = A.ORDERNO
+        LEFT JOIN TB_LEC_MST L ON ML.PACKAGE_NO = L.LECCODE
+        WHERE B.COOP_CD = #{coopCd}
+        AND O.STATUSCODE = 'DLV105'
+        AND O.PRICE > 0
+        <if test="searchStartDate != null and searchStartDate != ''">
+            AND DATE_FORMAT(ML.REG_DT, '%Y%m%d') BETWEEN #{searchStartDate} AND #{searchEndDate}
+        </if>
+        ORDER BY ML.REG_DT DESC
+    </select>
+
+</mapper>

@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.academy.mapper.TotalStatsMapper">
+
+    <select id="selectTotalStatsList" parameterType="com.academy.mocktest.stats.total.service.TotalStatsVO" resultType="com.academy.mocktest.stats.total.service.TotalStatsVO">
+        SELECT A.STATS_SEQ AS statsSeq, A.MOCK_CODE AS mockCode, A.MOCK_NAME AS mockName,
+               A.EXAM_YEAR AS examYear, A.EXAM_ROUND AS examRound,
+               A.CLASS_CD AS classCd, A.CLASS_NM AS classNm,
+               A.TOTAL_CNT AS totalCnt, ROUND(A.AVG_SCORE, 1) AS avgScore,
+               A.MAX_SCORE AS maxScore, A.MIN_SCORE AS minScore,
+               A.EXAM_TYPE_ON AS examTypeOn, A.EXAM_TYPE_OFF AS examTypeOff
+          FROM TB_MOCK_TOTAL_STATS A
+         WHERE 1=1
+        <if test="searchExamYear != null and searchExamYear != ''">AND A.EXAM_YEAR = #{searchExamYear}</if>
+        <if test="searchExamRound != null and searchExamRound != ''">AND A.EXAM_ROUND = #{searchExamRound}</if>
+        <if test="searchMockCode != null and searchMockCode != ''">AND A.MOCK_CODE = #{searchMockCode}</if>
+        <if test="searchClassCd != null and searchClassCd != ''">AND A.CLASS_CD = #{searchClassCd}</if>
+         ORDER BY A.STATS_SEQ DESC
+         LIMIT #{recordCountPerPage} OFFSET #{firstIndex}
+    </select>
+
+    <select id="selectTotalStatsListCount" parameterType="com.academy.mocktest.stats.total.service.TotalStatsVO" resultType="int">
+        SELECT COUNT(*) FROM TB_MOCK_TOTAL_STATS A WHERE 1=1
+        <if test="searchExamYear != null and searchExamYear != ''">AND A.EXAM_YEAR = #{searchExamYear}</if>
+        <if test="searchExamRound != null and searchExamRound != ''">AND A.EXAM_ROUND = #{searchExamRound}</if>
+        <if test="searchMockCode != null and searchMockCode != ''">AND A.MOCK_CODE = #{searchMockCode}</if>
+        <if test="searchClassCd != null and searchClassCd != ''">AND A.CLASS_CD = #{searchClassCd}</if>
+    </select>
+
+    <select id="selectTotalStatsDetail" parameterType="com.academy.mocktest.stats.total.service.TotalStatsVO" resultType="com.academy.mocktest.stats.total.service.TotalStatsVO">
+        SELECT A.STATS_SEQ AS statsSeq, A.MOCK_CODE AS mockCode, A.MOCK_NAME AS mockName,
+               A.EXAM_YEAR AS examYear, A.EXAM_ROUND AS examRound,
+               A.CLASS_CD AS classCd, A.CLASS_NM AS classNm,
+               A.TOTAL_CNT AS totalCnt, ROUND(A.AVG_SCORE, 1) AS avgScore,
+               A.MAX_SCORE AS maxScore, A.MIN_SCORE AS minScore,
+               ROUND(A.TOP_AVG_SCORE, 1) AS topAvgScore,
+               A.EXAM_TYPE_ON AS examTypeOn, A.EXAM_TYPE_OFF AS examTypeOff
+          FROM TB_MOCK_TOTAL_STATS A
+         WHERE A.MOCK_CODE = #{mockCode}
+        <if test="classCd != null and classCd != ''">AND A.CLASS_CD = #{classCd}</if>
+    </select>
+
+    <select id="selectTotalSubjectStats" parameterType="com.academy.mocktest.stats.total.service.TotalStatsVO" resultType="com.academy.mocktest.stats.total.service.TotalStatsVO">
+        SELECT A.MOCK_CODE AS mockCode, A.SUBJECT_CD AS subjectCd, B.SUBJECT_NM AS subjectNm,
+               A.TOTAL_CNT AS totalCnt, ROUND(A.AVG_SCORE, 1) AS avgScore,
+               A.MAX_SCORE AS maxScore, A.MIN_SCORE AS minScore,
+               ROUND(A.TOP_AVG_SCORE, 1) AS topAvgScore
+          FROM TB_MOCK_SUBJECT_TOTAL_STATS A
+          LEFT JOIN TB_SUBJECT_INFO B ON A.SUBJECT_CD = B.SUBJECT_CD
+         WHERE A.MOCK_CODE = #{mockCode}
+        <if test="classCd != null and classCd != ''">AND A.CLASS_CD = #{classCd}</if>
+         ORDER BY A.SUBJECT_ORDER ASC
+    </select>
+
+    <select id="selectOffererCnt" parameterType="com.academy.mocktest.stats.total.service.TotalStatsVO" resultType="com.academy.mocktest.stats.total.service.TotalStatsVO">
+        SELECT A.MOCK_CODE AS mockCode,
+               SUM(CASE WHEN A.EXAM_TYPE = '0' THEN 1 ELSE 0 END) AS onlineCnt,
+               SUM(CASE WHEN A.EXAM_TYPE = '1' THEN 1 ELSE 0 END) AS offlineCnt,
+               SUM(CASE WHEN A.EXAM_TYPE = '0' AND A.PAY_STATUS = 'Y' THEN 1 ELSE 0 END) AS onlinePayCnt,
+               SUM(CASE WHEN A.EXAM_TYPE = '1' AND A.PAY_STATUS = 'Y' THEN 1 ELSE 0 END) AS offlinePayCnt
+          FROM TB_MOCK_OFFERER A
+         WHERE A.MOCK_CODE = #{mockCode}
+         GROUP BY A.MOCK_CODE
+    </select>
+
+</mapper>

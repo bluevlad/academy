@@ -1,0 +1,501 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+    수정일              수정자           수정내용
+  ===========      =========    =================
+ *2025.12.11       system       배너 관리 매퍼 신규 생성 (MySQL 버전)
+ *2026.04.08       claude       실제 DB 스키마에 맞게 전체 쿼리 통일 (SEQ, BANNER_TITLE, P_SEQ)
+-->
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.academy.mapper.BannerMapper">
+
+    <!-- =====================================================
+         배너 마스터 (TB_BANNER) 관련
+         ===================================================== -->
+
+    <!-- 배너 목록 조회 (실제 DB 스키마에 맞게 수정) -->
+    <select id="selectBannerList" parameterType="com.academy.banner.service.BannerVO" resultType="org.json.simple.JSONObject">
+        SELECT
+            TB.SEQ AS BANNER_CD,
+            TB.BANNER_TITLE AS BANNER_NM,
+            TB.ONOFF_DIV,
+            TB.SCREEN_GUBUN,
+            TB.CATEGORY_CD,
+            TB.BANNER_NO,
+            TB.BANNER_TYP,
+            DATE_FORMAT(TB.OPEN_STARTDATE, '%Y-%m-%d') AS OPEN_STARTDATE,
+            DATE_FORMAT(TB.OPEN_ENDDATE, '%Y-%m-%d') AS OPEN_ENDDATE,
+            TB.VIEW_COUNT,
+            TB.IS_USE,
+            DATE_FORMAT(TB.REG_DT, '%Y-%m-%d') AS REG_DT,
+            TB.REG_ID,
+            DATE_FORMAT(TB.UPD_DT, '%Y-%m-%d') AS UPD_DT,
+            TB.UPD_ID,
+            (SELECT COUNT(SEQ) FROM TB_BANNER_ITEM WHERE P_SEQ = TB.SEQ AND IS_USE = 'Y') AS Y_CNT,
+            (SELECT COUNT(SEQ) FROM TB_BANNER_ITEM WHERE P_SEQ = TB.SEQ AND IS_USE = 'N') AS N_CNT
+        FROM TB_BANNER TB
+        WHERE 1=1
+        <if test="menuType != null and menuType != ''">
+            <choose>
+                <when test='menuType == "FM_ROOT"'>
+                    AND TB.ONOFF_DIV = 'F'
+                </when>
+                <when test='menuType == "OM_ROOT"'>
+                    AND TB.ONOFF_DIV = 'O'
+                </when>
+            </choose>
+        </if>
+        <if test="searchCategory != null and searchCategory != ''">
+            AND TB.CATEGORY_CD = #{searchCategory}
+        </if>
+        <if test="searchBannerNo != null and searchBannerNo != ''">
+            AND TB.BANNER_NO = #{searchBannerNo}
+        </if>
+        <if test="searchText != null and searchText != ''">
+            AND TB.BANNER_TITLE LIKE CONCAT('%', #{searchText}, '%')
+        </if>
+        <if test="isUse != null and isUse != ''">
+            AND TB.IS_USE = #{isUse}
+        </if>
+        ORDER BY TB.SEQ ASC
+        LIMIT #{recordCountPerPage} OFFSET #{firstIndex}
+    </select>
+
+    <!-- 배너 목록 건수 조회 -->
+    <select id="selectBannerListCount" parameterType="com.academy.banner.service.BannerVO" resultType="int">
+        SELECT COUNT(*) AS CNT
+        FROM TB_BANNER TB
+        WHERE 1=1
+        <if test="menuType != null and menuType != ''">
+            <choose>
+                <when test='menuType == "FM_ROOT"'>
+                    AND TB.ONOFF_DIV = 'F'
+                </when>
+                <when test='menuType == "OM_ROOT"'>
+                    AND TB.ONOFF_DIV = 'O'
+                </when>
+            </choose>
+        </if>
+        <if test="searchCategory != null and searchCategory != ''">
+            AND TB.CATEGORY_CD = #{searchCategory}
+        </if>
+        <if test="searchBannerNo != null and searchBannerNo != ''">
+            AND TB.BANNER_NO = #{searchBannerNo}
+        </if>
+        <if test="searchText != null and searchText != ''">
+            AND TB.BANNER_TITLE LIKE CONCAT('%', #{searchText}, '%')
+        </if>
+        <if test="isUse != null and isUse != ''">
+            AND TB.IS_USE = #{isUse}
+        </if>
+    </select>
+
+    <!-- 배너 상세 조회 -->
+    <select id="selectBannerDetail" parameterType="com.academy.banner.service.BannerVO" resultType="org.json.simple.JSONObject">
+        SELECT
+            SEQ AS BANNER_CD,
+            BANNER_TITLE AS BANNER_NM,
+            BANNER_COUNT,
+            BANNER_PRICE,
+            DEPOSIT,
+            ROW_COUNT,
+            ROW_NUM,
+            START_NUM,
+            END_NUM,
+            ONOFF_DIV,
+            SCREEN_GUBUN,
+            CATEGORY_CD,
+            BANNER_NO,
+            BANNER_TYP,
+            DATE_FORMAT(OPEN_STARTDATE, '%Y%m%d') AS OPEN_STARTDATE,
+            DATE_FORMAT(OPEN_ENDDATE, '%Y%m%d') AS OPEN_ENDDATE,
+            VIEW_COUNT,
+            IS_USE,
+            REG_DT,
+            REG_ID,
+            UPD_DT,
+            UPD_ID
+        FROM TB_BANNER
+        WHERE SEQ = #{bannerCd}
+    </select>
+
+    <!-- 배너 아이템 사용중 수 조회 -->
+    <select id="selectBannerItemYCount" parameterType="com.academy.banner.service.BannerVO" resultType="int">
+        SELECT COUNT(SEQ)
+        FROM TB_BANNER_ITEM
+        WHERE P_SEQ = #{bannerCd} AND IS_USE = 'Y'
+    </select>
+
+    <!-- 배너 등록 -->
+    <insert id="insertBanner" parameterType="com.academy.banner.service.BannerVO">
+        <selectKey keyProperty="bannerCd" resultType="String" order="BEFORE">
+            SELECT REPLACE(UUID(),'-','')
+        </selectKey>
+        INSERT INTO TB_BANNER (
+            SEQ,
+            BANNER_TITLE,
+            BANNER_COUNT,
+            BANNER_PRICE,
+            DEPOSIT,
+            ROW_COUNT,
+            ROW_NUM,
+            START_NUM,
+            END_NUM,
+            ONOFF_DIV,
+            SCREEN_GUBUN,
+            CATEGORY_CD,
+            BANNER_NO,
+            BANNER_TYP,
+            <if test="openStartdate != null and openStartdate != ''">
+            OPEN_STARTDATE,
+            </if>
+            <if test="openEnddate != null and openEnddate != ''">
+            OPEN_ENDDATE,
+            </if>
+            VIEW_COUNT,
+            IS_USE,
+            REG_DT,
+            REG_ID,
+            UPD_DT,
+            UPD_ID
+        ) VALUES (
+            #{bannerCd},
+            #{bannerNm},
+            #{bannerCount},
+            #{bannerPrice},
+            #{deposit},
+            #{rowCount},
+            #{rowNum},
+            #{startNum},
+            #{endNum},
+            #{onoffDiv},
+            #{screenGubun},
+            #{categoryCd},
+            #{bannerNo},
+            #{bannerTyp},
+            <if test="openStartdate != null and openStartdate != ''">
+            STR_TO_DATE(#{openStartdate}, '%Y%m%d'),
+            </if>
+            <if test="openEnddate != null and openEnddate != ''">
+            STR_TO_DATE(#{openEnddate}, '%Y%m%d'),
+            </if>
+            0,
+            #{isUse},
+            now(),
+            #{regId},
+            now(),
+            #{regId}
+        )
+    </insert>
+
+    <!-- 배너 수정 -->
+    <update id="updateBanner" parameterType="com.academy.banner.service.BannerVO">
+        UPDATE TB_BANNER
+        SET
+            BANNER_TITLE = #{bannerNm},
+            BANNER_COUNT = #{bannerCount},
+            BANNER_PRICE = #{bannerPrice},
+            DEPOSIT = #{deposit},
+            ROW_COUNT = #{rowCount},
+            ROW_NUM = #{rowNum},
+            START_NUM = #{startNum},
+            END_NUM = #{endNum},
+            ONOFF_DIV = #{onoffDiv},
+            SCREEN_GUBUN = #{screenGubun},
+            CATEGORY_CD = #{categoryCd},
+            BANNER_NO = #{bannerNo},
+            BANNER_TYP = #{bannerTyp},
+            <if test="openStartdate != null and openStartdate != ''">
+            OPEN_STARTDATE = STR_TO_DATE(#{openStartdate}, '%Y%m%d'),
+            </if>
+            <if test="openEnddate != null and openEnddate != ''">
+            OPEN_ENDDATE = STR_TO_DATE(#{openEnddate}, '%Y%m%d'),
+            </if>
+            IS_USE = #{isUse},
+            UPD_DT = now(),
+            UPD_ID = #{updId}
+        WHERE SEQ = #{bannerCd}
+    </update>
+
+    <!-- 배너 수정 (아이템 수, 시작/종료번호 제외) -->
+    <update id="updateBanner2" parameterType="com.academy.banner.service.BannerVO">
+        UPDATE TB_BANNER
+        SET
+            BANNER_TITLE = #{bannerNm},
+            DEPOSIT = #{deposit},
+            ROW_COUNT = #{rowCount},
+            ROW_NUM = #{rowNum},
+            ONOFF_DIV = #{onoffDiv},
+            SCREEN_GUBUN = #{screenGubun},
+            CATEGORY_CD = #{categoryCd},
+            BANNER_NO = #{bannerNo},
+            BANNER_TYP = #{bannerTyp},
+            <if test="openStartdate != null and openStartdate != ''">
+            OPEN_STARTDATE = STR_TO_DATE(#{openStartdate}, '%Y%m%d'),
+            </if>
+            <if test="openEnddate != null and openEnddate != ''">
+            OPEN_ENDDATE = STR_TO_DATE(#{openEnddate}, '%Y%m%d'),
+            </if>
+            IS_USE = #{isUse},
+            UPD_DT = now(),
+            UPD_ID = #{updId}
+        WHERE SEQ = #{bannerCd}
+    </update>
+
+    <!-- 배너 삭제 -->
+    <delete id="deleteBanner" parameterType="com.academy.banner.service.BannerVO">
+        DELETE FROM TB_BANNER WHERE SEQ = #{bannerCd}
+    </delete>
+
+    <!-- 배너 관련 전체 삭제 (배너 + 아이템) -->
+    <delete id="deleteBannerAll" parameterType="com.academy.banner.service.BannerVO">
+        DELETE FROM TB_BANNER_ITEM WHERE P_SEQ = #{bannerCd};
+        DELETE FROM TB_BANNER WHERE SEQ = #{bannerCd};
+    </delete>
+
+
+    <!-- =====================================================
+         배너 아이템 (TB_BANNER_ITEM) 관련
+         ===================================================== -->
+
+    <!-- 배너 아이템 목록 조회 -->
+    <select id="selectBannerItemList" parameterType="com.academy.banner.service.BannerItemVO" resultType="org.json.simple.JSONObject">
+        SELECT
+            TBI.P_SEQ AS BANNER_CD,
+            TBI.BANNER_NUM,
+            TBI.USER_ID,
+            TBI.BANNER_FLAG,
+            TBI.RENT_SEQ,
+            TBI.ROL_IDX,
+            TBI.BANNER_SUBTITLE,
+            TBI.BANNER_NOTE,
+            TBI.BANNER_IMAGE,
+            TBI.BANNER_THUMBNAIL_IMAGE,
+            TBI.BANNER_LINK,
+            TBI.BANNER_LINK_TARGET,
+            DATE_FORMAT(TBI.BANNER_SDT, '%Y-%m-%d') AS BANNER_SDT,
+            DATE_FORMAT(TBI.BANNER_EDT, '%Y-%m-%d') AS BANNER_EDT,
+            TBI.CLICK_CNT,
+            TBI.G_SEQ,
+            TBI.IS_USE,
+            DATE_FORMAT(TBI.REG_DT, '%Y-%m-%d') AS REG_DT,
+            TBI.REG_ID,
+            DATE_FORMAT(TBI.UPD_DT, '%Y-%m-%d') AS UPD_DT,
+            TBI.UPD_ID,
+            TMM.USER_NM
+        FROM TB_BANNER_ITEM TBI
+        LEFT OUTER JOIN TB_MEMBER TMM ON TBI.USER_ID = TMM.USER_ID
+        WHERE TBI.P_SEQ = #{bannerCd}
+        <if test="searchText != null and searchText != ''">
+            AND (TBI.BANNER_SUBTITLE LIKE CONCAT('%', #{searchText}, '%')
+                 OR TBI.USER_ID LIKE CONCAT('%', #{searchText}, '%'))
+        </if>
+        ORDER BY TBI.BANNER_NUM ASC
+        LIMIT #{recordCountPerPage} OFFSET #{firstIndex}
+    </select>
+
+    <!-- 배너 아이템 목록 건수 조회 -->
+    <select id="selectBannerItemListCount" parameterType="com.academy.banner.service.BannerItemVO" resultType="int">
+        SELECT COUNT(*) AS CNT
+        FROM TB_BANNER_ITEM TBI
+        WHERE TBI.P_SEQ = #{bannerCd}
+        <if test="searchText != null and searchText != ''">
+            AND (TBI.BANNER_SUBTITLE LIKE CONCAT('%', #{searchText}, '%')
+                 OR TBI.USER_ID LIKE CONCAT('%', #{searchText}, '%'))
+        </if>
+    </select>
+
+    <!-- 배너 아이템 상세 조회 -->
+    <select id="selectBannerItemDetail" parameterType="com.academy.banner.service.BannerItemVO" resultType="org.json.simple.JSONObject">
+        SELECT
+            TB.BANNER_TITLE AS BANNER_NM,
+            TBI.P_SEQ AS BANNER_CD,
+            TBI.BANNER_NUM,
+            TBI.USER_ID,
+            TBI.BANNER_FLAG,
+            TBI.RENT_SEQ,
+            TBI.ROL_IDX,
+            TBI.BANNER_SUBTITLE,
+            TBI.BANNER_NOTE,
+            TBI.BANNER_IMAGE,
+            TBI.BANNER_THUMBNAIL_IMAGE,
+            TBI.BANNER_LINK,
+            TBI.BANNER_LINK_TARGET,
+            DATE_FORMAT(TBI.BANNER_SDT, '%Y%m%d') AS BANNER_SDT,
+            DATE_FORMAT(TBI.BANNER_EDT, '%Y%m%d') AS BANNER_EDT,
+            TBI.CLICK_CNT,
+            TBI.G_SEQ,
+            TBI.IS_USE,
+            TBI.REG_DT,
+            TBI.REG_ID,
+            TBI.UPD_DT,
+            TBI.UPD_ID
+        FROM TB_BANNER TB
+        INNER JOIN TB_BANNER_ITEM TBI ON TB.SEQ = TBI.P_SEQ
+        WHERE TBI.P_SEQ = #{bannerCd}
+          AND TBI.BANNER_NUM = #{bannerNum}
+    </select>
+
+    <!-- 배너 아이템 등록 -->
+    <insert id="insertBannerItem" parameterType="com.academy.banner.service.BannerItemVO">
+        INSERT INTO TB_BANNER_ITEM (
+            P_SEQ,
+            BANNER_NUM,
+            USER_ID,
+            BANNER_FLAG,
+            ROL_IDX,
+            <if test="bannerSubtitle != null and bannerSubtitle != ''">
+            BANNER_SUBTITLE,
+            </if>
+            <if test="bannerNote != null and bannerNote != ''">
+            BANNER_NOTE,
+            </if>
+            <if test="bannerImage != null and bannerImage != ''">
+            BANNER_IMAGE,
+            </if>
+            <if test="bannerThumbnailImage != null and bannerThumbnailImage != ''">
+            BANNER_THUMBNAIL_IMAGE,
+            </if>
+            <if test="bannerLink != null and bannerLink != ''">
+            BANNER_LINK,
+            </if>
+            <if test="bannerLinkTarget != null and bannerLinkTarget != ''">
+            BANNER_LINK_TARGET,
+            </if>
+            <if test="bannerSdt != null and bannerSdt != ''">
+            BANNER_SDT,
+            </if>
+            <if test="bannerEdt != null and bannerEdt != ''">
+            BANNER_EDT,
+            </if>
+            CLICK_CNT,
+            IS_USE,
+            REG_DT,
+            REG_ID,
+            UPD_DT,
+            UPD_ID
+        ) VALUES (
+            #{bannerCd},
+            #{bannerNum},
+            #{userId},
+            #{bannerFlag},
+            #{rolIdx},
+            <if test="bannerSubtitle != null and bannerSubtitle != ''">
+            #{bannerSubtitle},
+            </if>
+            <if test="bannerNote != null and bannerNote != ''">
+            #{bannerNote},
+            </if>
+            <if test="bannerImage != null and bannerImage != ''">
+            #{bannerImage},
+            </if>
+            <if test="bannerThumbnailImage != null and bannerThumbnailImage != ''">
+            #{bannerThumbnailImage},
+            </if>
+            <if test="bannerLink != null and bannerLink != ''">
+            #{bannerLink},
+            </if>
+            <if test="bannerLinkTarget != null and bannerLinkTarget != ''">
+            #{bannerLinkTarget},
+            </if>
+            <if test="bannerSdt != null and bannerSdt != ''">
+            STR_TO_DATE(#{bannerSdt}, '%Y%m%d'),
+            </if>
+            <if test="bannerEdt != null and bannerEdt != ''">
+            STR_TO_DATE(#{bannerEdt}, '%Y%m%d'),
+            </if>
+            0,
+            #{isUse},
+            now(),
+            #{regId},
+            now(),
+            #{regId}
+        )
+    </insert>
+
+    <!-- 배너 아이템 수정 -->
+    <update id="updateBannerItem" parameterType="com.academy.banner.service.BannerItemVO">
+        UPDATE TB_BANNER_ITEM
+        SET
+            <if test="userId != null">
+            USER_ID = #{userId},
+            </if>
+            <if test="bannerFlag != null and bannerFlag != ''">
+            BANNER_FLAG = #{bannerFlag},
+            </if>
+            <if test="rentSeq != 0">
+            RENT_SEQ = #{rentSeq},
+            </if>
+            <if test="rolIdx != 0">
+            ROL_IDX = #{rolIdx},
+            </if>
+            <if test="bannerSubtitle != null">
+            BANNER_SUBTITLE = #{bannerSubtitle},
+            </if>
+            <if test="bannerNote != null">
+            BANNER_NOTE = #{bannerNote},
+            </if>
+            <if test="bannerImage != null and bannerImage != ''">
+            BANNER_IMAGE = #{bannerImage},
+            </if>
+            <if test="bannerThumbnailImage != null and bannerThumbnailImage != ''">
+            BANNER_THUMBNAIL_IMAGE = #{bannerThumbnailImage},
+            </if>
+            <if test="bannerLink != null">
+            BANNER_LINK = #{bannerLink},
+            </if>
+            <if test="bannerLinkTarget != null">
+            BANNER_LINK_TARGET = #{bannerLinkTarget},
+            </if>
+            <if test="bannerSdt != null and bannerSdt != ''">
+            BANNER_SDT = STR_TO_DATE(#{bannerSdt}, '%Y%m%d'),
+            </if>
+            <if test="bannerEdt != null and bannerEdt != ''">
+            BANNER_EDT = STR_TO_DATE(#{bannerEdt}, '%Y%m%d'),
+            </if>
+            <if test="isUse != null and isUse != ''">
+            IS_USE = #{isUse},
+            </if>
+            UPD_DT = now(),
+            UPD_ID = #{updId}
+        WHERE P_SEQ = #{bannerCd} AND BANNER_NUM = #{bannerNum}
+    </update>
+
+    <!-- 배너 아이템 플래그 수정 -->
+    <update id="updateBannerItemFlag" parameterType="com.academy.banner.service.BannerItemVO">
+        UPDATE TB_BANNER_ITEM
+        SET
+            BANNER_FLAG = #{bannerFlag},
+            <if test='bannerFlag != "Y"'>
+            RENT_SEQ = NULL,
+            </if>
+            UPD_DT = now(),
+            UPD_ID = #{updId}
+        WHERE P_SEQ = #{bannerCd} AND BANNER_NUM = #{bannerNum}
+    </update>
+
+    <!-- 배너 아이템 초기화 -->
+    <update id="updateBannerItemReset" parameterType="com.academy.banner.service.BannerItemVO">
+        UPDATE TB_BANNER_ITEM
+        SET
+            USER_ID = '',
+            BANNER_FLAG = 'N',
+            RENT_SEQ = NULL,
+            BANNER_SUBTITLE = '',
+            BANNER_NOTE = '',
+            UPD_DT = now(),
+            UPD_ID = #{updId}
+        WHERE P_SEQ = #{bannerCd} AND BANNER_NUM = #{bannerNum}
+    </update>
+
+    <!-- 배너 아이템 삭제 -->
+    <delete id="deleteBannerItem" parameterType="com.academy.banner.service.BannerItemVO">
+        DELETE FROM TB_BANNER_ITEM
+        WHERE P_SEQ = #{bannerCd} AND BANNER_NUM = #{bannerNum}
+    </delete>
+
+    <!-- 배너 아이템 일괄 삭제 (부모 배너 기준) -->
+    <delete id="deleteBannerItemByBannerCd" parameterType="com.academy.banner.service.BannerVO">
+        DELETE FROM TB_BANNER_ITEM WHERE P_SEQ = #{bannerCd}
+    </delete>
+
+</mapper>

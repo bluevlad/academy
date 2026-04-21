@@ -1,0 +1,282 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.academy.mapper.TeacherCalculateMapper">
+
+    <!-- 강사 정산 목록 조회 -->
+    <select id="selectTeacherCalculateList" parameterType="com.academy.manage.teacherCalculate.service.TeacherCalculateVO" resultType="com.academy.manage.teacherCalculate.service.TeacherCalculateVO">
+        SELECT A.CALC_SEQ AS calcSeq,
+               A.TEACHER_KEY AS teacherKey,
+               B.TEACHER_NM AS teacherNm,
+               A.CALC_MONTH AS calcMonth,
+               A.CALC_YEAR AS calcYear,
+               A.SALE_AMT AS saleAmt,
+               A.REFUND_AMT AS refundAmt,
+               (A.SALE_AMT - A.REFUND_AMT) AS netSaleAmt,
+               A.CALC_RATE AS calcRate,
+               A.CALC_AMT AS calcAmt,
+               A.TAX_AMT AS taxAmt,
+               (A.CALC_AMT - A.TAX_AMT) AS netCalcAmt,
+               A.PAID_AMT AS paidAmt,
+               (A.CALC_AMT - A.TAX_AMT - IFNULL(A.PAID_AMT, 0)) AS remainAmt,
+               A.CALC_STATUS AS calcStatus,
+               CASE A.CALC_STATUS
+                   WHEN 'READY' THEN '준비'
+                   WHEN 'CALC' THEN '정산완료'
+                   WHEN 'PAID' THEN '지급완료'
+                   ELSE A.CALC_STATUS
+               END AS calcStatusNm,
+               DATE_FORMAT(A.CALC_DATE, '%Y-%m-%d') AS calcDate,
+               DATE_FORMAT(A.REG_DATE, '%Y-%m-%d %H:%i:%s') AS regDate
+          FROM TB_TEACHER_CALCULATE A
+          LEFT JOIN TB_TEACHER B ON A.TEACHER_KEY = B.TEACHER_KEY
+         WHERE 1=1
+        <if test="teacherKey != null and teacherKey != ''">
+           AND A.TEACHER_KEY = #{teacherKey}
+        </if>
+        <if test="searchCalcMonth != null and searchCalcMonth != ''">
+           AND A.CALC_MONTH = #{searchCalcMonth}
+        </if>
+        <if test="searchCalcYear != null and searchCalcYear != ''">
+           AND A.CALC_YEAR = #{searchCalcYear}
+        </if>
+        <if test="searchCalcStatus != null and searchCalcStatus != ''">
+           AND A.CALC_STATUS = #{searchCalcStatus}
+        </if>
+         ORDER BY A.CALC_YEAR DESC, A.CALC_MONTH DESC, B.TEACHER_NM
+         LIMIT #{recordCountPerPage} OFFSET #{firstIndex}
+    </select>
+
+    <!-- 강사 정산 목록 카운트 -->
+    <select id="selectTeacherCalculateListCount" parameterType="com.academy.manage.teacherCalculate.service.TeacherCalculateVO" resultType="int">
+        SELECT COUNT(*)
+          FROM TB_TEACHER_CALCULATE A
+         WHERE 1=1
+        <if test="teacherKey != null and teacherKey != ''">
+           AND A.TEACHER_KEY = #{teacherKey}
+        </if>
+        <if test="searchCalcMonth != null and searchCalcMonth != ''">
+           AND A.CALC_MONTH = #{searchCalcMonth}
+        </if>
+        <if test="searchCalcYear != null and searchCalcYear != ''">
+           AND A.CALC_YEAR = #{searchCalcYear}
+        </if>
+        <if test="searchCalcStatus != null and searchCalcStatus != ''">
+           AND A.CALC_STATUS = #{searchCalcStatus}
+        </if>
+    </select>
+
+    <!-- 강사 정산 상세 조회 -->
+    <select id="selectTeacherCalculateDetail" parameterType="com.academy.manage.teacherCalculate.service.TeacherCalculateVO" resultType="com.academy.manage.teacherCalculate.service.TeacherCalculateVO">
+        SELECT A.CALC_SEQ AS calcSeq,
+               A.TEACHER_KEY AS teacherKey,
+               B.TEACHER_NM AS teacherNm,
+               B.TEACHER_ID AS teacherId,
+               B.EMAIL AS teacherEmail,
+               B.PHONE AS teacherPhone,
+               B.BANK_NM AS bankNm,
+               B.ACCOUNT_NO AS accountNo,
+               B.ACCOUNT_HOLDER AS accountHolder,
+               A.CALC_MONTH AS calcMonth,
+               A.CALC_YEAR AS calcYear,
+               A.SALE_AMT AS saleAmt,
+               A.SALE_CNT AS saleCnt,
+               A.REFUND_AMT AS refundAmt,
+               A.REFUND_CNT AS refundCnt,
+               (A.SALE_AMT - A.REFUND_AMT) AS netSaleAmt,
+               (A.SALE_CNT - A.REFUND_CNT) AS netSaleCnt,
+               A.CALC_RATE AS calcRate,
+               A.CALC_AMT AS calcAmt,
+               A.TAX_AMT AS taxAmt,
+               (A.CALC_AMT - A.TAX_AMT) AS netCalcAmt,
+               A.PAID_AMT AS paidAmt,
+               (A.CALC_AMT - A.TAX_AMT - IFNULL(A.PAID_AMT, 0)) AS remainAmt,
+               A.CALC_STATUS AS calcStatus,
+               CASE A.CALC_STATUS
+                   WHEN 'READY' THEN '준비'
+                   WHEN 'CALC' THEN '정산완료'
+                   WHEN 'PAID' THEN '지급완료'
+                   ELSE A.CALC_STATUS
+               END AS calcStatusNm,
+               DATE_FORMAT(A.CALC_DATE, '%Y-%m-%d') AS calcDate,
+               DATE_FORMAT(A.PAID_DATE, '%Y-%m-%d') AS paidDate,
+               A.PAID_MEMO AS paidMemo,
+               A.REG_ID AS regId,
+               DATE_FORMAT(A.REG_DATE, '%Y-%m-%d %H:%i:%s') AS regDate,
+               A.MOD_ID AS modId,
+               DATE_FORMAT(A.MOD_DATE, '%Y-%m-%d %H:%i:%s') AS modDate
+          FROM TB_TEACHER_CALCULATE A
+          LEFT JOIN TB_TEACHER B ON A.TEACHER_KEY = B.TEACHER_KEY
+         WHERE A.CALC_SEQ = #{calcSeq}
+    </select>
+
+    <!-- 강사별 정산 요약 조회 -->
+    <select id="selectTeacherCalculateSummaryList" parameterType="com.academy.manage.teacherCalculate.service.TeacherCalculateVO" resultType="com.academy.manage.teacherCalculate.service.TeacherCalculateVO">
+        SELECT A.TEACHER_KEY AS teacherKey,
+               B.TEACHER_NM AS teacherNm,
+               SUM(A.SALE_AMT) AS totalSaleAmt,
+               SUM(A.CALC_AMT) AS totalCalcAmt,
+               SUM(IFNULL(A.PAID_AMT, 0)) AS totalPaidAmt,
+               SUM(A.CALC_AMT - A.TAX_AMT - IFNULL(A.PAID_AMT, 0)) AS remainAmt
+          FROM TB_TEACHER_CALCULATE A
+          LEFT JOIN TB_TEACHER B ON A.TEACHER_KEY = B.TEACHER_KEY
+         WHERE 1=1
+        <if test="searchCalcYear != null and searchCalcYear != ''">
+           AND A.CALC_YEAR = #{searchCalcYear}
+        </if>
+         GROUP BY A.TEACHER_KEY, B.TEACHER_NM
+         ORDER BY totalCalcAmt DESC
+    </select>
+
+    <!-- 월별 정산 목록 조회 -->
+    <select id="selectMonthlyCalculateList" parameterType="com.academy.manage.teacherCalculate.service.TeacherCalculateVO" resultType="com.academy.manage.teacherCalculate.service.TeacherCalculateVO">
+        SELECT CONCAT(A.CALC_YEAR, '-', A.CALC_MONTH) AS calcMonth,
+               COUNT(DISTINCT A.TEACHER_KEY) AS saleCnt,
+               SUM(A.SALE_AMT) AS saleAmt,
+               SUM(A.REFUND_AMT) AS refundAmt,
+               SUM(A.CALC_AMT) AS calcAmt,
+               SUM(IFNULL(A.PAID_AMT, 0)) AS paidAmt
+          FROM TB_TEACHER_CALCULATE A
+         WHERE 1=1
+        <if test="searchCalcYear != null and searchCalcYear != ''">
+           AND A.CALC_YEAR = #{searchCalcYear}
+        </if>
+         GROUP BY A.CALC_YEAR, A.CALC_MONTH
+         ORDER BY A.CALC_YEAR DESC, A.CALC_MONTH DESC
+    </select>
+
+    <!-- 강사별 강의 매출 목록 조회 -->
+    <select id="selectTeacherLectureSaleList" parameterType="com.academy.manage.teacherCalculate.service.TeacherCalculateVO" resultType="com.academy.manage.teacherCalculate.service.TeacherCalculateVO">
+        SELECT L.LECCODE AS leccode,
+               L.LECTURE_NM AS lectureNm,
+               C.CATEGORY_NM AS categoryNm,
+               SUM(S.SALE_AMT) AS saleAmt,
+               SUM(S.SALE_CNT) AS saleCnt,
+               SUM(S.REFUND_AMT) AS refundAmt,
+               SUM(S.SALE_AMT - S.REFUND_AMT) AS netSaleAmt
+          FROM TB_LECTURE L
+          LEFT JOIN TB_CATEGORY C ON L.CATEGORY_CD = C.CATEGORY_CD
+          LEFT JOIN TB_LECTURE_SALE S ON L.LECCODE = S.LECCODE
+         WHERE L.TEACHER_KEY = #{teacherKey}
+        <if test="searchCalcMonth != null and searchCalcMonth != ''">
+           AND DATE_FORMAT(S.SALE_DATE, '%Y-%m') = #{searchCalcMonth}
+        </if>
+         GROUP BY L.LECCODE, L.LECTURE_NM, C.CATEGORY_NM
+         ORDER BY netSaleAmt DESC
+    </select>
+
+    <!-- 정산 통계 조회 -->
+    <select id="selectCalculateStats" parameterType="com.academy.manage.teacherCalculate.service.TeacherCalculateVO" resultType="com.academy.manage.teacherCalculate.service.TeacherCalculateVO">
+        SELECT SUM(SALE_AMT) AS totalSaleAmt,
+               SUM(CALC_AMT) AS totalCalcAmt,
+               SUM(IFNULL(PAID_AMT, 0)) AS totalPaidAmt,
+               SUM(CALC_AMT - TAX_AMT - IFNULL(PAID_AMT, 0)) AS remainAmt,
+               COUNT(DISTINCT TEACHER_KEY) AS saleCnt
+          FROM TB_TEACHER_CALCULATE
+         WHERE 1=1
+        <if test="searchCalcYear != null and searchCalcYear != ''">
+           AND CALC_YEAR = #{searchCalcYear}
+        </if>
+        <if test="searchCalcMonth != null and searchCalcMonth != ''">
+           AND CALC_MONTH = #{searchCalcMonth}
+        </if>
+    </select>
+
+    <!-- 강사 목록 조회 -->
+    <select id="selectTeacherList" parameterType="com.academy.manage.teacherCalculate.service.TeacherCalculateVO" resultType="com.academy.manage.teacherCalculate.service.TeacherCalculateVO">
+        SELECT TEACHER_KEY AS teacherKey,
+               TEACHER_NM AS teacherNm,
+               BANK_NM AS bankNm,
+               ACCOUNT_NO AS accountNo
+          FROM TB_TEACHER
+         WHERE ISUSE = 'Y'
+         ORDER BY TEACHER_NM
+    </select>
+
+    <!-- 강사 정산 등록 -->
+    <insert id="insertTeacherCalculate" parameterType="com.academy.manage.teacherCalculate.service.TeacherCalculateVO">
+        INSERT INTO TB_TEACHER_CALCULATE (
+            TEACHER_KEY, CALC_MONTH, CALC_YEAR, CALC_DATE,
+            SALE_AMT, SALE_CNT, REFUND_AMT, REFUND_CNT,
+            CALC_RATE, CALC_AMT, TAX_AMT, CALC_STATUS,
+            REG_ID, REG_DATE
+        ) VALUES (
+            #{teacherKey}, #{calcMonth}, #{calcYear}, #{calcDate},
+            #{saleAmt}, #{saleCnt}, IFNULL(#{refundAmt}, 0), IFNULL(#{refundCnt}, 0),
+            #{calcRate}, #{calcAmt}, #{taxAmt}, IFNULL(#{calcStatus}, 'READY'),
+            #{regId}, NOW()
+        )
+    </insert>
+
+    <!-- 강사 정산 수정 -->
+    <update id="updateTeacherCalculate" parameterType="com.academy.manage.teacherCalculate.service.TeacherCalculateVO">
+        UPDATE TB_TEACHER_CALCULATE
+           SET SALE_AMT = #{saleAmt},
+               SALE_CNT = #{saleCnt},
+               REFUND_AMT = #{refundAmt},
+               REFUND_CNT = #{refundCnt},
+               CALC_RATE = #{calcRate},
+               CALC_AMT = #{calcAmt},
+               TAX_AMT = #{taxAmt},
+               MOD_ID = #{modId},
+               MOD_DATE = NOW()
+         WHERE CALC_SEQ = #{calcSeq}
+    </update>
+
+    <!-- 강사 정산 삭제 -->
+    <delete id="deleteTeacherCalculate" parameterType="com.academy.manage.teacherCalculate.service.TeacherCalculateVO">
+        DELETE FROM TB_TEACHER_CALCULATE WHERE CALC_SEQ = #{calcSeq}
+    </delete>
+
+    <!-- 정산 상태 변경 -->
+    <update id="updateCalculateStatus" parameterType="com.academy.manage.teacherCalculate.service.TeacherCalculateVO">
+        UPDATE TB_TEACHER_CALCULATE
+           SET CALC_STATUS = #{calcStatus},
+               CALC_DATE = CASE WHEN #{calcStatus} = 'CALC' THEN NOW() ELSE CALC_DATE END,
+               MOD_ID = #{modId},
+               MOD_DATE = NOW()
+         WHERE CALC_SEQ = #{calcSeq}
+    </update>
+
+    <!-- 지급 처리 -->
+    <update id="updatePayment" parameterType="com.academy.manage.teacherCalculate.service.TeacherCalculateVO">
+        UPDATE TB_TEACHER_CALCULATE
+           SET PAID_AMT = #{paidAmt},
+               PAID_DATE = #{paidDate},
+               PAID_MEMO = #{paidMemo},
+               CALC_STATUS = 'PAID',
+               MOD_ID = #{modId},
+               MOD_DATE = NOW()
+         WHERE CALC_SEQ = #{calcSeq}
+    </update>
+
+    <!-- 월별 정산 일괄 생성 -->
+    <insert id="insertMonthlyCalculateBatch" parameterType="com.academy.manage.teacherCalculate.service.TeacherCalculateVO">
+        INSERT INTO TB_TEACHER_CALCULATE (
+            TEACHER_KEY, CALC_MONTH, CALC_YEAR,
+            SALE_AMT, SALE_CNT, REFUND_AMT, REFUND_CNT,
+            CALC_RATE, CALC_AMT, TAX_AMT, CALC_STATUS,
+            REG_ID, REG_DATE
+        )
+        SELECT L.TEACHER_KEY,
+               #{calcMonth},
+               #{calcYear},
+               IFNULL(SUM(S.SALE_AMT), 0),
+               IFNULL(SUM(S.SALE_CNT), 0),
+               IFNULL(SUM(S.REFUND_AMT), 0),
+               IFNULL(SUM(S.REFUND_CNT), 0),
+               T.CALC_RATE,
+               ROUND((IFNULL(SUM(S.SALE_AMT), 0) - IFNULL(SUM(S.REFUND_AMT), 0)) * T.CALC_RATE / 100),
+               ROUND((IFNULL(SUM(S.SALE_AMT), 0) - IFNULL(SUM(S.REFUND_AMT), 0)) * T.CALC_RATE / 100 * 0.033),
+               'READY',
+               #{regId},
+               NOW()
+          FROM TB_LECTURE L
+          JOIN TB_TEACHER T ON L.TEACHER_KEY = T.TEACHER_KEY
+          LEFT JOIN TB_LECTURE_SALE S ON L.LECCODE = S.LECCODE
+                AND DATE_FORMAT(S.SALE_DATE, '%Y-%m') = CONCAT(#{calcYear}, '-', #{calcMonth})
+         WHERE T.ISUSE = 'Y'
+         GROUP BY L.TEACHER_KEY, T.CALC_RATE
+        HAVING SUM(S.SALE_AMT) > 0
+    </insert>
+
+</mapper>

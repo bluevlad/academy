@@ -1,0 +1,99 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.academy.mapper.CategoryMapper">
+
+    <!-- 트리 리스트 조회 -->
+    <select id="getSeriesCateTree" resultType="hashMap">
+        SELECT
+            CODE, NAME, ORDR, NVL(P_CODE, -1) as P_CODE, LEVEL
+        FROM (
+            SELECT
+                CODE, NAME, ORDR, P_CODE, A.ISUSE
+            FROM TB_CATEGORY_INFO A
+            WHERE 1 = 1
+        )
+        WHERE (1=1)
+        AND LEVEL > 0
+        START WITH CODE = 'CLASSCODE'
+        CONNECT BY PRIOR CODE = P_CODE
+    </select>
+
+    <!-- 상세 조회 -->
+    <select id="getDetail" parameterType="com.academy.lecture.service.CategoryVO" resultType="hashMap">
+        SELECT
+            CODE, NAME, ISUSE, DECODE(ISUSE, 'Y', '활성', 'N', '비활성') ISUSENM
+            , USE_ON, USE_OFF, REG_DT, REG_ID, UPD_DT, UPD_ID
+            , P_CODE
+            , (SELECT NAME FROM TB_CATEGORY_INFO B WHERE B.CODE = A.P_CODE) AS P_NAME
+            , ORDR, CODE_VAL
+        FROM TB_CATEGORY_INFO A
+        WHERE CODE = #{code}
+    </select>
+
+    <!-- 수정 프로세스 -->
+    <update id="updateProcess" parameterType="com.academy.lecture.service.CategoryVO">
+        UPDATE TB_CATEGORY_INFO
+        SET
+            NAME = #{name}
+            , ISUSE = #{isUse}
+            <if test="useOn != null and useOn != ''">, USE_ON = #{useOn}</if>
+            <if test="useOff != null and useOff != ''">, USE_OFF = #{useOff}</if>
+            <if test="ordr != null">, ORDR = #{ordr}</if>
+            , UPD_ID = #{updId}
+            , UPD_DT = SYSDATE
+        WHERE CODE = #{code}
+    </update>
+
+    <!-- 삭제 프로세스 (카테고리 및 하위 항목 삭제) -->
+    <delete id="deleteProcess" parameterType="com.academy.lecture.service.CategoryVO">
+        DELETE FROM TB_CATEGORY_INFO
+        WHERE CODE = #{code} OR P_CODE = #{code}
+    </delete>
+
+    <!-- ID 중복체크 -->
+    <select id="idCheck" parameterType="com.academy.lecture.service.CategoryVO" resultType="int">
+        SELECT
+            COUNT(CODE)
+        FROM TB_CATEGORY_INFO
+        WHERE 1 = 1
+        <if test="code != null and code != ''">
+            AND CODE = #{code}
+        </if>
+    </select>
+
+    <!-- 등록 프로세스 -->
+    <insert id="insertProcess" parameterType="com.academy.lecture.service.CategoryVO" flushCache="true">
+        INSERT INTO TB_CATEGORY_INFO (
+            ID
+            , CODE
+            , NAME
+            , ISUSE
+            <if test="useOn != null and useOn != ''">, USE_ON</if>
+            <if test="useOff != null and useOff != ''">, USE_OFF</if>
+            <if test="ordr != null">, ORDR</if>
+            <if test="pCode != null and pCode != ''">, P_CODE</if>
+            , REG_DT
+            , REG_ID
+        ) VALUES (
+            SEQ_TB_CATEGORY_INFO_ID.NEXTVAL
+            , #{code}
+            , #{name}
+            , #{isUse}
+            <if test="useOn != null and useOn != ''">, #{useOn}</if>
+            <if test="useOff != null and useOff != ''">, #{useOff}</if>
+            <if test="ordr != null">, #{ordr}</if>
+            <if test="pCode != null and pCode != ''">, #{pCode}</if>
+            , SYSDATE
+            , #{regId}
+        )
+    </insert>
+
+    <!-- 최대 순서 조회 -->
+    <select id="getMaxOrdr" parameterType="com.academy.lecture.service.CategoryVO" resultType="hashMap">
+        SELECT
+            (SELECT (NVL(MAX(ORDR), 0) + 1) ORDR FROM TB_CATEGORY_INFO WHERE P_CODE = #{code}) AS ORDR
+            , (SELECT NAME FROM TB_CATEGORY_INFO WHERE CODE = #{code}) AS P_NAME
+        FROM DUAL
+    </select>
+
+</mapper>

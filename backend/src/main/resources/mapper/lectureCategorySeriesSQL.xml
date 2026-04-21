@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.academy.mapper.CategorySeriesMapper">
+
+  <insert id="catSeriesInsert" parameterType="com.academy.lecture.service.SeriesVO" flushCache="true">
+    INSERT INTO TB_CATEGORY_SERIES (
+       SEQ, CAT_CD, SRS_CD, ORDR, REG_DT, REG_ID
+   ) VALUES (
+     (SELECT IFNULL(MAX(SEQ), 0)+1 FROM TB_CATEGORY_SERIES ),
+     #{catCd},
+     #{srsCd},
+     #{ordr},
+     NOW(),
+     #{regId}
+    )
+  </insert>
+
+  <delete id="catSeriesDeleteWthCatCd" parameterType="com.academy.lecture.service.SeriesVO">
+    DELETE FROM TB_CATEGORY_SERIES
+    WHERE CAT_CD = #{catCd}
+  </delete>
+
+  <delete id="catSeriesDeleteWthSrsCd" parameterType="com.academy.lecture.service.SeriesVO">
+    DELETE FROM TB_CATEGORY_SERIES
+    WHERE SRS_CD = #{srsCd}
+  </delete>
+
+</mapper>

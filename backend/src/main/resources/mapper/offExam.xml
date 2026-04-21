@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.academy.mapper.OffExamMapper">
+
+    <select id="selectOffExamList" parameterType="com.academy.mocktest.offExamReg.exam.service.OffExamVO" resultType="com.academy.mocktest.offExamReg.exam.service.OffExamVO">
+        SELECT A.EXAM_SEQ AS examSeq, A.EXAM_CD AS examCd, A.EXAM_NM AS examNm, A.EXAM_YEAR AS examYear,
+               A.EXAM_ROUND AS examRound, A.EXAM_DATE AS examDate, A.EXAM_PLACE AS examPlace,
+               A.MAX_APPLY_CNT AS maxApplyCnt, A.STATUS AS status,
+               CASE A.STATUS WHEN 'READY' THEN '준비' WHEN 'OPEN' THEN '접수중' WHEN 'CLOSE' THEN '마감' WHEN 'FINISH' THEN '완료' ELSE A.STATUS END AS statusNm,
+               (SELECT COUNT(*) FROM TB_OFF_EXAM_REG WHERE EXAM_SEQ = A.EXAM_SEQ) AS applyCnt,
+               DATE_FORMAT(A.REG_DATE, '%Y-%m-%d') AS regDate
+          FROM TB_OFF_EXAM A WHERE A.ISUSE = 'Y'
+        <if test="searchExamYear != null and searchExamYear != ''">AND A.EXAM_YEAR = #{searchExamYear}</if>
+        <if test="searchStatus != null and searchStatus != ''">AND A.STATUS = #{searchStatus}</if>
+         ORDER BY A.EXAM_YEAR DESC, A.EXAM_DATE DESC
+         LIMIT #{recordCountPerPage} OFFSET #{firstIndex}
+    </select>
+
+    <select id="selectOffExamListCount" parameterType="com.academy.mocktest.offExamReg.exam.service.OffExamVO" resultType="int">
+        SELECT COUNT(*) FROM TB_OFF_EXAM A WHERE A.ISUSE = 'Y'
+        <if test="searchExamYear != null and searchExamYear != ''">AND A.EXAM_YEAR = #{searchExamYear}</if>
+        <if test="searchStatus != null and searchStatus != ''">AND A.STATUS = #{searchStatus}</if>
+    </select>
+
+    <select id="selectOffExamDetail" parameterType="com.academy.mocktest.offExamReg.exam.service.OffExamVO" resultType="com.academy.mocktest.offExamReg.exam.service.OffExamVO">
+        SELECT EXAM_SEQ AS examSeq, EXAM_CD AS examCd, EXAM_NM AS examNm, EXAM_YEAR AS examYear,
+               EXAM_ROUND AS examRound, EXAM_DATE AS examDate, EXAM_START_TIME AS examStartTime,
+               EXAM_END_TIME AS examEndTime, EXAM_MINUTE AS examMinute, REG_START_DATE AS regStartDate,
+               REG_END_DATE AS regEndDate, CATEGORY_CD AS categoryCd, EXAM_PLACE AS examPlace,
+               EXAM_ADDR AS examAddr, MAX_APPLY_CNT AS maxApplyCnt, STATUS AS status, ISUSE AS isuse,
+               REG_ID AS regId, DATE_FORMAT(REG_DATE, '%Y-%m-%d %H:%i:%s') AS regDate
+          FROM TB_OFF_EXAM WHERE EXAM_SEQ = #{examSeq}
+    </select>
+
+    <insert id="insertOffExam" parameterType="com.academy.mocktest.offExamReg.exam.service.OffExamVO">
+        INSERT INTO TB_OFF_EXAM (EXAM_CD, EXAM_NM, EXAM_YEAR, EXAM_ROUND, EXAM_DATE, EXAM_START_TIME, EXAM_END_TIME,
+            EXAM_MINUTE, REG_START_DATE, REG_END_DATE, CATEGORY_CD, EXAM_PLACE, EXAM_ADDR, MAX_APPLY_CNT, STATUS, ISUSE, REG_ID, REG_DATE)
+        VALUES (#{examCd}, #{examNm}, #{examYear}, #{examRound}, #{examDate}, #{examStartTime}, #{examEndTime},
+            #{examMinute}, #{regStartDate}, #{regEndDate}, #{categoryCd}, #{examPlace}, #{examAddr}, #{maxApplyCnt}, IFNULL(#{status}, 'READY'), 'Y', #{regId}, NOW())
+    </insert>
+
+    <update id="updateOffExam" parameterType="com.academy.mocktest.offExamReg.exam.service.OffExamVO">
+        UPDATE TB_OFF_EXAM SET EXAM_NM = #{examNm}, EXAM_YEAR = #{examYear}, EXAM_ROUND = #{examRound}, EXAM_DATE = #{examDate},
+               EXAM_START_TIME = #{examStartTime}, EXAM_END_TIME = #{examEndTime}, EXAM_MINUTE = #{examMinute},
+               REG_START_DATE = #{regStartDate}, REG_END_DATE = #{regEndDate}, CATEGORY_CD = #{categoryCd},
+               EXAM_PLACE = #{examPlace}, EXAM_ADDR = #{examAddr}, MAX_APPLY_CNT = #{maxApplyCnt}, MOD_ID = #{modId}, MOD_DATE = NOW()
+         WHERE EXAM_SEQ = #{examSeq}
+    </update>
+
+    <update id="deleteOffExam" parameterType="com.academy.mocktest.offExamReg.exam.service.OffExamVO">
+        UPDATE TB_OFF_EXAM SET ISUSE = 'N', MOD_ID = #{modId}, MOD_DATE = NOW() WHERE EXAM_SEQ = #{examSeq}
+    </update>
+
+    <update id="updateOffExamStatus" parameterType="com.academy.mocktest.offExamReg.exam.service.OffExamVO">
+        UPDATE TB_OFF_EXAM SET STATUS = #{status}, MOD_ID = #{modId}, MOD_DATE = NOW() WHERE EXAM_SEQ = #{examSeq}
+    </update>
+
+</mapper>

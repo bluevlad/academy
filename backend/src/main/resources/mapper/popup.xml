@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.academy.mapper.PopupMapper">
+
+    <select id="selectPopupList" parameterType="com.academy.popup.service.PopupVO" resultType="com.academy.popup.service.PopupVO">
+        SELECT A.POPUP_NO AS popupNo, A.ONOFF_DIV AS onoffDiv, A.CATEGORY_CD AS categoryCd,
+               A.TITLE AS title, A.POPUP_IMG AS popupImg, A.THUMBNAIL AS thumbnail,
+               CONCAT(DATE_FORMAT(A.START_DATE, '%Y-%m-%d'), ' ', A.START_TIME, '시') AS startDate,
+               CONCAT(DATE_FORMAT(A.END_DATE, '%Y-%m-%d'), ' ', A.END_TIME, '시') AS endDate,
+               A.OPEN_YN AS openYn,
+               CASE A.OPEN_YN WHEN 'Y' THEN '적용' WHEN 'N' THEN '미적용' ELSE A.OPEN_YN END AS openYnNm,
+               A.HIT AS hit,
+               DATE_FORMAT(A.REG_DATE, '%Y-%m-%d %H:%i:%s') AS regDate
+          FROM TB_POPUP A
+         WHERE 1=1
+        <if test="searchOnoffDiv != null and searchOnoffDiv != ''">AND A.ONOFF_DIV = #{searchOnoffDiv}</if>
+        <if test="searchKind != null and searchKind != ''">AND A.CATEGORY_CD LIKE CONCAT('%', #{searchKind}, '%')</if>
+        <if test="searchText != null and searchText != ''">AND A.TITLE LIKE CONCAT('%', #{searchText}, '%')</if>
+         ORDER BY A.POPUP_NO DESC
+         LIMIT #{recordCountPerPage} OFFSET #{firstIndex}
+    </select>
+
+    <select id="selectPopupListCount" parameterType="com.academy.popup.service.PopupVO" resultType="int">
+        SELECT COUNT(*) FROM TB_POPUP A WHERE 1=1
+        <if test="searchOnoffDiv != null and searchOnoffDiv != ''">AND A.ONOFF_DIV = #{searchOnoffDiv}</if>
+        <if test="searchKind != null and searchKind != ''">AND A.CATEGORY_CD LIKE CONCAT('%', #{searchKind}, '%')</if>
+        <if test="searchText != null and searchText != ''">AND A.TITLE LIKE CONCAT('%', #{searchText}, '%')</if>
+    </select>
+
+    <select id="selectPopupDetail" parameterType="com.academy.popup.service.PopupVO" resultType="com.academy.popup.service.PopupVO">
+        SELECT A.POPUP_NO AS popupNo, A.ONOFF_DIV AS onoffDiv, A.CATEGORY_CD AS categoryCd,
+               A.TITLE AS title, A.POPUP_IMG AS popupImg, A.POPUP_IMG_NM AS popupImgNm,
+               A.THUMBNAIL AS thumbnail, A.THUMBNAIL_NM AS thumbnailNm,
+               A.LINK_ADDR AS linkAddr, A.LINK_TARGET AS linkTarget,
+               DATE_FORMAT(A.START_DATE, '%Y-%m-%d') AS startDate, A.START_TIME AS startTime,
+               DATE_FORMAT(A.END_DATE, '%Y-%m-%d') AS endDate, A.END_TIME AS endTime,
+               A.OPEN_YN AS openYn,
+               CASE A.OPEN_YN WHEN 'Y' THEN '적용' WHEN 'N' THEN '미적용' ELSE A.OPEN_YN END AS openYnNm,
+               A.HIT AS hit, A.REG_ID AS regId,
+               DATE_FORMAT(A.REG_DATE, '%Y-%m-%d %H:%i:%s') AS regDate
+          FROM TB_POPUP A
+         WHERE A.POPUP_NO = #{popupNo}
+    </select>
+
+    <insert id="insertPopup" parameterType="com.academy.popup.service.PopupVO">
+        INSERT INTO TB_POPUP (ONOFF_DIV, CATEGORY_CD, TITLE, POPUP_IMG, POPUP_IMG_NM,
+            THUMBNAIL, THUMBNAIL_NM, LINK_ADDR, LINK_TARGET, START_DATE, START_TIME,
+            END_DATE, END_TIME, OPEN_YN, HIT, REG_ID, REG_DATE)
+        VALUES (#{onoffDiv}, #{categoryCd}, #{title}, #{popupImg}, #{popupImgNm},
+            #{thumbnail}, #{thumbnailNm}, #{linkAddr}, #{linkTarget}, #{startDate}, #{startTime},
+            #{endDate}, #{endTime}, IFNULL(#{openYn}, 'N'), 0, #{regId}, NOW())
+    </insert>
+
+    <update id="updatePopup" parameterType="com.academy.popup.service.PopupVO">
+        UPDATE TB_POPUP SET CATEGORY_CD = #{categoryCd}, TITLE = #{title},
+               LINK_ADDR = #{linkAddr}, LINK_TARGET = #{linkTarget},
+               START_DATE = #{startDate}, START_TIME = #{startTime},
+               END_DATE = #{endDate}, END_TIME = #{endTime}, OPEN_YN = #{openYn},
+               <if test="popupImg != null and popupImg != ''">POPUP_IMG = #{popupImg}, POPUP_IMG_NM = #{popupImgNm},</if>
+               <if test="thumbnail != null and thumbnail != ''">THUMBNAIL = #{thumbnail}, THUMBNAIL_NM = #{thumbnailNm},</if>
+               MOD_ID = #{modId}, MOD_DATE = NOW()
+         WHERE POPUP_NO = #{popupNo}
+    </update>
+
+    <delete id="deletePopup" parameterType="com.academy.popup.service.PopupVO">
+        DELETE FROM TB_POPUP WHERE POPUP_NO = #{popupNo}
+    </delete>
+
+    <update id="updatePopupOpenYn" parameterType="com.academy.popup.service.PopupVO">
+        UPDATE TB_POPUP SET OPEN_YN = #{openYn}, MOD_ID = #{modId}, MOD_DATE = NOW()
+         WHERE POPUP_NO = #{popupNo}
+    </update>
+
+    <update id="updatePopupHit" parameterType="com.academy.popup.service.PopupVO">
+        UPDATE TB_POPUP SET HIT = HIT + 1 WHERE POPUP_NO = #{popupNo}
+    </update>
+
+</mapper>

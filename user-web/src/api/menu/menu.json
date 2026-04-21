@@ -1,0 +1,1480 @@
+{
+    "menuTree": [
+        {
+            "MENU_SEQ": "000",
+            "ISUSE": "Y",
+            "MENU_ID": "FM_ROOT",
+            "P_MENUID": "-1",
+            "MENU_NM": "오프라인 관리자메뉴"
+        },
+        {
+            "MENU_SEQ": "000",
+            "ISUSE": "Y",
+            "MENU_ID": "OM_ROOT",
+            "P_MENUID": "-1",
+            "MENU_NM": "온라인 관리자메뉴"
+        },
+        {
+            "MENU_SEQ": "000",
+            "ISUSE": "Y",
+            "MENU_ID": "TM_ROOT",
+            "P_MENUID": "-1",
+            "MENU_NM": "모의고사 관리자메뉴"
+        },
+        {
+            "TARGET": "_self",
+            "MENU_SEQ": "001",
+            "MENU_URL": "/adminManagement/commonCodeList.do",
+            "ISUSE": "Y",
+            "MENU_ID": "FM_001",
+            "MENU_INFO": "운영자관리   ",
+            "P_MENUID": "FM_ROOT",
+            "MENU_NM": "운영자관리"
+        },
+        {
+            "MENU_SEQ": "001",
+            "MENU_URL": "/adminManagement/commonCodeList.do",
+            "ISUSE": "Y",
+            "MENU_ID": "OM_001",
+            "P_MENUID": "OM_ROOT",
+            "MENU_NM": "운영자관리"
+        },
+        {
+            "MENU_SEQ": "001",
+            "MENU_URL": "/adminManagement/commonCodeList.do",
+            "ISUSE": "N",
+            "MENU_ID": "TM_001",
+            "P_MENUID": "TM_ROOT",
+            "MENU_NM": "운영자관리"
+        },
+        {
+            "MENU_SEQ": "001_001",
+            "MENU_URL": "/adminManagementCode/commonCodeList.do",
+            "ISUSE": "Y",
+            "MENU_ID": "OM_001_001",
+            "MENU_INFO": "코드관리",
+            "P_MENUID": "OM_001",
+            "MENU_NM": "코드관리"
+        },
+        {
+            "MENU_SEQ": "001_001",
+            "MENU_URL": "/adminManagementCode/commonCodeList.do",
+            "ISUSE": "Y",
+            "MENU_ID": "TM_001_001",
+            "MENU_INFO": "코드관리",
+            "P_MENUID": "TM_001",
+            "MENU_NM": "코드관리"
+        },
+        {
+            "TARGET": "_self",
+            "MENU_SEQ": "001_002",
+            "MENU_URL": "/adminManagementMenu/adminMenuMain.do",
+            "ISUSE": "Y",
+            "MENU_ID": "FM_001_002",
+            "MENU_INFO": "메뉴관리.",
+            "P_MENUID": "FM_001",
+            "MENU_NM": "관리자 메뉴관리"
+        },
+        {
+            "MENU_SEQ": "001_002",
+            "MENU_URL": "/adminManagementMenu/adminMenuMain.do",
+            "ISUSE": "Y",
+            "MENU_ID": "OM_001_002",
+            "P_MENUID": "OM_001",
+            "MENU_NM": "관리자 메뉴관리"
+        },
+        {
+            "MENU_SEQ": "001_002",
+            "MENU_URL": "/adminManagementMenu/adminMenuMain.do",
+            "ISUSE": "Y",
+            "MENU_ID": "TM_001_002",
+            "P_MENUID": "TM_001",
+            "MENU_NM": "관리자 메뉴관리"
+        },
+        {
+            "TARGET": "_self",
+            "MENU_SEQ": "001_003",
+            "MENU_URL": "/adminManagementAuth/authControlList.do",
+            "ISUSE": "Y",
+            "MENU_ID": "FM_001_003",
+            "MENU_INFO": "권한관리",
+            "P_MENUID": "FM_001",
+            "MENU_NM": "권한관리"
+        },
+        {
+            "MENU_SEQ": "001_003",
+            "MENU_URL": "/adminManagementAuth/authControlList.do",
+            "ISUSE": "Y",
+            "MENU_ID": "OM_001_003",
+            "P_MENUID": "OM_001",
+            "MENU_NM": "권한관리"
+        },
+        {
+            "MENU_SEQ": "001_003",
+            "MENU_URL": "/adminManagementAuth/authControlList.do",
+            "ISUSE": "Y",
+            "MENU_ID": "TM_001_003",
+            "P_MENUID": "TM_001",
+            "MENU_NM": "권한관리"
+        },
+        {
+            "TARGET": "_self",
+            "MENU_SEQ": "001_004",
+            "MENU_URL": "/adminManagementMenu/passMenuMain.do",
+            "ISUSE": "Y",
+            "MENU_ID": "FM_001_004",
+            "MENU_INFO": "사용자 메뉴관리",
+            "P_MENUID": "FM_001",
+            "MENU_NM": "사용자 메뉴관리"
+        },
+        {
+            "MENU_SEQ": "001_004",
+            "MENU_URL": "/adminManagementMenu/passMenuMain.do",
+            "ISUSE": "Y",
+            "MENU_ID": "OM_001_004",
+            "MENU_INFO": "사용자 메뉴관리",
+            "P_MENUID": "OM_001",
+            "MENU_NM": "사용자 메뉴관리"
+        },
+        {
+            "MENU_SEQ": "001_004",
+            "MENU_URL": "/adminManagementMenu/passMenuMain.do",
+            "ISUSE": "Y",
+            "MENU_ID": "TM_001_004",
+            "MENU_INFO": "사용자 메뉴관리",
+            "P_MENUID": "TM_001",
+            "MENU_NM": "사용자 메뉴관리"
+        },
+        {
+            "TARGET": "_self",
+            "MENU_SEQ": "002",
+            "MENU_URL": "/adminManagement/commonCodeList.do",
+            "ISUSE": "Y",
+            "MENU_ID": "FM_002",
+            "MENU_INFO": "회원관리",
+            "P_MENUID": "FM_ROOT",
+            "MENU_NM": "회원관리"
+        },
+        {
+            "MENU_SEQ": "002",
+            "ISUSE": "Y",
+            "MENU_ID": "OM_002",
+            "P_MENUID": "OM_ROOT",
+            "MENU_NM": "회원관리"
+        },
+        {
+            "MENU_SEQ": "002",
+            "ISUSE": "N",
+            "MENU_ID": "TM_002",
+            "P_MENUID": "TM_ROOT",
+            "MENU_NM": "회원관리"
+        },
+        {
+            "TARGET": "_self",
+            "MENU_SEQ": "002_001",
+            "MENU_URL": "/memberManagement/memberList.do",
+            "ISUSE": "Y",
+            "MENU_ID": "FM_002_001",
+            "MENU_INFO": "관리자조회",
+            "P_MENUID": "FM_002",
+            "MENU_NM": "회원조회"
+        },
+        {
+            "MENU_SEQ": "002_001",
+            "MENU_URL": "/memberManagement/memberList.do",
+            "ISUSE": "Y",
+            "MENU_ID": "OM_002_001",
+            "P_MENUID": "OM_002",
+            "MENU_NM": "회원조회"
+        },
+        {
+            "MENU_SEQ": "002_001",
+            "MENU_URL": "/memberManagement/memberList.do",
+            "ISUSE": "Y",
+            "MENU_ID": "TM_002_001",
+            "P_MENUID": "TM_002",
+            "MENU_NM": "회원조회"
+        },
+        {
+            "TARGET": "_self",
+            "MENU_SEQ": "002_002",
+            "MENU_URL": "/memberAdminManagement/memberAdminList.do",
+            "ISUSE": "Y",
+            "MENU_ID": "FM_002_002",
+            "MENU_INFO": "회원조회",
+            "P_MENUID": "FM_002",
+            "MENU_NM": "관리자조회"
+        },
+        {
+            "TARGET": "_self",
+            "MENU_SEQ": "002_002",
+            "MENU_URL": "/memberAdminManagement/memberAdminList.do",
+            "ISUSE": "Y",
+            "MENU_ID": "OM_002_002",
+            "MENU_INFO": "관리자조회",
+            "P_MENUID": "OM_002",
+            "MENU_NM": "관리자조회"
+        },
+        {
+            "TARGET": "_self",
+            "MENU_SEQ": "002_002",
+            "MENU_URL": "/memberAdminManagement/memberAdminList.do",
+            "ISUSE": "Y",
+            "MENU_ID": "TM_002_002",
+            "MENU_INFO": "관리자조회",
+            "P_MENUID": "TM_002",
+            "MENU_NM": "관리자조회"
+        },
+        {
+            "MENU_SEQ": "002_003",
+            "MENU_URL": "/memberManagement/memberStat.do",
+            "ISUSE": "Y",
+            "MENU_ID": "OM_002_003",
+            "MENU_INFO": "회원통계",
+            "P_MENUID": "OM_002",
+            "MENU_NM": "회원통계"
+        },
+        {
+            "MENU_SEQ": "002_003",
+            "MENU_URL": "/memberManagement/memberStat.do",
+            "ISUSE": "Y",
+            "MENU_ID": "TM_002_003",
+            "MENU_INFO": "회원통계",
+            "P_MENUID": "TM_002",
+            "MENU_NM": "회원통계"
+        },
+        {
+            "MENU_SEQ": "002_004",
+            "MENU_URL": "/macaddressmanager/list.do",
+            "ISUSE": "Y",
+            "MENU_ID": "OM_002_004",
+            "MENU_INFO": "맥어드레스관리",
+            "P_MENUID": "OM_002",
+            "MENU_NM": "맥어드레스관리"
+        },
+        {
+            "TARGET": "_self",
+            "MENU_SEQ": "003",
+            "MENU_URL": "/adminManagement/commonCodeList.do",
+            "ISUSE": "Y",
+            "MENU_ID": "FM_003",
+            "MENU_INFO": "강의관리",
+            "P_MENUID": "FM_ROOT",
+            "MENU_NM": "강의관리"
+        },
+        {
+            "TARGET": "_self",
+            "MENU_SEQ": "003",
+            "MENU_URL": "/adminManagement/commonCodeList.do",
+            "ISUSE": "Y",
+            "MENU_ID": "OM_003",
+            "MENU_INFO": "강의관리",
+            "P_MENUID": "OM_ROOT",
+            "MENU_NM": "강의관리"
+        },
+        {
+            "TARGET": "_self",
+            "MENU_SEQ": "003",
+            "MENU_URL": "/adminManagement/commonCodeList.do",
+            "ISUSE": "Y",
+            "MENU_ID": "TM_003",
+            "MENU_INFO": "강의관리",
+            "P_MENUID": "TM_ROOT",
+            "MENU_NM": "모의고사등록"
+        },
+        {
+            "TARGET": "_self",
+            "MENU_SEQ": "003_001",
+            "MENU_URL": "/subject/list.do",
+            "ISUSE": "Y",
+            "MENU_ID": "FM_003_001",
+            "MENU_INFO": "과목관리",
+            "P_MENUID": "FM_003",
+            "MENU_NM": "과목관리"
+        },
+        {
+            "TARGET": "_self",
+            "MENU_SEQ": "003_001",
+            "MENU_URL": "/subject/list.do",
+            "ISUSE": "Y",
+            "MENU_ID": "OM_003_001",
+            "MENU_INFO": "과목관리",
+            "P_MENUID": "OM_003",
+            "MENU_NM": "과목관리"
+        },
+        {
+            "TARGET": "_self",
+            "MENU_SEQ": "003_001",
+            "MENU_URL": "/subject/list.do",
+            "ISUSE": "N",
+            "MENU_ID": "TM_003_001",
+            "MENU_INFO": "과목관리",
+            "P_MENUID": "TM_003",
+            "MENU_NM": "과목관리"
+        },
+        {
+            "TARGET": "_self",
+            "MENU_SEQ": "003_002",
+            "MENU_URL": "/teacher/list.do",
+            "ISUSE": "Y",
+            "MENU_ID": "FM_003_002",
+            "MENU_INFO": "강사관리",
+            "P_MENUID": "FM_003",
+            "MENU_NM": "강사관리"
+        },
+        {
+            "TARGET": "_self",
+            "MENU_SEQ": "003_002",
+            "MENU_URL": "/teacher/list.do",
+            "ISUSE": "Y",
+            "MENU_ID": "OM_003_002",
+            "MENU_INFO": "강사관리",
+            "P_MENUID": "OM_003",
+            "MENU_NM": "강사관리"
+        },
+        {
+            "TARGET": "_self",
+            "MENU_SEQ": "003_002",
+            "MENU_URL": "/teacher/list.do",
+            "ISUSE": "N",
+            "MENU_ID": "TM_003_002",
+            "MENU_INFO": "강사관리",
+            "P_MENUID": "TM_003",
+            "MENU_NM": "강사관리"
+        },
+        {
+            "TARGET": "_self",
+            "MENU_SEQ": "003_003",
+            "MENU_URL": "/form/list.do",
+            "ISUSE": "Y",
+            "MENU_ID": "FM_003_003",
+            "MENU_INFO": "학습형태관리",
+            "P_MENUID": "FM_003",
+            "MENU_NM": "학습형태관리"
+        },
+        {
+            "TARGET": "_self",
+            "MENU_SEQ": "003_003",
+            "MENU_URL": "/form/list.do",
+            "ISUSE": "Y",
+            "MENU_ID": "OM_003_003",
+            "MENU_INFO": "학습형태관리",
+            "P_MENUID": "OM_003",
+            "MENU_NM": "학습형태관리"
+        },
+        {
+            "TARGET": "_self",
+            "MENU_SEQ": "003_003",
+            "MENU_URL": "/form/list.do",
+            "ISUSE": "N",
+            "MENU_ID": "TM_003_003",
+            "MENU_INFO": "학습형태관리",
+            "P_MENUID": "TM_003",
+            "MENU_NM": "학습형태관리"
+        },
+        {
+            "TARGET": "_self",
+            "MENU_SEQ": "003_004",
+            "MENU_URL": "/kind/list.do",
+            "ISUSE": "Y",
+            "MENU_ID": "FM_003_004",
+            "MENU_INFO": "직종관리",
+            "P_MENUID": "FM_003",
+            "MENU_NM": "직종관리"
+        },
+        {
+            "TARGET": "_self",
+            "MENU_SEQ": "003_004",
+            "MENU_URL": "/kind/list.do",
+            "ISUSE": "Y",
+            "MENU_ID": "OM_003_004",
+            "MENU_INFO": "직종관리",
+            "P_MENUID": "OM_003",
+            "MENU_NM": "직종관리"
+        },
+        {
+            "TARGET": "_self",
+            "MENU_SEQ": "003_004",
+            "MENU_URL": "/kind/list.do",
+            "ISUSE": "N",
+            "MENU_ID": "TM_003_004",
+            "MENU_INFO": "직종관리",
+            "P_MENUID": "TM_003",
+            "MENU_NM": "직종관리"
+        },
+        {
+            "TARGET": "_self",
+            "MENU_SEQ": "003_005",
+            "MENU_URL": "/lectureOff/list.do",
+            "ISUSE": "Y",
+            "MENU_ID": "FM_003_005",
+            "MENU_INFO": "강의개설",
+            "P_MENUID": "FM_003",
+            "MENU_NM": "강의개설"
+        },
+        {
+            "TARGET": "_self",
+            "MENU_SEQ": "003_005",
+            "MENU_URL": "/lecturemst/list.do",
+            "ISUSE": "N",
+            "MENU_ID": "OM_003_005",
+            "MENU_INFO": "강의마스터",
+            "P_MENUID": "OM_003",
+            "MENU_NM": "강의마스터"
+        },
+        {
+            "TARGET": "_self",
+            "MENU_SEQ": "003_005",
+            "MENU_URL": "/mouigosa/mouigosaList.do",
+            "ISUSE": "Y",
+            "MENU_ID": "TM_003_005",
+            "MENU_INFO": "과목별 문제등록",
+            "P_MENUID": "TM_003",
+            "MENU_NM": "과목별 문제등록"
+        },
+        {
+            "MENU_SEQ": "003_006",
+            "MENU_URL": "/lecture/list.do",
+            "ISUSE": "Y",
+            "MENU_ID": "OM_003_006",
+            "MENU_INFO": "강의개설",
+            "P_MENUID": "OM_003",
+            "MENU_NM": "강의개설"
+        },
+        {
+            "MENU_SEQ": "003_006",
+            "MENU_URL": "/mouigosa/reg/mouigosaRegistrationList.do",
+            "ISUSE": "Y",
+            "MENU_ID": "TM_003_006",
+            "MENU_INFO": "모의고사등록",
+            "P_MENUID": "TM_003",
+            "MENU_NM": "모의고사등록"
+        },
+        {
+            "MENU_SEQ": "003_007",
+            "MENU_URL": "/gosi/vod_modify.do",
+            "ISUSE": "Y",
+            "MENU_ID": "OM_003_007",
+            "MENU_INFO": "국가고시해설강의등록",
+            "P_MENUID": "OM_003",
+            "MENU_NM": "국가고시해설강의등록"
+        },
+        {
+            "MENU_SEQ": "003_008",
+            "MENU_URL": "/gosi/Gosi_sample_user_list.do",
+            "ISUSE": "Y",
+            "MENU_ID": "OM_003_008",
+            "MENU_INFO": "샘플아이디등록",
+            "P_MENUID": "OM_003",
+            "MENU_NM": "샘플아이디등록"
+        },
+        {
+            "MENU_SEQ": "003_009",
+            "MENU_URL": "/gosi/GosiAreaMst_modify.do",
+            "ISUSE": "Y",
+            "MENU_ID": "OM_003_009",
+            "MENU_INFO": "직렬별 예상 합격선 등록",
+            "P_MENUID": "OM_003",
+            "MENU_NM": "직렬별 예상 합격선 등록"
+        },
+        {
+            "MENU_SEQ": "003_010",
+            "MENU_URL": "/gosi/GosiStatView.do",
+            "ISUSE": "Y",
+            "MENU_ID": "OM_003_010",
+            "MENU_INFO": "시험통계관리",
+            "P_MENUID": "OM_003",
+            "MENU_NM": "시험통계관리"
+        },
+        {
+            "MENU_SEQ": "003_011",
+            "MENU_URL": "/category/main.do",
+            "ISUSE": "N",
+            "MENU_ID": "OM_003_011",
+            "MENU_INFO": "직렬관리",
+            "P_MENUID": "OM_003",
+            "MENU_NM": "직종관리"
+        },
+        {
+            "MENU_SEQ": "003_012",
+            "MENU_URL": "/openlecture/list.do",
+            "ISUSE": "Y",
+            "MENU_ID": "OM_003_012",
+            "P_MENUID": "OM_003",
+            "MENU_NM": "공개강의관리"
+        },
+        {
+            "MENU_SEQ": "003_013",
+            "MENU_URL": "/macaddressmanager/list.do",
+            "ISUSE": "Y",
+            "MENU_ID": "OM_003_013",
+            "MENU_INFO": "맥어드레스관리",
+            "P_MENUID": "OM_003",
+            "MENU_NM": "맥어드레스관리"
+        },
+        {
+            "TARGET": "_self",
+            "MENU_SEQ": "004",
+            "MENU_URL": "/adminManagement/commonCodeList.do",
+            "ISUSE": "Y",
+            "MENU_ID": "FM_004",
+            "MENU_INFO": "교재등록",
+            "P_MENUID": "FM_ROOT",
+            "MENU_NM": "교재관리"
+        },
+        {
+            "TARGET": "_self",
+            "MENU_SEQ": "004",
+            "MENU_URL": "/adminManagement/commonCodeList.do",
+            "ISUSE": "Y",
+            "MENU_ID": "OM_004",
+            "MENU_INFO": "교재관리",
+            "P_MENUID": "OM_ROOT",
+            "MENU_NM": "교재관리"
+        },
+        {
+            "TARGET": "_self",
+            "MENU_SEQ": "004",
+            "MENU_URL": "/adminManagement/commonCodeList.do",
+            "ISUSE": "Y",
+            "MENU_ID": "TM_004",
+            "MENU_INFO": "신청자관리",
+            "P_MENUID": "TM_ROOT",
+            "MENU_NM": "신청자관리"
+        },
+        {
+            "TARGET": "_self",
+            "MENU_SEQ": "004_001",
+            "MENU_URL": "/book/list.do",
+            "ISUSE": "Y",
+            "MENU_ID": "FM_004_001",
+            "MENU_INFO": "교재등록",
+            "P_MENUID": "FM_004",
+            "MENU_NM": "교재등록"
+        },
+        {
+            "TARGET": "_self",
+            "MENU_SEQ": "004_001",
+            "MENU_URL": "/book/list.do",
+            "ISUSE": "Y",
+            "MENU_ID": "OM_004_001",
+            "MENU_INFO": "상품관리(교재 등록, 수정)",
+            "P_MENUID": "OM_004",
+            "MENU_NM": "교재관리"
+        },
+        {
+            "TARGET": "_self",
+            "MENU_SEQ": "004_001",
+            "MENU_URL": "/offerer/offererList.do",
+            "ISUSE": "Y",
+            "MENU_ID": "TM_004_001",
+            "MENU_INFO": "신청자관리",
+            "P_MENUID": "TM_004",
+            "MENU_NM": "신청자관리"
+        },
+        {
+            "MENU_SEQ": "004_002",
+            "MENU_URL": "/book/comment/list.do",
+            "ISUSE": "Y",
+            "MENU_ID": "OM_004_002",
+            "P_MENUID": "OM_004",
+            "MENU_NM": "교재구매후기 게시판"
+        },
+        {
+            "MENU_SEQ": "004_002",
+            "MENU_URL": "/offerer/refund/list.do",
+            "ISUSE": "Y",
+            "MENU_ID": "TM_004_002",
+            "MENU_INFO": "환불관리",
+            "P_MENUID": "TM_004",
+            "MENU_NM": "환불관리"
+        },
+        {
+            "MENU_SEQ": "004_003",
+            "MENU_URL": "/offExamReg/offExamList.do",
+            "ISUSE": "Y",
+            "MENU_ID": "TM_004_003",
+            "MENU_INFO": "OFF응시자목록",
+            "P_MENUID": "TM_004",
+            "MENU_NM": "OFF응시자목록"
+        },
+        {
+            "TARGET": "_self",
+            "MENU_SEQ": "005",
+            "MENU_URL": "/productOrder/off_list.do",
+            "ISUSE": "Y",
+            "MENU_ID": "FM_005",
+            "MENU_INFO": "수강신청관리",
+            "P_MENUID": "FM_ROOT",
+            "MENU_NM": "수강신청관리"
+        },
+        {
+            "TARGET": "_self",
+            "MENU_SEQ": "005",
+            "MENU_URL": "/productOrder/list.do",
+            "ISUSE": "Y",
+            "MENU_ID": "OM_005",
+            "MENU_INFO": "상품주문관리",
+            "P_MENUID": "OM_ROOT",
+            "MENU_NM": "상품주문관리"
+        },
+        {
+            "TARGET": "_self",
+            "MENU_SEQ": "005",
+            "MENU_URL": "/adminManagement/commonCodeList.do",
+            "ISUSE": "N",
+            "MENU_ID": "TM_005",
+            "MENU_INFO": "게시판관리",
+            "P_MENUID": "TM_ROOT",
+            "MENU_NM": "게시판관리"
+        },
+        {
+            "TARGET": "_self",
+            "MENU_SEQ": "005_001",
+            "MENU_URL": "/productOrder/off_list.do",
+            "ISUSE": "Y",
+            "MENU_ID": "FM_005_001",
+            "MENU_INFO": "수강신청",
+            "P_MENUID": "FM_005",
+            "MENU_NM": "수강신청"
+        },
+        {
+            "TARGET": "_self",
+            "MENU_SEQ": "005_001",
+            "MENU_URL": "/productOrder/list.do",
+            "ISUSE": "Y",
+            "MENU_ID": "OM_005_001",
+            "MENU_INFO": "전체상품주문",
+            "P_MENUID": "OM_005",
+            "MENU_NM": "전체상품주문"
+        },
+        {
+            "TARGET": "_self",
+            "MENU_SEQ": "005_001",
+            "MENU_URL": "/boardManagement/boardMngList.do",
+            "ISUSE": "Y",
+            "MENU_ID": "TM_005_001",
+            "MENU_INFO": "게시판 생성관리",
+            "P_MENUID": "TM_005",
+            "MENU_NM": "게시판 생성관리"
+        },
+        {
+            "MENU_SEQ": "005_002",
+            "MENU_URL": "/productOrder/off_refund_list.do",
+            "ISUSE": "Y",
+            "MENU_ID": "FM_005_002",
+            "MENU_INFO": "환불관리",
+            "P_MENUID": "FM_005",
+            "MENU_NM": "환불관리"
+        },
+        {
+            "TARGET": "_self",
+            "MENU_SEQ": "005_002",
+            "MENU_URL": "/productOrder/list_0.do",
+            "ISUSE": "Y",
+            "MENU_ID": "OM_005_002",
+            "MENU_INFO": "전체상품주문(0원)",
+            "P_MENUID": "OM_005",
+            "MENU_NM": "전체상품주문(0원)"
+        },
+        {
+            "TARGET": "_self",
+            "MENU_SEQ": "005_002",
+            "MENU_URL": "/boardViewManagement/boardViewMngList.do",
+            "ISUSE": "Y",
+            "MENU_ID": "TM_005_002",
+            "MENU_INFO": "생성게시판",
+            "P_MENUID": "TM_005",
+            "MENU_NM": "생성게시판"
+        },
+        {
+            "TARGET": "_self",
+            "MENU_SEQ": "005_003",
+            "MENU_URL": "/freeOrder/list.do",
+            "ISUSE": "Y",
+            "MENU_ID": "OM_005_003",
+            "MENU_INFO": "수강신청",
+            "P_MENUID": "OM_005",
+            "MENU_NM": "수강신청"
+        },
+        {
+            "TARGET": "_self",
+            "MENU_SEQ": "005_003",
+            "MENU_URL": "/boardNotAnswer/boardNotAnswerList.do",
+            "ISUSE": "Y",
+            "MENU_ID": "TM_005_003",
+            "MENU_INFO": "미응답게시판",
+            "P_MENUID": "TM_005",
+            "MENU_NM": "미응답게시판"
+        },
+        {
+            "MENU_SEQ": "005_004",
+            "MENU_URL": "/freeOrder/changelist.do",
+            "ISUSE": "Y",
+            "MENU_ID": "OM_005_004",
+            "MENU_INFO": "수강변경",
+            "P_MENUID": "OM_005",
+            "MENU_NM": "수강변경"
+        },
+        {
+            "TARGET": "_self",
+            "MENU_SEQ": "005_004",
+            "MENU_URL": "/lectureReply/lectureReplyList.do",
+            "ISUSE": "Y",
+            "MENU_ID": "TM_005_004",
+            "MENU_INFO": "수강후기 게시판",
+            "P_MENUID": "TM_005",
+            "MENU_NM": "수강후기 게시판"
+        },
+        {
+            "MENU_SEQ": "005_005",
+            "MENU_URL": "/counsel/list.do",
+            "ISUSE": "Y",
+            "MENU_ID": "FM_005_005",
+            "MENU_INFO": "상담예약관리",
+            "P_MENUID": "FM_005",
+            "MENU_NM": "상담예약관리"
+        },
+        {
+            "MENU_SEQ": "005_005",
+            "MENU_URL": "/coopOrder/onPayDetail.do",
+            "ISUSE": "Y",
+            "MENU_ID": "OM_005_005",
+            "MENU_INFO": "남서울대 매출 관리",
+            "P_MENUID": "OM_005",
+            "MENU_NM": "남서울대 매출 관리"
+        },
+        {
+            "MENU_SEQ": "005_005",
+            "MENU_URL": "/bannerManagement/bannerMgtList.do",
+            "ISUSE": "Y",
+            "MENU_ID": "TM_005_005",
+            "MENU_INFO": "배너관리",
+            "P_MENUID": "TM_005",
+            "MENU_NM": "배너관리"
+        },
+        {
+            "MENU_SEQ": "005_006",
+            "MENU_URL": "/dday/list.do",
+            "ISUSE": "Y",
+            "MENU_ID": "TM_005_006",
+            "MENU_INFO": "D-day관리",
+            "P_MENUID": "TM_005",
+            "MENU_NM": "D-day관리"
+        },
+        {
+            "MENU_SEQ": "005_007",
+            "MENU_URL": "/popup/list.do",
+            "ISUSE": "Y",
+            "MENU_ID": "TM_005_007",
+            "MENU_INFO": "팝업관리",
+            "P_MENUID": "TM_005",
+            "MENU_NM": "팝업관리"
+        },
+        {
+            "MENU_SEQ": "005_008",
+            "MENU_URL": "/note/list.do",
+            "ISUSE": "Y",
+            "MENU_ID": "TM_005_008",
+            "MENU_INFO": "쪽지관리",
+            "P_MENUID": "TM_005",
+            "MENU_NM": "쪽지관리"
+        },
+        {
+            "MENU_SEQ": "005_009",
+            "MENU_URL": "/eventManagement/eventMgtList.do",
+            "ISUSE": "Y",
+            "MENU_ID": "TM_005_009",
+            "MENU_INFO": "이벤트 게시판",
+            "P_MENUID": "TM_005",
+            "MENU_NM": "이벤트 관리"
+        },
+        {
+            "MENU_SEQ": "005_010",
+            "MENU_URL": "/allboard/boardList.do",
+            "ISUSE": "Y",
+            "MENU_ID": "TM_005_010",
+            "MENU_INFO": "전체게시판",
+            "P_MENUID": "TM_005",
+            "MENU_NM": "전체게시판"
+        },
+        {
+            "MENU_SEQ": "006",
+            "MENU_URL": "/",
+            "ISUSE": "Y",
+            "MENU_ID": "FM_006",
+            "MENU_INFO": "게시판관리",
+            "P_MENUID": "FM_ROOT",
+            "MENU_NM": "게시판관리"
+        },
+        {
+            "TARGET": "_self",
+            "MENU_SEQ": "006",
+            "MENU_URL": "/bookOrder/ju_list.do",
+            "ISUSE": "Y",
+            "MENU_ID": "OM_006",
+            "MENU_INFO": "교재배송관리",
+            "P_MENUID": "OM_ROOT",
+            "MENU_NM": "교재배송관리"
+        },
+        {
+            "MENU_SEQ": "006_001",
+            "MENU_URL": "/boardManagement/boardMngList.do",
+            "ISUSE": "Y",
+            "MENU_ID": "FM_006_001",
+            "MENU_INFO": "게시판 생성관리",
+            "P_MENUID": "FM_006",
+            "MENU_NM": "게시판 생성관리"
+        },
+        {
+            "TARGET": "_self",
+            "MENU_SEQ": "006_001",
+            "MENU_URL": "/bookOrder/ju_list.do",
+            "ISUSE": "Y",
+            "MENU_ID": "OM_006_001",
+            "MENU_INFO": "택배조회",
+            "P_MENUID": "OM_006",
+            "MENU_NM": "택배조회"
+        },
+        {
+            "MENU_SEQ": "006_002",
+            "MENU_URL": "/boardViewManagement/boardViewMngList.do",
+            "ISUSE": "Y",
+            "MENU_ID": "FM_006_002",
+            "MENU_INFO": "생성게시판",
+            "P_MENUID": "FM_006",
+            "MENU_NM": "생성게시판"
+        },
+        {
+            "TARGET": "_self",
+            "MENU_SEQ": "006_002",
+            "MENU_URL": "/bookOrder/jic_list.do",
+            "ISUSE": "Y",
+            "MENU_ID": "OM_006_002",
+            "MENU_INFO": "직접수령조회",
+            "P_MENUID": "OM_006",
+            "MENU_NM": "직접수령조회"
+        },
+        {
+            "MENU_SEQ": "006_003",
+            "MENU_URL": "/boardNotAnswer/boardNotAnswerList.do",
+            "ISUSE": "Y",
+            "MENU_ID": "FM_006_003",
+            "MENU_INFO": "미응답게시판",
+            "P_MENUID": "FM_006",
+            "MENU_NM": "미응답게시판"
+        },
+        {
+            "TARGET": "_self",
+            "MENU_SEQ": "006_003",
+            "MENU_URL": "/bookOrder/tol_list.do",
+            "ISUSE": "Y",
+            "MENU_ID": "OM_006_003",
+            "MENU_INFO": "교재매출내역",
+            "P_MENUID": "OM_006",
+            "MENU_NM": "교재매출내역"
+        },
+        {
+            "MENU_SEQ": "006_004",
+            "MENU_URL": "/lectureReply/lectureReplyList.do",
+            "ISUSE": "Y",
+            "MENU_ID": "FM_006_004",
+            "MENU_INFO": "수강후기 게시판",
+            "P_MENUID": "FM_006",
+            "MENU_NM": "수강후기 게시판"
+        },
+        {
+            "MENU_SEQ": "006_005",
+            "MENU_URL": "/bannerManagement/bannerMgtList.do",
+            "ISUSE": "Y",
+            "MENU_ID": "FM_006_005",
+            "MENU_INFO": "배너관리",
+            "P_MENUID": "FM_006",
+            "MENU_NM": "배너관리"
+        },
+        {
+            "MENU_SEQ": "006_006",
+            "MENU_URL": "/dday/list.do",
+            "ISUSE": "Y",
+            "MENU_ID": "FM_006_006",
+            "MENU_INFO": "D-day관리",
+            "P_MENUID": "FM_006",
+            "MENU_NM": "D-day관리"
+        },
+        {
+            "MENU_SEQ": "006_007",
+            "MENU_URL": "/popup/list.do",
+            "ISUSE": "Y",
+            "MENU_ID": "FM_006_007",
+            "MENU_INFO": "팝업관리",
+            "P_MENUID": "FM_006",
+            "MENU_NM": "팝업관리"
+        },
+        {
+            "MENU_SEQ": "006_008",
+            "MENU_URL": "/note/list.do",
+            "ISUSE": "Y",
+            "MENU_ID": "FM_006_008",
+            "MENU_INFO": "쪽지관리",
+            "P_MENUID": "FM_006",
+            "MENU_NM": "쪽지관리"
+        },
+        {
+            "MENU_SEQ": "006_009",
+            "MENU_URL": "/eventManagement/eventMgtList.do",
+            "ISUSE": "Y",
+            "MENU_ID": "FM_006_009",
+            "MENU_INFO": "이벤트 게시판",
+            "P_MENUID": "FM_006",
+            "MENU_NM": "이벤트관리"
+        },
+        {
+            "MENU_SEQ": "006_010",
+            "MENU_URL": "/intgboard/list.do?SEARCHONOFFDIV=F",
+            "ISUSE": "Y",
+            "MENU_ID": "FM_006_010",
+            "MENU_INFO": "통합게시판",
+            "P_MENUID": "FM_006",
+            "MENU_NM": "통합게시판"
+        },
+        {
+            "MENU_SEQ": "006_011",
+            "MENU_URL": "/boardViewManagement/boardViewMngList.do?SEARCHONOFFDIV=T",
+            "ISUSE": "Y",
+            "MENU_ID": "FM_006_011",
+            "MENU_INFO": "강사게시판관리",
+            "P_MENUID": "FM_006",
+            "MENU_NM": "강사게시판관리"
+        },
+        {
+            "MENU_SEQ": "007",
+            "MENU_URL": "/box/boxList.do",
+            "ISUSE": "Y",
+            "MENU_ID": "FM_007",
+            "MENU_INFO": "사물함관리",
+            "P_MENUID": "FM_ROOT",
+            "MENU_NM": "사물함관리"
+        },
+        {
+            "TARGET": "_self",
+            "MENU_SEQ": "007",
+            "MENU_URL": "/adminManagement/commonCodeList.do",
+            "ISUSE": "Y",
+            "MENU_ID": "OM_007",
+            "MENU_INFO": "게시판관리",
+            "P_MENUID": "OM_ROOT",
+            "MENU_NM": "게시판관리"
+        },
+        {
+            "MENU_SEQ": "007_001",
+            "MENU_URL": "/box/boxList.do",
+            "ISUSE": "Y",
+            "MENU_ID": "FM_007_001",
+            "MENU_INFO": "사물함 등록 및 관리",
+            "P_MENUID": "FM_007",
+            "MENU_NM": "사물함관리"
+        },
+        {
+            "TARGET": "_self",
+            "MENU_SEQ": "007_001",
+            "MENU_URL": "/boardManagement/boardMngList.do",
+            "ISUSE": "Y",
+            "MENU_ID": "OM_007_001",
+            "MENU_INFO": "게시판 생성관리",
+            "P_MENUID": "OM_007",
+            "MENU_NM": "게시판 생성관리"
+        },
+        {
+            "MENU_SEQ": "007_002",
+            "MENU_URL": "/box/boxOrderList.do",
+            "ISUSE": "Y",
+            "MENU_ID": "FM_007_002",
+            "MENU_INFO": "사물함신청관리",
+            "P_MENUID": "FM_007",
+            "MENU_NM": "사물함신청관리"
+        },
+        {
+            "TARGET": "_self",
+            "MENU_SEQ": "007_002",
+            "MENU_URL": "/boardViewManagement/boardViewMngList.do",
+            "ISUSE": "Y",
+            "MENU_ID": "OM_007_002",
+            "MENU_INFO": "생성게시판",
+            "P_MENUID": "OM_007",
+            "MENU_NM": "생성게시판"
+        },
+        {
+            "TARGET": "_self",
+            "MENU_SEQ": "007_003",
+            "MENU_URL": "/boardNotAnswer/boardNotAnswerList.do",
+            "ISUSE": "Y",
+            "MENU_ID": "OM_007_003",
+            "MENU_INFO": "미응답게시판",
+            "P_MENUID": "OM_007",
+            "MENU_NM": "미응답게시판"
+        },
+        {
+            "TARGET": "_self",
+            "MENU_SEQ": "007_004",
+            "MENU_URL": "/lectureReply/lectureReplyList.do",
+            "ISUSE": "Y",
+            "MENU_ID": "OM_007_004",
+            "MENU_INFO": "수강후기 게시판",
+            "P_MENUID": "OM_007",
+            "MENU_NM": "수강후기 게시판"
+        },
+        {
+            "MENU_SEQ": "007_005",
+            "MENU_URL": "/bannerManagement/bannerMgtList.do",
+            "ISUSE": "Y",
+            "MENU_ID": "OM_007_005",
+            "MENU_INFO": "배너관리",
+            "P_MENUID": "OM_007",
+            "MENU_NM": "배너관리"
+        },
+        {
+            "MENU_SEQ": "007_006",
+            "MENU_URL": "/dday/list.do",
+            "ISUSE": "Y",
+            "MENU_ID": "OM_007_006",
+            "MENU_INFO": "D-day관리",
+            "P_MENUID": "OM_007",
+            "MENU_NM": "D-day관리"
+        },
+        {
+            "MENU_SEQ": "007_007",
+            "MENU_URL": "/popup/list.do",
+            "ISUSE": "Y",
+            "MENU_ID": "OM_007_007",
+            "MENU_INFO": "팝업관리",
+            "P_MENUID": "OM_007",
+            "MENU_NM": "팝업관리"
+        },
+        {
+            "MENU_SEQ": "007_008",
+            "MENU_URL": "/note/list.do",
+            "ISUSE": "Y",
+            "MENU_ID": "OM_007_008",
+            "MENU_INFO": "쪽지관리",
+            "P_MENUID": "OM_007",
+            "MENU_NM": "쪽지관리"
+        },
+        {
+            "MENU_SEQ": "007_009",
+            "MENU_URL": "/eventManagement/eventMgtList.do",
+            "ISUSE": "Y",
+            "MENU_ID": "OM_007_009",
+            "MENU_INFO": "이벤트 게시판",
+            "P_MENUID": "OM_007",
+            "MENU_NM": "이벤트 관리"
+        },
+        {
+            "MENU_SEQ": "007_010",
+            "MENU_URL": "/allboard/boardList.do",
+            "ISUSE": "Y",
+            "MENU_ID": "OM_007_010",
+            "MENU_INFO": "전체게시판",
+            "P_MENUID": "OM_007",
+            "MENU_NM": "전체게시판"
+        },
+        {
+            "MENU_SEQ": "007_011",
+            "MENU_URL": "/intgboard/list.do?SEARCHONOFFDIV=O",
+            "ISUSE": "Y",
+            "MENU_ID": "OM_007_011",
+            "MENU_INFO": "통합게시판",
+            "P_MENUID": "OM_007",
+            "MENU_NM": "통합게시판"
+        },
+        {
+            "MENU_SEQ": "007_012",
+            "MENU_URL": "/boardViewManagement/boardViewMngList.do?SEARCHONOFFDIV=T",
+            "ISUSE": "Y",
+            "MENU_ID": "OM_007_012",
+            "MENU_INFO": "강사게시판관리",
+            "P_MENUID": "OM_007",
+            "MENU_NM": "강사게시판관리"
+        },
+        {
+            "MENU_SEQ": "008",
+            "MENU_URL": "/",
+            "ISUSE": "Y",
+            "MENU_ID": "FM_008",
+            "MENU_INFO": "경영관리",
+            "P_MENUID": "FM_ROOT",
+            "MENU_NM": "경영관리"
+        },
+        {
+            "TARGET": "_self",
+            "MENU_SEQ": "008",
+            "MENU_URL": "/adminManagement/commonCodeList.do",
+            "ISUSE": "Y",
+            "MENU_ID": "OM_008",
+            "MENU_INFO": "TM관리",
+            "P_MENUID": "OM_ROOT",
+            "MENU_NM": "TM관리"
+        },
+        {
+            "TARGET": "_self",
+            "MENU_SEQ": "008",
+            "MENU_URL": "/adminManagement/commonCodeList.do",
+            "ISUSE": "N",
+            "MENU_ID": "TM_008",
+            "MENU_INFO": "게시판관리",
+            "P_MENUID": "TM_ROOT",
+            "MENU_NM": "게시판관리"
+        },
+        {
+            "MENU_SEQ": "008_001",
+            "MENU_URL": "/manage/offCategorySales.do",
+            "ISUSE": "Y",
+            "MENU_ID": "FM_008_001",
+            "MENU_INFO": "직종별매출",
+            "P_MENUID": "FM_008",
+            "MENU_NM": "직종별매출"
+        },
+        {
+            "TARGET": "_self",
+            "MENU_SEQ": "008_001",
+            "MENU_URL": "/tm/tmMemberList.do",
+            "ISUSE": "Y",
+            "MENU_ID": "OM_008_001",
+            "MENU_INFO": "TM회원관리",
+            "P_MENUID": "OM_008",
+            "MENU_NM": "TM회원관리"
+        },
+        {
+            "TARGET": "_self",
+            "MENU_SEQ": "008_001",
+            "MENU_URL": "/mtboard/boardList.do?BOARDENVID=1",
+            "ISUSE": "Y",
+            "MENU_ID": "TM_008_001",
+            "MENU_INFO": "모의고사 공고",
+            "P_MENUID": "TM_008",
+            "MENU_NM": "모의고사 공고"
+        },
+        {
+            "MENU_SEQ": "008_002",
+            "MENU_URL": "/tm/tmBoardList.do",
+            "ISUSE": "Y",
+            "MENU_ID": "OM_008_002",
+            "MENU_INFO": "TM 상담내용",
+            "P_MENUID": "OM_008",
+            "MENU_NM": "TM상담내용"
+        },
+        {
+            "MENU_SEQ": "008_002",
+            "MENU_URL": "/mtboard/boardList.do?BOARDENVID=2",
+            "ISUSE": "Y",
+            "MENU_ID": "TM_008_002",
+            "MENU_INFO": "모의고사 이의신청",
+            "P_MENUID": "TM_008",
+            "MENU_NM": "모의고사 이의신청"
+        },
+        {
+            "MENU_SEQ": "008_003",
+            "MENU_URL": "/tm/tmOrderList.do",
+            "ISUSE": "Y",
+            "MENU_ID": "OM_008_003",
+            "MENU_INFO": "TM 결제 리스트",
+            "P_MENUID": "OM_008",
+            "MENU_NM": "TM결제리스트"
+        },
+        {
+            "MENU_SEQ": "008_003",
+            "MENU_URL": "/mtboard/boardList.do?BOARDENVID=3",
+            "ISUSE": "Y",
+            "MENU_ID": "TM_008_003",
+            "MENU_INFO": "성적표+정오표",
+            "P_MENUID": "TM_008",
+            "MENU_NM": "성적표+정오표"
+        },
+        {
+            "MENU_SEQ": "008_004",
+            "MENU_URL": "/manage/offLecSales.do",
+            "ISUSE": "Y",
+            "MENU_ID": "FM_008_004",
+            "MENU_INFO": "학원단과매출",
+            "P_MENUID": "FM_008",
+            "MENU_NM": "단과매출"
+        },
+        {
+            "MENU_SEQ": "008_004",
+            "MENU_URL": "/tm/tmRefundList.do",
+            "ISUSE": "Y",
+            "MENU_ID": "OM_008_004",
+            "MENU_INFO": "TM환불취소리스트",
+            "P_MENUID": "OM_008",
+            "MENU_NM": "TM환불취소리스트"
+        },
+        {
+            "MENU_SEQ": "008_004",
+            "MENU_URL": "/mtboard/boardList.do?BOARDENVID=4",
+            "ISUSE": "Y",
+            "MENU_ID": "TM_008_004",
+            "MENU_INFO": "모의고사 상담실",
+            "P_MENUID": "TM_008",
+            "MENU_NM": "모의고사 상담실"
+        },
+        {
+            "MENU_SEQ": "008_005",
+            "MENU_URL": "/offmng/teacher/offTeacherAdjustList.do",
+            "ISUSE": "Y",
+            "MENU_ID": "FM_008_005",
+            "MENU_INFO": "강사료정산관리",
+            "P_MENUID": "FM_008",
+            "MENU_NM": "강사료정산관리"
+        },
+        {
+            "MENU_SEQ": "008_005",
+            "MENU_URL": "/tm/tmAlloc.do",
+            "ISUSE": "Y",
+            "MENU_ID": "OM_008_005",
+            "MENU_INFO": "TM 회원배정 ",
+            "P_MENUID": "OM_008",
+            "MENU_NM": "TM회원배정"
+        },
+        {
+            "TARGET": "_self",
+            "MENU_SEQ": "009",
+            "MENU_URL": "/manage/onCategorySales.do",
+            "ISUSE": "Y",
+            "MENU_ID": "OM_009",
+            "MENU_INFO": "경영관리",
+            "P_MENUID": "OM_ROOT",
+            "MENU_NM": "경영관리"
+        },
+        {
+            "TARGET": "_self",
+            "MENU_SEQ": "009",
+            "MENU_URL": "/manage/onCategorySales.do",
+            "ISUSE": "Y",
+            "MENU_ID": "TM_009",
+            "MENU_INFO": "경영관리",
+            "P_MENUID": "TM_ROOT",
+            "MENU_NM": "경영관리"
+        },
+        {
+            "TARGET": "_self",
+            "MENU_SEQ": "009_001",
+            "MENU_URL": "/manage/onCategorySales.do",
+            "ISUSE": "Y",
+            "MENU_ID": "OM_009_001",
+            "MENU_INFO": "직종별매출",
+            "P_MENUID": "OM_009",
+            "MENU_NM": "직종별매출"
+        },
+        {
+            "TARGET": "_self",
+            "MENU_SEQ": "009_001",
+            "MENU_URL": "/stats/statsPersonList.do",
+            "ISUSE": "Y",
+            "MENU_ID": "TM_009_001",
+            "MENU_INFO": "개인별 모의고사 통계",
+            "P_MENUID": "TM_009",
+            "MENU_NM": "개인별 모의고사 통계"
+        },
+        {
+            "TARGET": "_self",
+            "MENU_SEQ": "009_003",
+            "MENU_URL": "/manage/onAdvanceReceived.do",
+            "ISUSE": "Y",
+            "MENU_ID": "OM_009_003",
+            "MENU_INFO": "선수금관리",
+            "P_MENUID": "OM_009",
+            "MENU_NM": "선수금관리"
+        },
+        {
+            "TARGET": "_self",
+            "MENU_SEQ": "009_003",
+            "MENU_URL": "/stats/statsTotalList.do",
+            "ISUSE": "Y",
+            "MENU_ID": "TM_009_003",
+            "MENU_INFO": "전체 모의고사 통계",
+            "P_MENUID": "TM_009",
+            "MENU_NM": "전체 모의고사 통계"
+        },
+        {
+            "TARGET": "_self",
+            "MENU_SEQ": "009_004",
+            "MENU_URL": "/manage/onTeacherPay.do",
+            "ISUSE": "Y",
+            "MENU_ID": "OM_009_004",
+            "MENU_INFO": "강사료관리",
+            "P_MENUID": "OM_009",
+            "MENU_NM": "강사료관리"
+        },
+        {
+            "TARGET": "_self",
+            "MENU_SEQ": "009_004",
+            "MENU_URL": "/stats/statsOffererList.do",
+            "ISUSE": "Y",
+            "MENU_ID": "TM_009_004",
+            "MENU_INFO": "ON/OFF 접수자 명단",
+            "P_MENUID": "TM_009",
+            "MENU_NM": "ON/OFF 접수자 명단"
+        },
+        {
+            "MENU_SEQ": "009_005",
+            "MENU_URL": "/manage/stat/list.do",
+            "ISUSE": "Y",
+            "MENU_ID": "OM_009_005",
+            "MENU_INFO": "강사매출관리",
+            "P_MENUID": "OM_009",
+            "MENU_NM": "강사매출관리"
+        },
+        {
+            "MENU_SEQ": "009_005",
+            "MENU_URL": "/lectureFees/lectureFeesList.do",
+            "ISUSE": "Y",
+            "MENU_ID": "TM_009_005",
+            "MENU_INFO": "강사료정산",
+            "P_MENUID": "TM_009",
+            "MENU_NM": "강사료정산"
+        },
+        {
+            "MENU_SEQ": "010",
+            "MENU_URL": "/mocktest/board/boardList.do?BOARDENVID=1",
+            "ISUSE": "N",
+            "MENU_ID": "OM_010",
+            "MENU_INFO": "모의고사",
+            "P_MENUID": "OM_ROOT",
+            "MENU_NM": "모의고사"
+        },
+        {
+            "MENU_SEQ": "010_001",
+            "MENU_URL": "/mtboard/boardList.do?BOARDENVID=1",
+            "ISUSE": "Y",
+            "MENU_ID": "OM_010_001",
+            "MENU_INFO": "게시판관리",
+            "P_MENUID": "OM_010",
+            "MENU_NM": "게시판관리"
+        },
+        {
+            "MENU_SEQ": "010_001_001",
+            "MENU_URL": "/mtboard/boardList.do?BOARDENVID=1",
+            "ISUSE": "Y",
+            "MENU_ID": "OM_010_001_001",
+            "MENU_INFO": "모의고사 공고",
+            "P_MENUID": "OM_010_001",
+            "MENU_NM": "모의고사 공고"
+        },
+        {
+            "MENU_SEQ": "010_001_002",
+            "MENU_URL": "/mtboard/boardList.do?BOARDENVID=2",
+            "ISUSE": "Y",
+            "MENU_ID": "OM_010_001_002",
+            "MENU_INFO": "모의고사 이의신청",
+            "P_MENUID": "OM_010_001",
+            "MENU_NM": "모의고사 이의신청"
+        },
+        {
+            "MENU_SEQ": "010_001_003",
+            "MENU_URL": "/mtboard/boardList.do?BOARDENVID=3",
+            "ISUSE": "Y",
+            "MENU_ID": "OM_010_001_003",
+            "MENU_INFO": "성적표+정오표",
+            "P_MENUID": "OM_010_001",
+            "MENU_NM": "성적표+정오표"
+        },
+        {
+            "MENU_SEQ": "010_001_004",
+            "MENU_URL": "/mtboard/boardList.do?BOARDENVID=4",
+            "ISUSE": "Y",
+            "MENU_ID": "OM_010_001_004",
+            "MENU_INFO": "모의고사 상담실",
+            "P_MENUID": "OM_010_001",
+            "MENU_NM": "모의고사 상담실"
+        },
+        {
+            "MENU_SEQ": "010_002",
+            "MENU_URL": "/offerer/offererList.do",
+            "ISUSE": "Y",
+            "MENU_ID": "OM_010_002",
+            "MENU_INFO": "신청자관리",
+            "P_MENUID": "OM_010",
+            "MENU_NM": "신청자관리"
+        },
+        {
+            "MENU_SEQ": "010_003",
+            "MENU_URL": "/mouigosa/mouigosaList.do",
+            "ISUSE": "Y",
+            "MENU_ID": "OM_010_003",
+            "MENU_INFO": "모의고사등록",
+            "P_MENUID": "OM_010",
+            "MENU_NM": "모의고사등록"
+        },
+        {
+            "MENU_SEQ": "010_003_001",
+            "MENU_URL": "/mouigosa/mouigosaList.do",
+            "ISUSE": "Y",
+            "MENU_ID": "OM_010_003_001",
+            "MENU_INFO": "과목별 문제등록",
+            "P_MENUID": "OM_010_003",
+            "MENU_NM": "과목별 문제등록"
+        },
+        {
+            "MENU_SEQ": "010_003_002",
+            "MENU_URL": "/mouigosa/reg/mouigosaRegistrationList.do",
+            "ISUSE": "Y",
+            "MENU_ID": "OM_010_003_002",
+            "MENU_INFO": "모의고사등록",
+            "P_MENUID": "OM_010_003",
+            "MENU_NM": "모의고사등록"
+        },
+        {
+            "MENU_SEQ": "010_004",
+            "MENU_URL": "/offExamReg/offExamList.do",
+            "ISUSE": "Y",
+            "MENU_ID": "OM_010_004",
+            "MENU_INFO": "OFF응시자목록",
+            "P_MENUID": "OM_010",
+            "MENU_NM": "OFF응시자목록"
+        },
+        {
+            "MENU_SEQ": "010_005",
+            "MENU_URL": "/stats//statsPersonList.do",
+            "ISUSE": "Y",
+            "MENU_ID": "OM_010_005",
+            "MENU_INFO": "모의고사통계",
+            "P_MENUID": "OM_010",
+            "MENU_NM": "모의고사통계"
+        },
+        {
+            "MENU_SEQ": "010_005_001",
+            "MENU_URL": "/stats/statsPersonList.do",
+            "ISUSE": "Y",
+            "MENU_ID": "OM_010_005_001",
+            "MENU_INFO": "개인별 모의고사 통계",
+            "P_MENUID": "OM_010_005",
+            "MENU_NM": "개인별 모의고사 통계"
+        },
+        {
+            "MENU_SEQ": "010_005_002",
+            "MENU_URL": "/stats/statsTotalList.do",
+            "ISUSE": "Y",
+            "MENU_ID": "OM_010_005_002",
+            "MENU_INFO": "전체 모의고사 통계",
+            "P_MENUID": "OM_010_005",
+            "MENU_NM": "전체 모의고사 통계"
+        },
+        {
+            "MENU_SEQ": "010_005_003",
+            "MENU_URL": "/stats/statsOffererList.do",
+            "ISUSE": "Y",
+            "MENU_ID": "OM_010_005_003",
+            "MENU_INFO": "ON/OFF 접수자 명단",
+            "P_MENUID": "OM_010_005",
+            "MENU_NM": "ON/OFF 접수자 명단"
+        },
+        {
+            "MENU_SEQ": "010_006",
+            "MENU_URL": "/lectureFees/lectureFeesList.do",
+            "ISUSE": "Y",
+            "MENU_ID": "OM_010_006",
+            "MENU_INFO": "강사료정산",
+            "P_MENUID": "OM_010",
+            "MENU_NM": "강사료정산"
+        }
+    ]
+}
