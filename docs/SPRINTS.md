@@ -25,7 +25,8 @@
 
 | # | 작업 | 비고 |
 |---|---|---|
-| 1-1 | `shared.security` 통합 — AdminAuthFilter + UserAuthFilter 분리, JWT claims 에 role 포함 | |
+| 1-1a | ✅ `shared.security` — JwtTokenProvider(HS256, access 30m+refresh 14d, jti) · RefreshTokenStore(Redis) · AdminJwtAuthenticationFilter · UserJwtAuthenticationFilter · SecurityConfig STATELESS · `/api/auth/login\|refresh\|logout\|me` · ApiResponse envelope | 테스트 20건, 관리자 InMemory 유지 |
+| 1-1b | ⏳ 관리자 저장소 `id_admin` DB 전환 (Flyway V2 + BCrypt) | ADR-002 후속 |
 | 1-2 | `user.login` 이관 — academy-user `com.academy.login` → `com.academy.user.login` | 레거시 HttpServletRequest → `@AuthenticationPrincipal` 전환 |
 | 1-3 | `user.signup` 신규 — 이메일 가입·OAuth·약관 | academy-user 원본엔 signup 흐름 부분구현 |
 | 1-4 | `user.mypage` 이관 — privateinfo/counsel/coupon/cart/note/pay/passlecture/mylecture 8 하위 | 범위 큼, 우선 핵심 3 (privateinfo/cart/mylecture) |

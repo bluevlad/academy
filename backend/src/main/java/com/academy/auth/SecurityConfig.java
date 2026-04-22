@@ -2,6 +2,8 @@ package com.academy.auth;
 
 import java.util.List;
 
+import com.academy.shared.security.AdminJwtAuthenticationFilter;
+import com.academy.shared.security.UserJwtAuthenticationFilter;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -20,10 +22,22 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.provisioning.InMemoryUserDetailsManager;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.HttpStatusEntryPoint;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
+/**
+ * Spring Security 설정 (ADR-002).
+ *
+ * <p>Stateless JWT 전용 — 세션 미사용. AdminJwtAuthenticationFilter 와
+ * UserJwtAuthenticationFilter 가 {@code /api/admin/**}, {@code /api/user/**} 를
+ * 각각 담당하고, {@code /api/auth/**}, {@code /api/shared/**} 는 public 이다.
+ *
+ * <p>관리자 계정은 Sprint 1-1b 에서 {@code id_admin} DB 기반으로 전환 예정. 현재는
+ * 기존 In-Memory {@code admin} 계정으로 AuthenticationManager 를 활용하여
+ * {@link com.academy.shared.auth.AuthApi} 가 비밀번호 검증만 수행.
+ */
 @Configuration
 @EnableWebSecurity
 public class SecurityConfig {
@@ -33,6 +47,9 @@ public class SecurityConfig {
 
     @Value("${app.admin.password:dnflskfk}")
     private String adminPassword;
+
+    @Value("${cors.allowed-origins:http://localhost:4001,http://localhost:3003,http://localhost:5173,http://localhost:5174}")
+    private String allowedOrigins;
 
     @Bean
     public PasswordEncoder passwordEncoder() {
@@ -56,12 +73,7 @@ public class SecurityConfig {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
-        configuration.setAllowedOrigins(List.of(
-            "http://localhost:3000",
-            "http://study.unmong.com:3000",
-            "http://academy.unmong.com:9001",
-            "http://academy.unmong.com:3000"
-        ));
+        configuration.setAllowedOrigins(List.of(allowedOrigins.split(",")));
         configuration.setAllowedMethods(List.of("HEAD", "GET", "POST", "PUT", "DELETE", "OPTIONS"));
         configuration.setAllowedHeaders(List.of(
             "x-requested-with", "authorization", "origin", "content-type", "accept",
@@ -77,11 +89,15 @@ public class SecurityConfig {
     }
 
     @Bean
-    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+    public SecurityFilterChain securityFilterChain(
+        HttpSecurity http,
+        AdminJwtAuthenticationFilter adminJwtFilter,
+        UserJwtAuthenticationFilter userJwtFilter
+    ) throws Exception {
         http
             .cors(cors -> cors.configurationSource(corsConfigurationSource()))
             .csrf(AbstractHttpConfigurer::disable)
-            .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED))
+            .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
             .authorizeHttpRequests(auth -> auth
                 .requestMatchers(
                     "/",
@@ -93,17 +109,17 @@ public class SecurityConfig {
                     "/swagger-ui/**",
                     "/v3/api-docs",
                     "/v3/api-docs/**",
-                    "/api/admin-auth/login",
-                    "/api/admin-auth/logout",
-                    "/api/admin-auth/me",
                     "/api/auth/**",
                     "/api/shared/**",
                     "/actuator/health",
                     "/actuator/health/**"
                 ).permitAll()
-                .requestMatchers("/api/**").hasRole("ADMIN")
+                .requestMatchers("/api/admin/**").hasRole("ADMIN")
+                .requestMatchers("/api/user/**").hasRole("USER")
                 .anyRequest().permitAll()
             )
+            .addFilterBefore(adminJwtFilter, UsernamePasswordAuthenticationFilter.class)
+            .addFilterBefore(userJwtFilter, UsernamePasswordAuthenticationFilter.class)
             .exceptionHandling(ex -> ex
                 .authenticationEntryPoint(new HttpStatusEntryPoint(HttpStatus.UNAUTHORIZED))
             )
