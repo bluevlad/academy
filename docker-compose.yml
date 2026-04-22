@@ -1,7 +1,8 @@
 # Academy 통합 학원 운영 시스템 — 개발 compose
 #
 # 4 컨테이너: backend · admin-web · user-web · redis
-# DB (MariaDB) 는 외부 network(database-network) 의 기존 mariadb 컨테이너 재사용.
+# DB (MariaDB) 는 호스트에서 실행 중인 mariadbd 를 host.docker.internal 로 직접 접근
+# (academy-admin 기존 방식과 동일).
 #
 # 기동:  docker compose --profile all up -d
 # 로그:  docker compose logs -f --tail=100 academy-backend
@@ -21,7 +22,7 @@ services:
     environment:
       SPRING_PROFILES_ACTIVE: ${SPRING_PROFILES_ACTIVE:-dev}
       SERVER_PORT: 9000
-      DB_URL: ${DB_URL:-jdbc:mariadb://mariadb:3306/acm_basic?useUnicode=true&characterEncoding=utf8&serverTimezone=Asia/Seoul}
+      DB_URL: ${DB_URL:-jdbc:mariadb://host.docker.internal:3306/acm_basic?useUnicode=true&characterEncoding=utf8&serverTimezone=Asia/Seoul&useSSL=false}
       DB_USERNAME: ${DB_USERNAME:-root}
       DB_PASSWORD: ${DB_PASSWORD:?DB_PASSWORD is required}
       DB_DRIVER: ${DB_DRIVER:-org.mariadb.jdbc.Driver}
@@ -42,8 +43,6 @@ services:
     extra_hosts:
       - "host.docker.internal:host-gateway"
     restart: unless-stopped
-    networks:
-      - database-network
     profiles:
       - all
       - backend
@@ -61,8 +60,6 @@ services:
     depends_on:
       - academy-backend
     restart: unless-stopped
-    networks:
-      - database-network
     profiles:
       - all
       - frontend
@@ -79,8 +76,6 @@ services:
     depends_on:
       - academy-backend
     restart: unless-stopped
-    networks:
-      - database-network
     profiles:
       - all
       - frontend
@@ -93,17 +88,9 @@ services:
     volumes:
       - academy_redis_data:/data
     restart: unless-stopped
-    networks:
-      - database-network
     profiles:
       - all
       - backend
 
 volumes:
   academy_redis_data:
-
-networks:
-  # 외부 공유 네트워크 (MariaDB·PostgreSQL 공용). 존재하지 않으면:
-  #   docker network create database-network
-  database-network:
-    external: true

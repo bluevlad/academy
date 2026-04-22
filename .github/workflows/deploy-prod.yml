@@ -1,0 +1,64 @@
+name: Deploy Academy to Production
+
+on:
+  push:
+    branches: [ "prod" ]
+
+jobs:
+  deploy:
+    name: Deploy Academy on Self-Hosted Runner
+    runs-on: self-hosted
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Create .env file
+      shell: bash
+      run: |
+        cat > .env << 'ENVEOF'
+        SPRING_PROFILES_ACTIVE=${{ secrets.SPRING_PROFILES_ACTIVE }}
+        DB_URL=${{ secrets.DB_URL }}
+        DB_USERNAME=${{ secrets.DB_USERNAME }}
+        DB_PASSWORD=${{ secrets.DB_PASSWORD }}
+        DB_DRIVER=${{ secrets.DB_DRIVER }}
+        REDIS_HOST=${{ secrets.REDIS_HOST }}
+        REDIS_PORT=${{ secrets.REDIS_PORT }}
+        REDIS_PASSWORD=${{ secrets.REDIS_PASSWORD }}
+        JWT_SECRET=${{ secrets.JWT_SECRET }}
+        JWT_ACCESS_TTL=${{ secrets.JWT_ACCESS_TTL }}
+        JWT_REFRESH_TTL=${{ secrets.JWT_REFRESH_TTL }}
+        GOOGLE_CLIENT_ID=${{ secrets.GOOGLE_CLIENT_ID }}
+        SUPER_ADMIN_EMAILS=${{ secrets.SUPER_ADMIN_EMAILS }}
+        CORS_ALLOWED_ORIGINS=${{ secrets.CORS_ALLOWED_ORIGINS }}
+        BACKEND_PORT=${{ secrets.BACKEND_PORT }}
+        ADMIN_WEB_PORT=${{ secrets.ADMIN_WEB_PORT }}
+        USER_WEB_PORT=${{ secrets.USER_WEB_PORT }}
+        VITE_ADMIN_API_BASE_URL=${{ secrets.VITE_ADMIN_API_BASE_URL }}
+        VITE_USER_API_BASE_URL=${{ secrets.VITE_USER_API_BASE_URL }}
+        TZ=${{ secrets.TZ }}
+        ENVEOF
+        sed -i.bak 's/^        //' .env && rm -f .env.bak
+
+    - name: Docker Compose Down
+      shell: bash
+      run: docker compose --profile all down --remove-orphans
+      continue-on-error: true
+
+    - name: Docker Compose Build and Up
+      shell: bash
+      run: docker compose --profile all up -d --build
+
+    - name: Health Check
+      shell: bash
+      run: |
+        echo "Waiting for application to start..."
+        sleep 20
+        PORT="${{ secrets.BACKEND_PORT }}"
+        PORT="${PORT:-9000}"
+        HTTP_CODE=$(curl -s -o /dev/null -w "%{http_code}" "http://localhost:${PORT}/actuator/health" --max-time 10 || true)
+        if [ "$HTTP_CODE" = "200" ]; then
+          echo "Health check passed: $HTTP_CODE"
+        else
+          echo "Warning: Health check returned $HTTP_CODE - container may still be starting up. Check manually."
+        fi
