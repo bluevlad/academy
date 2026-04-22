@@ -1,11 +1,14 @@
-# Academy 통합 학원 운영 시스템 — 개발 compose
+# Academy 통합 학원 운영 시스템 — compose
 #
 # 4 컨테이너: backend · admin-web · user-web · redis
-# DB (MariaDB) 는 호스트에서 실행 중인 mariadbd 를 host.docker.internal 로 직접 접근.
+# DB (MariaDB) 는 호스트 네이티브 mariadbd 를 host.docker.internal 로 접근.
 #
-# 포트는 Claude-Opus-bluevlad ENVIRONMENT_STANDARD §5.2 표준을 따릅니다:
-#   Academy Admin  Frontend 4001  Backend 9001
-#   Academy User   Frontend 4002  (monorepo 단일 backend 재사용)
+# 환경변수 (ENVIRONMENT_STANDARD §8.3 — Single Source of Truth):
+#   운영: /Users/rainend/GIT/Claude-Opus-bluevlad/infrastructure/docker/.env.production
+#   로컬 개발: academy repo 루트의 .env (gitignored)
+#   접두사 규약 §8.2: Academy 전용은 ACADEMY_*, 공통은 GOOGLE_*/SUPER_ADMIN_*/TZ
+#
+# 포트 (§5.2): Admin 4001, User 4002, Backend 9001 (monorepo 단일)
 #
 # 기동:  docker compose --profile all up -d
 # 로그:  docker compose logs -f --tail=100 academy-backend
@@ -16,27 +19,25 @@ services:
       context: ./backend
       dockerfile: Dockerfile
     container_name: academy-backend
-    env_file:
-      - .env
     environment:
-      SPRING_PROFILES_ACTIVE: ${SPRING_PROFILES_ACTIVE:-dev}
+      SPRING_PROFILES_ACTIVE: ${ACADEMY_SPRING_PROFILES_ACTIVE:-dev}
       SERVER_PORT: 9001
-      DB_URL: ${DB_URL:-jdbc:mariadb://host.docker.internal:3306/acm_basic?useUnicode=true&characterEncoding=utf8&serverTimezone=Asia/Seoul&useSSL=false}
-      DB_USERNAME: ${DB_USERNAME:-root}
-      DB_PASSWORD: ${DB_PASSWORD:?DB_PASSWORD is required}
-      DB_DRIVER: ${DB_DRIVER:-org.mariadb.jdbc.Driver}
-      REDIS_HOST: ${REDIS_HOST:-academy-redis}
-      REDIS_PORT: ${REDIS_PORT:-6379}
-      REDIS_PASSWORD: ${REDIS_PASSWORD:-}
-      JWT_SECRET: ${JWT_SECRET:-}
-      JWT_ACCESS_TTL: ${JWT_ACCESS_TTL:-PT30M}
-      JWT_REFRESH_TTL: ${JWT_REFRESH_TTL:-P14D}
+      DB_URL: ${ACADEMY_DB_URL:-jdbc:mariadb://host.docker.internal:3306/acm_basic?useUnicode=true&characterEncoding=utf8&serverTimezone=Asia/Seoul&useSSL=false}
+      DB_USERNAME: ${ACADEMY_DB_USERNAME:-root}
+      DB_PASSWORD: ${ACADEMY_DB_PASSWORD:?ACADEMY_DB_PASSWORD is required}
+      DB_DRIVER: ${ACADEMY_DB_DRIVER:-org.mariadb.jdbc.Driver}
+      REDIS_HOST: ${ACADEMY_REDIS_HOST:-academy-redis}
+      REDIS_PORT: ${ACADEMY_REDIS_PORT:-6379}
+      REDIS_PASSWORD: ${ACADEMY_REDIS_PASSWORD:-}
+      JWT_SECRET: ${ACADEMY_JWT_SECRET:?ACADEMY_JWT_SECRET is required}
+      JWT_ACCESS_TTL: ${ACADEMY_JWT_ACCESS_TTL:-PT30M}
+      JWT_REFRESH_TTL: ${ACADEMY_JWT_REFRESH_TTL:-P14D}
       GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID:-}
       SUPER_ADMIN_EMAILS: ${SUPER_ADMIN_EMAILS:-}
-      CORS_ALLOWED_ORIGINS: ${CORS_ALLOWED_ORIGINS:-https://academy.unmong.com,http://localhost:4001,http://localhost:4002}
+      CORS_ALLOWED_ORIGINS: ${ACADEMY_CORS_ORIGINS:-https://academy.unmong.com,http://localhost:4001,http://localhost:4002}
       TZ: ${TZ:-Asia/Seoul}
     ports:
-      - "${BACKEND_PORT:-9001}:9001"
+      - "${ACADEMY_BACKEND_PORT:-9001}:9001"
     depends_on:
       - academy-redis
     extra_hosts:
@@ -52,10 +53,9 @@ services:
       dockerfile: apps/admin-web/Dockerfile
     container_name: academy-admin-web
     environment:
-      # build time 주입 (Vite 는 런타임 env 지원 안 함 — Nginx 정적 서빙)
-      VITE_API_BASE_URL: ${VITE_ADMIN_API_BASE_URL:-/api}
+      VITE_API_BASE_URL: ${ACADEMY_VITE_ADMIN_API_BASE_URL:-/api}
     ports:
-      - "${ADMIN_WEB_PORT:-4001}:80"
+      - "${ACADEMY_ADMIN_WEB_PORT:-4001}:80"
     depends_on:
       - academy-backend
     restart: unless-stopped
@@ -69,9 +69,9 @@ services:
       dockerfile: apps/user-web/Dockerfile
     container_name: academy-user-web
     environment:
-      VITE_API_BASE_URL: ${VITE_USER_API_BASE_URL:-/api}
+      VITE_API_BASE_URL: ${ACADEMY_VITE_USER_API_BASE_URL:-/api}
     ports:
-      - "${USER_WEB_PORT:-4002}:80"
+      - "${ACADEMY_USER_WEB_PORT:-4002}:80"
     depends_on:
       - academy-backend
     restart: unless-stopped

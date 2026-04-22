@@ -4,6 +4,10 @@ on:
   push:
     branches: [ "prod" ]
 
+env:
+  # Claude-Opus-bluevlad ENVIRONMENT_STANDARD §8.3 — Single Source of Truth
+  ENV_PRODUCTION_PATH: /Users/rainend/GIT/Claude-Opus-bluevlad/infrastructure/docker/.env.production
+
 jobs:
   deploy:
     name: Deploy Academy on Self-Hosted Runner
@@ -13,32 +17,15 @@ jobs:
     - name: Checkout code
       uses: actions/checkout@v4
 
-    - name: Create .env file
+    - name: Link .env to host SSoT (.env.production)
       shell: bash
       run: |
-        cat > .env << 'ENVEOF'
-        SPRING_PROFILES_ACTIVE=${{ secrets.SPRING_PROFILES_ACTIVE }}
-        DB_URL=${{ secrets.DB_URL }}
-        DB_USERNAME=${{ secrets.DB_USERNAME }}
-        DB_PASSWORD=${{ secrets.DB_PASSWORD }}
-        DB_DRIVER=${{ secrets.DB_DRIVER }}
-        REDIS_HOST=${{ secrets.REDIS_HOST }}
-        REDIS_PORT=${{ secrets.REDIS_PORT }}
-        REDIS_PASSWORD=${{ secrets.REDIS_PASSWORD }}
-        JWT_SECRET=${{ secrets.JWT_SECRET }}
-        JWT_ACCESS_TTL=${{ secrets.JWT_ACCESS_TTL }}
-        JWT_REFRESH_TTL=${{ secrets.JWT_REFRESH_TTL }}
-        GOOGLE_CLIENT_ID=${{ secrets.GOOGLE_CLIENT_ID }}
-        SUPER_ADMIN_EMAILS=${{ secrets.SUPER_ADMIN_EMAILS }}
-        CORS_ALLOWED_ORIGINS=${{ secrets.CORS_ALLOWED_ORIGINS }}
-        BACKEND_PORT=${{ secrets.BACKEND_PORT }}
-        ADMIN_WEB_PORT=${{ secrets.ADMIN_WEB_PORT }}
-        USER_WEB_PORT=${{ secrets.USER_WEB_PORT }}
-        VITE_ADMIN_API_BASE_URL=${{ secrets.VITE_ADMIN_API_BASE_URL }}
-        VITE_USER_API_BASE_URL=${{ secrets.VITE_USER_API_BASE_URL }}
-        TZ=${{ secrets.TZ }}
-        ENVEOF
-        sed -i.bak 's/^        //' .env && rm -f .env.bak
+        if [ ! -f "${ENV_PRODUCTION_PATH}" ]; then
+          echo "::error::${ENV_PRODUCTION_PATH} not found. ENVIRONMENT_STANDARD §8.3 SSoT 미설치."
+          exit 1
+        fi
+        ln -sfn "${ENV_PRODUCTION_PATH}" .env
+        echo "Linked .env -> ${ENV_PRODUCTION_PATH}"
 
     - name: Docker Compose Down
       shell: bash
@@ -53,11 +40,8 @@ jobs:
       shell: bash
       run: |
         echo "Waiting for application to start..."
-        PORT="${{ secrets.BACKEND_PORT }}"
-        PORT="${PORT:-9001}"
-        # 고정 대기 + 재시도 (Claude-Opus-bluevlad GitHub Actions README §5)
         sleep 20
         curl -f -s -o /dev/null --retry 10 --retry-delay 10 --retry-connrefused \
-          "http://localhost:${PORT}/actuator/health" \
+          "http://localhost:9001/actuator/health" \
           && echo "Health check passed" \
           || echo "Warning: Health check failed after retries - container may still be starting up. Check manually."
