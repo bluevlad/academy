@@ -82,8 +82,34 @@ Go/No-Go: `/api/user/**` 36 endpoint 중 P0 (15개) 가 JWT 기반 200 응답 + 
 | 6-3 | ArchUnit 규칙 강화 (빈 레이어 금지로 전환) |
 | 6-4 | 배포 스위칭: 기존 academy-admin(9001)/user(9002) → integrated(9000) |
 
+## P0 canonical 매핑 — Sprint 배치
+
+> 원본: [DocumetsToAiPipeLine 07-msa-design.md §5](../../DocumetsToAiPipeLine/docs/legacy/willbis-wca/07-msa-design.md) — P0 14건 (variants ≥ 10)
+> Sprint 완료 조건: 아래 **MVP 범위 P0** 9건이 해당 Sprint 골든 시나리오에 포함되어야 한다.
+
+| Canonical | MSA | Variants | 배치 Sprint | 상태 |
+|---|---|---|---|---|
+| 회원탈퇴 | identity-svc | 18 | **1** | ⏳ |
+| 비밀번호 변경 | identity-svc | 12 | **1** | ⏳ |
+| 개인정보수정 (→ identity 로 재분류) | community-svc→identity-svc | 12 | **1** | ⏳ |
+| 수강확인증 출력 | identity-svc | 12 | **1** (마이페이지 발급) | ⏳ |
+| 형법 (→ 과목·강의 대표) | content-svc | 660 | **2** (과목·강의 CRUD) | ⏳ |
+| 수강종료/재수강 신청 | enrollment-svc | 12 | **3** | ⏳ |
+| 포인트/쿠폰 | billing-svc (→ point-svc) | 12 | **4** | ⏳ |
+| 기출문제 | exam-svc | 14 | **5** (모의고사 근접) | ⏳ |
+| 나의 D-day/나의 목표 | exam-svc | 12 | **5** (내 강의실 인접) | ⏳ |
+
+**MVP 범위 밖 P0** (5건) — Plan B 로 이관:
+- 경찰간부후보생은? · 개정법령 · 형사소송법 · 무료특강 · 영어 (모두 community-svc, MVP 에 커뮤니티 미포함)
+
+**P1 16건**: 대부분 community-svc 부가 콘텐츠 → Plan B. 예외:
+- 동영상 강의 공지사항 (content-svc) → Sprint 2 에 선택
+- 재수강신청 (enrollment-svc) → Sprint 3 에 P0 "수강종료/재수강" 과 묶어 처리
+- 학원 강의 시간표 (content-svc, 한림) → Sprint 2 에 선택
+
 ## 후속 (Plan B) — MVP 이후
 
 - 동영상 플레이어 · 커뮤니티 4종 · Exam 고도화 · Operation(사물함·독서실) · Analytics 이벤트
-- hopenvision 통합 검토 (PostgreSQL + JPA 스택으로의 이전 비용 재평가)
+- MVP 범위 밖 P0 5건 + P1 잔여 → 커뮤니티·공지·가이드 형태로 통합
+- hopenvision 통합 검토 (ADR-004 Exit Gate 기준 평가)
 - academy-user-back-end repo 아카이브
