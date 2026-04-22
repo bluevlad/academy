@@ -1,15 +1,14 @@
 # Academy 통합 학원 운영 시스템 — 개발 compose
 #
 # 4 컨테이너: backend · admin-web · user-web · redis
-# DB (MariaDB) 는 호스트에서 실행 중인 mariadbd 를 host.docker.internal 로 직접 접근
-# (academy-admin 기존 방식과 동일).
+# DB (MariaDB) 는 호스트에서 실행 중인 mariadbd 를 host.docker.internal 로 직접 접근.
+#
+# 포트는 Claude-Opus-bluevlad ENVIRONMENT_STANDARD §5.2 표준을 따릅니다:
+#   Academy Admin  Frontend 4001  Backend 9001
+#   Academy User   Frontend 4002  (monorepo 단일 backend 재사용)
 #
 # 기동:  docker compose --profile all up -d
 # 로그:  docker compose logs -f --tail=100 academy-backend
-#
-# FE 경로 (ADR-006):
-#   apps/admin-web  — Vite 7 + React 19 + TS + Ant Design 6 (port 4001)
-#   apps/user-web   — 동일 스택                               (port 3003)
 services:
 
   academy-backend:
@@ -21,7 +20,7 @@ services:
       - .env
     environment:
       SPRING_PROFILES_ACTIVE: ${SPRING_PROFILES_ACTIVE:-dev}
-      SERVER_PORT: 9000
+      SERVER_PORT: 9001
       DB_URL: ${DB_URL:-jdbc:mariadb://host.docker.internal:3306/acm_basic?useUnicode=true&characterEncoding=utf8&serverTimezone=Asia/Seoul&useSSL=false}
       DB_USERNAME: ${DB_USERNAME:-root}
       DB_PASSWORD: ${DB_PASSWORD:?DB_PASSWORD is required}
@@ -34,10 +33,10 @@ services:
       JWT_REFRESH_TTL: ${JWT_REFRESH_TTL:-P14D}
       GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID:-}
       SUPER_ADMIN_EMAILS: ${SUPER_ADMIN_EMAILS:-}
-      CORS_ALLOWED_ORIGINS: ${CORS_ALLOWED_ORIGINS:-http://localhost:4001,http://localhost:3003}
+      CORS_ALLOWED_ORIGINS: ${CORS_ALLOWED_ORIGINS:-https://academy.unmong.com,http://localhost:4001,http://localhost:4002}
       TZ: ${TZ:-Asia/Seoul}
     ports:
-      - "${BACKEND_PORT:-9000}:9000"
+      - "${BACKEND_PORT:-9001}:9001"
     depends_on:
       - academy-redis
     extra_hosts:
@@ -72,7 +71,7 @@ services:
     environment:
       VITE_API_BASE_URL: ${VITE_USER_API_BASE_URL:-/api}
     ports:
-      - "${USER_WEB_PORT:-3003}:80"
+      - "${USER_WEB_PORT:-4002}:80"
     depends_on:
       - academy-backend
     restart: unless-stopped

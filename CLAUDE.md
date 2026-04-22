@@ -29,7 +29,8 @@ academy-user 의 수강생 기능을 **user 모듈** 로 흡수하여 단일 배
 
 ## 포트 / 환경
 
-- backend: 9000 / admin-web: 4001 / user-web: 3003 / redis: 6379
+- backend: 9001 / admin-web: 4001 / user-web: 4002 / redis: 6379
+  (Claude-Opus-bluevlad ENVIRONMENT_STANDARD §5.2 표준 — academy.unmong.com 게이트웨이 대응)
 - dev DB: `jdbc:mariadb://localhost:3306/acm_basic` (운영은 172.30.1.72 또는 172.30.1.78)
 
 ## Sprint 현황
