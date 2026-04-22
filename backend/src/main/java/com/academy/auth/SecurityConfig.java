@@ -14,12 +14,8 @@ import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
-import org.springframework.security.core.userdetails.User;
-import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.factory.PasswordEncoderFactories;
 import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.security.provisioning.InMemoryUserDetailsManager;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.HttpStatusEntryPoint;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
@@ -34,19 +30,13 @@ import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
  * UserJwtAuthenticationFilter 가 {@code /api/admin/**}, {@code /api/user/**} 를
  * 각각 담당하고, {@code /api/auth/**}, {@code /api/shared/**} 는 public 이다.
  *
- * <p>관리자 계정은 Sprint 1-1b 에서 {@code id_admin} DB 기반으로 전환 예정. 현재는
- * 기존 In-Memory {@code admin} 계정으로 AuthenticationManager 를 활용하여
- * {@link com.academy.shared.auth.AuthApi} 가 비밀번호 검증만 수행.
+ * <p>관리자 계정은 {@code id_admin} DB + {@link com.academy.shared.admin.AdminUserDetailsService}
+ * 를 통해 AuthenticationManager 에 주입된다. 부팅 시 {@link com.academy.shared.admin.AdminBootstrap}
+ * 이 {@code ADMIN_USERNAME}/{@code ADMIN_PASSWORD} 및 {@code SUPER_ADMIN_EMAILS} 를 upsert.
  */
 @Configuration
 @EnableWebSecurity
 public class SecurityConfig {
-
-    @Value("${app.admin.username:admin}")
-    private String adminUsername;
-
-    @Value("${app.admin.password:dnflskfk}")
-    private String adminPassword;
 
     @Value("${cors.allowed-origins:http://localhost:4001,http://localhost:3003,http://localhost:5173,http://localhost:5174}")
     private String allowedOrigins;
@@ -54,15 +44,6 @@ public class SecurityConfig {
     @Bean
     public PasswordEncoder passwordEncoder() {
         return PasswordEncoderFactories.createDelegatingPasswordEncoder();
-    }
-
-    @Bean
-    public UserDetailsService userDetailsService() {
-        UserDetails admin = User.withUsername(adminUsername)
-            .password("{noop}" + adminPassword)
-            .authorities("ROLE_ADMIN")
-            .build();
-        return new InMemoryUserDetailsManager(admin);
     }
 
     @Bean

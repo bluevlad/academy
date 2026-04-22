@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+    "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.academy.shared.admin.AdminMapper">
+
+  <resultMap id="AdminResult" type="com.academy.shared.admin.AdminVO">
+    <id     property="adminId"      column="admin_id"/>
+    <result property="username"     column="username"/>
+    <result property="email"        column="email"/>
+    <result property="passwordHash" column="password_hash"/>
+    <result property="displayName"  column="display_name"/>
+    <result property="role"         column="role"/>
+    <result property="enabled"      column="enabled"/>
+    <result property="createdAt"    column="created_at"/>
+    <result property="updatedAt"    column="updated_at"/>
+    <result property="lastLoginAt"  column="last_login_at"/>
+  </resultMap>
+
+  <select id="findByUsernameOrEmail" resultMap="AdminResult">
+    SELECT admin_id, username, email, password_hash, display_name,
+           role, enabled, created_at, updated_at, last_login_at
+      FROM id_admin
+     WHERE username = #{usernameOrEmail}
+        OR email    = #{usernameOrEmail}
+     LIMIT 1
+  </select>
+
+  <insert id="insert" parameterType="com.academy.shared.admin.AdminVO">
+    INSERT INTO id_admin (
+      admin_id, username, email, password_hash, display_name, role, enabled
+    ) VALUES (
+      #{adminId}, #{username}, #{email}, #{passwordHash}, #{displayName},
+      #{role}, #{enabled}
+    )
+  </insert>
+
+  <update id="updateLastLoginAt">
+    UPDATE id_admin
+       SET last_login_at = CURRENT_TIMESTAMP
+     WHERE admin_id = #{adminId}
+  </update>
+
+  <select id="existsByUsername" resultType="int">
+    SELECT COUNT(*) FROM id_admin WHERE username = #{username}
+  </select>
+
+</mapper>
