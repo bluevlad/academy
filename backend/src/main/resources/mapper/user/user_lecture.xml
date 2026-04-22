@@ -1,0 +1,109 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+    "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.academy.user.content.lecture.UserLectureMapper">
+
+  <resultMap id="SummaryResult" type="com.academy.user.content.lecture.LectureSummary">
+    <constructor>
+      <idArg  column="mst_code"       javaType="String"/>
+      <arg    column="subject_title"  javaType="String"/>
+      <arg    column="subject_cd"     javaType="String"/>
+      <arg    column="subject_nm"     javaType="String"/>
+      <arg    column="teacher_id"     javaType="String"/>
+      <arg    column="teacher_nm"     javaType="String"/>
+      <arg    column="learning_cd"    javaType="String"/>
+      <arg    column="reg_dt"         javaType="java.time.LocalDateTime"/>
+    </constructor>
+  </resultMap>
+
+  <resultMap id="DetailResult" type="com.academy.user.content.lecture.LectureDetail">
+    <constructor>
+      <idArg  column="mst_code"        javaType="String"/>
+      <arg    column="subject_title"   javaType="String"/>
+      <arg    column="subject_cd"      javaType="String"/>
+      <arg    column="subject_nm"      javaType="String"/>
+      <arg    column="teacher_id"      javaType="String"/>
+      <arg    column="teacher_nm"      javaType="String"/>
+      <arg    column="learning_cd"     javaType="String"/>
+      <arg    column="subject_option"  javaType="String"/>
+      <arg    column="reg_dt"          javaType="java.time.LocalDateTime"/>
+      <arg    column="chapters"        javaType="java.util.List"
+              select="findChaptersByMstCode" column="mst_code"/>
+    </constructor>
+  </resultMap>
+
+  <resultMap id="ChapterResult" type="com.academy.user.content.lecture.LectureDetail$Chapter">
+    <constructor>
+      <idArg  column="bridge_mst_code" javaType="String"/>
+      <arg    column="title"           javaType="String"/>
+      <arg    column="order_no"        javaType="int"/>
+    </constructor>
+  </resultMap>
+
+  <sql id="openListWhere">
+    <where>
+      <if test="keyword != null and keyword != ''">
+        AND (LOWER(m.SUBJECT_TITLE) LIKE LOWER(CONCAT('%', #{keyword}, '%'))
+          OR LOWER(s.SUBJECT_NM)    LIKE LOWER(CONCAT('%', #{keyword}, '%')))
+      </if>
+      <if test="subjectCd != null and subjectCd != ''">
+        AND m.SUBJECT_SJT_CD = #{subjectCd}
+      </if>
+      <if test="teacherId != null and teacherId != ''">
+        AND m.SUBJECT_TEACHER = #{teacherId}
+      </if>
+    </where>
+  </sql>
+
+  <select id="findOpenList" resultMap="SummaryResult">
+    SELECT m.MSTCODE                             AS mst_code,
+           m.SUBJECT_TITLE                       AS subject_title,
+           m.SUBJECT_SJT_CD                      AS subject_cd,
+           s.SUBJECT_NM                          AS subject_nm,
+           m.SUBJECT_TEACHER                     AS teacher_id,
+           t.USER_NM                             AS teacher_nm,
+           m.LEARNING_CD                         AS learning_cd,
+           m.REG_DT                              AS reg_dt
+      FROM TB_TOP_MST m
+      LEFT JOIN TB_SUBJECT_INFO s ON m.SUBJECT_SJT_CD = s.SUBJECT_CD
+      LEFT JOIN TB_MA_MEMBER   t ON m.SUBJECT_TEACHER = t.USER_ID
+      <include refid="openListWhere"/>
+     ORDER BY m.REG_DT DESC, m.MSTCODE DESC
+     LIMIT #{offset}, #{size}
+  </select>
+
+  <select id="countOpenList" resultType="long">
+    SELECT COUNT(*)
+      FROM TB_TOP_MST m
+      LEFT JOIN TB_SUBJECT_INFO s ON m.SUBJECT_SJT_CD = s.SUBJECT_CD
+      <include refid="openListWhere"/>
+  </select>
+
+  <select id="findDetailByMstCode" resultMap="DetailResult">
+    SELECT m.MSTCODE                             AS mst_code,
+           m.SUBJECT_TITLE                       AS subject_title,
+           m.SUBJECT_SJT_CD                      AS subject_cd,
+           s.SUBJECT_NM                          AS subject_nm,
+           m.SUBJECT_TEACHER                     AS teacher_id,
+           t.USER_NM                             AS teacher_nm,
+           m.LEARNING_CD                         AS learning_cd,
+           m.SUBJECT_OPTION                      AS subject_option,
+           m.REG_DT                              AS reg_dt
+      FROM TB_TOP_MST m
+      LEFT JOIN TB_SUBJECT_INFO s ON m.SUBJECT_SJT_CD = s.SUBJECT_CD
+      LEFT JOIN TB_MA_MEMBER   t ON m.SUBJECT_TEACHER = t.USER_ID
+     WHERE m.MSTCODE = #{mstCode}
+     LIMIT 1
+  </select>
+
+  <select id="findChaptersByMstCode" resultMap="ChapterResult">
+    SELECT b.BRIDGE_MSTCODE                       AS bridge_mst_code,
+           COALESCE(c.SUBJECT_TITLE, b.BRIDGE_MSTCODE) AS title,
+           COALESCE(b.ORDER_NO, 0)                AS order_no
+      FROM TB_MST_BRIDGE b
+      LEFT JOIN TB_TOP_MST c ON b.BRIDGE_MSTCODE = c.MSTCODE
+     WHERE b.MSTCODE = #{mstCode}
+     ORDER BY COALESCE(b.ORDER_NO, 0) ASC, b.BRIDGE_MSTCODE ASC
+  </select>
+
+</mapper>

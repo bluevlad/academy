@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+    "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.academy.user.content.subject.UserSubjectMapper">
+
+  <resultMap id="SubjectResult" type="com.academy.user.content.subject.SubjectView">
+    <constructor>
+      <idArg column="subject_cd"       javaType="String"/>
+      <arg   column="subject_nm"       javaType="String"/>
+      <arg   column="subject_short_nm" javaType="String"/>
+    </constructor>
+  </resultMap>
+
+  <select id="findActiveList" resultMap="SubjectResult">
+    SELECT SUBJECT_CD       AS subject_cd,
+           SUBJECT_NM       AS subject_nm,
+           SUBJECT_SHORT_NM AS subject_short_nm
+      FROM TB_SUBJECT_INFO
+     WHERE ISUSE = 'Y'
+     <if test="keyword != null and keyword != ''">
+       AND (LOWER(SUBJECT_NM)    LIKE LOWER(CONCAT('%', #{keyword}, '%'))
+         OR LOWER(SUBJECT_CD)    LIKE LOWER(CONCAT('%', #{keyword}, '%')))
+     </if>
+     ORDER BY SUBJECT_NM
+  </select>
+
+</mapper>

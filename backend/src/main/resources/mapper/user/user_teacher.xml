@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+    "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.academy.user.content.teacher.UserTeacherMapper">
+
+  <resultMap id="TeacherResult" type="com.academy.user.content.teacher.TeacherView">
+    <constructor>
+      <idArg column="teacher_id"   javaType="String"/>
+      <arg   column="teacher_nm"   javaType="String"/>
+      <arg   column="email"        javaType="String"/>
+      <arg   column="lecture_count" javaType="long"/>
+    </constructor>
+  </resultMap>
+
+  <!--
+    teacher = "적어도 1개 강의의 SUBJECT_TEACHER 로 등록된 회원".
+    운영에서 별도 role flag 가 생기면 이 조건을 컬럼 기반으로 교체.
+  -->
+  <select id="findList" resultMap="TeacherResult">
+    SELECT t.USER_ID                 AS teacher_id,
+           t.USER_NM                 AS teacher_nm,
+           t.EMAIL                   AS email,
+           tc.lecture_count          AS lecture_count
+      FROM TB_MA_MEMBER t
+      INNER JOIN (
+        SELECT SUBJECT_TEACHER, COUNT(*) AS lecture_count
+          FROM TB_TOP_MST
+         WHERE SUBJECT_TEACHER IS NOT NULL AND SUBJECT_TEACHER &lt;&gt; ''
+         GROUP BY SUBJECT_TEACHER
+      ) tc ON t.USER_ID = tc.SUBJECT_TEACHER
+     <if test="keyword != null and keyword != ''">
+       WHERE LOWER(t.USER_NM) LIKE LOWER(CONCAT('%', #{keyword}, '%'))
+     </if>
+     ORDER BY t.USER_NM
+  </select>
+
+  <select id="findById" resultMap="TeacherResult">
+    SELECT t.USER_ID                 AS teacher_id,
+           t.USER_NM                 AS teacher_nm,
+           t.EMAIL                   AS email,
+           COALESCE(tc.lecture_count, 0) AS lecture_count
+      FROM TB_MA_MEMBER t
+      LEFT JOIN (
+        SELECT SUBJECT_TEACHER, COUNT(*) AS lecture_count
+          FROM TB_TOP_MST
+         WHERE SUBJECT_TEACHER IS NOT NULL AND SUBJECT_TEACHER &lt;&gt; ''
+         GROUP BY SUBJECT_TEACHER
+      ) tc ON t.USER_ID = tc.SUBJECT_TEACHER
+     WHERE t.USER_ID = #{teacherId}
+     LIMIT 1
+  </select>
+
+</mapper>

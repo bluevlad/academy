@@ -41,11 +41,11 @@ Go/No-Go: `/api/user/**` 36 endpoint 중 P0 (15개) 가 JWT 기반 200 응답 + 
 
 | # | 작업 |
 |---|---|
-| 2-1 | admin 강의·과목·교수진 API 검증 (기존 admin 모듈 살아있는지 smoke) |
-| 2-2 | `user.lecture` 이관 — 강의 목록·상세·검색 (동영상 플레이어 **미포함**, 챕터 목록만) |
-| 2-3 | `user.teacher` 이관 |
-| 2-4 | user-web **CRA → Vite + MUI v6** 마이그레이션 (별도 브랜치 `feat/user-web-vite`) |
-| 2-5 | admin-web · user-web 에 `@academy/ui-core` 공용 컴포넌트 패키지 초안 |
+| 2-1 | ✅ admin 경로 보호 (Sprint 1-5 로 자동 적용). 기존 Oracle 레거시 쿼리(ROWNUM/NVL/DECODE/`(+)`)의 MariaDB 호환 여부는 **owner 수동 smoke** 필요 — TB_TOP_MST/TB_SUBJECT_INFO/TB_MA_MEMBER 등 실데이터 확인 후 쿼리 재작성 대상 식별 |
+| 2-2 | ✅ `user.content.lecture` 신규 — `GET /api/user/lecture` 목록(keyword·subjectCd·teacherId 필터, pagination) + `GET /api/user/lecture/{mstCode}` 상세 + TB_MST_BRIDGE 기반 챕터 목록. MariaDB 표준 문법 (LIMIT offset/size, LEFT JOIN) 으로 신규 작성 |
+| 2-3 | ✅ `user.content.teacher` 신규 — `GET /api/user/teacher` (최소 1개 강의 담당 회원) + `/{teacherId}` 상세. `user.content.subject` 신규 — `GET /api/user/subject` 활성 과목 |
+| 2-4 | ⏸ user-web **CRA → Vite + MUI v6** 마이그레이션 — 별도 세션 (FE 전체 재작성 범위 큼, `feat/user-web-vite` 브랜치) |
+| 2-5 | ⏸ `@academy/ui-core` 공용 컴포넌트 패키지 — 2-4 완료 후 추출 |
 
 ## Sprint 3 — Enrollment + Order (2주)
 
