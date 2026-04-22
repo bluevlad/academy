@@ -31,12 +31,27 @@ function Basic() {
     setError("");
     setSubmitting(true);
     try {
-      await apiClient.post("/admin-auth/login", { username, password });
+      const res = await apiClient.post("/auth/login", {
+        userId: username,
+        password,
+        audience: "admin",
+      });
+      const token = res.data?.data;
+      if (!token?.accessToken) {
+        throw new Error("토큰 응답이 비어 있습니다.");
+      }
+      sessionStorage.setItem("token", token.accessToken);
+      if (token.refreshToken) {
+        localStorage.setItem("refresh-token", token.refreshToken);
+      }
+      if (token.userId) localStorage.setItem("x-user-id", token.userId);
+      if (token.role) localStorage.setItem("x-user-role", token.role);
       await refresh();
       navigate(from, { replace: true });
     } catch (err) {
       setError(
-        err.response?.data?.error ||
+        err.response?.data?.error?.message ||
+          err.response?.data?.error ||
           err.message ||
           "로그인에 실패했습니다."
       );
