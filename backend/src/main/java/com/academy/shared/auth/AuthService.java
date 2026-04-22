@@ -6,8 +6,6 @@ import com.academy.shared.security.Audience;
 import com.academy.shared.security.JwtTokenProvider;
 import com.academy.shared.security.RefreshTokenStore;
 import com.academy.shared.security.Role;
-import com.academy.user.login.UserAccountMapper;
-import com.academy.user.login.UserAccountVO;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -26,8 +24,7 @@ import java.time.Instant;
  * <ul>
  *   <li>관리자 (audience=admin) → {@link AuthenticationManager} +
  *       {@link com.academy.shared.admin.AdminUserDetailsService} (id_admin · BCrypt)</li>
- *   <li>수강생 (audience=user) → {@link UserAccountMapper} (acm_member · BCrypt,
- *       Sprint 1-2 에서 평문 → BCrypt 일괄 마이그레이션 완료)</li>
+ *   <li>수강생 (audience=user) → {@link UserCredentialsLookup} port (구현체는 user 모듈)</li>
  * </ul>
  */
 @Service
@@ -36,20 +33,20 @@ public class AuthService {
     private static final Logger log = LoggerFactory.getLogger(AuthService.class);
 
     private final AuthenticationManager authenticationManager;
-    private final UserAccountMapper userAccountMapper;
+    private final UserCredentialsLookup userLookup;
     private final PasswordEncoder passwordEncoder;
     private final JwtTokenProvider tokenProvider;
     private final RefreshTokenStore refreshStore;
 
     public AuthService(
         AuthenticationManager authenticationManager,
-        UserAccountMapper userAccountMapper,
+        UserCredentialsLookup userLookup,
         PasswordEncoder passwordEncoder,
         JwtTokenProvider tokenProvider,
         RefreshTokenStore refreshStore
     ) {
         this.authenticationManager = authenticationManager;
-        this.userAccountMapper = userAccountMapper;
+        this.userLookup = userLookup;
         this.passwordEncoder = passwordEncoder;
         this.tokenProvider = tokenProvider;
         this.refreshStore = refreshStore;
@@ -81,23 +78,23 @@ public class AuthService {
     }
 
     private TokenResponse loginUser(String userId, String password) {
-        UserAccountVO account = userAccountMapper.findByUserId(userId)
+        UserCredentialsLookup.UserCredentials creds = userLookup.findByUserId(userId)
             .orElseThrow(() -> {
                 log.debug("user 로그인 실패 — 계정 없음: userId={}", userId);
                 return new AuthFailedException("아이디 또는 비밀번호가 일치하지 않습니다.");
             });
 
-        if (!account.isActive()) {
+        if (!creds.active()) {
             log.debug("user 로그인 실패 — 비활성 계정: userId={}", userId);
             throw new AuthFailedException("사용이 정지된 계정입니다.");
         }
-        if (account.getUserPwd() == null
-            || !passwordEncoder.matches(password, account.getUserPwd())) {
+        if (creds.passwordHash() == null
+            || !passwordEncoder.matches(password, creds.passwordHash())) {
             log.debug("user 로그인 실패 — 비밀번호 불일치: userId={}", userId);
             throw new AuthFailedException("아이디 또는 비밀번호가 일치하지 않습니다.");
         }
-        if (!"USER".equalsIgnoreCase(account.getUserRole())) {
-            log.debug("user 로그인 거부 — 사용자 권한 아님: userId={} role={}", userId, account.getUserRole());
+        if (!"USER".equalsIgnoreCase(creds.userRole())) {
+            log.debug("user 로그인 거부 — 사용자 권한 아님: userId={} role={}", userId, creds.userRole());
             throw new AuthFailedException("사용자 권한이 아닙니다.");
         }
 

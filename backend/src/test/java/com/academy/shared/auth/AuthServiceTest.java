@@ -5,8 +5,6 @@ import com.academy.shared.auth.dto.TokenResponse;
 import com.academy.shared.security.Audience;
 import com.academy.shared.security.InMemoryRefreshTokenStore;
 import com.academy.shared.security.JwtTokenProvider;
-import com.academy.user.login.UserAccountMapper;
-import com.academy.user.login.UserAccountVO;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -34,7 +32,7 @@ import static org.mockito.Mockito.when;
 class AuthServiceTest {
 
     private AuthenticationManager authManager;
-    private UserAccountMapper userAccountMapper;
+    private UserCredentialsLookup userLookup;
     private PasswordEncoder passwordEncoder;
     private JwtTokenProvider tokenProvider;
     private InMemoryRefreshTokenStore refreshStore;
@@ -43,7 +41,7 @@ class AuthServiceTest {
     @BeforeEach
     void setUp() {
         authManager = mock(AuthenticationManager.class);
-        userAccountMapper = mock(UserAccountMapper.class);
+        userLookup = mock(UserCredentialsLookup.class);
         passwordEncoder = new BCryptPasswordEncoder();
         tokenProvider = new JwtTokenProvider(
             "unit-test-secret-at-least-32-bytes-please-ok",
@@ -52,18 +50,17 @@ class AuthServiceTest {
         );
         refreshStore = new InMemoryRefreshTokenStore();
         authService = new AuthService(
-            authManager, userAccountMapper, passwordEncoder, tokenProvider, refreshStore
+            authManager, userLookup, passwordEncoder, tokenProvider, refreshStore
         );
     }
 
-    private UserAccountVO userFixture(String userId, String rawPassword, String role, String isUse) {
-        UserAccountVO vo = new UserAccountVO();
-        vo.setUserId(userId);
-        vo.setUserNm(userId);
-        vo.setUserPwd(passwordEncoder.encode(rawPassword));
-        vo.setUserRole(role);
-        vo.setIsUse(isUse);
-        return vo;
+    private UserCredentialsLookup.UserCredentials userCreds(String userId, String rawPassword, String role, String isUse) {
+        return new UserCredentialsLookup.UserCredentials(
+            userId,
+            passwordEncoder.encode(rawPassword),
+            role,
+            "Y".equalsIgnoreCase(isUse)
+        );
     }
 
     // ===== admin =====
@@ -99,8 +96,7 @@ class AuthServiceTest {
 
     @Test
     void user_login_success_with_bcrypt_match() {
-        UserAccountVO vo = userFixture("stu-1", "p@ss1234", "USER", "Y");
-        when(userAccountMapper.findByUserId("stu-1")).thenReturn(Optional.of(vo));
+        when(userLookup.findByUserId("stu-1")).thenReturn(Optional.of(userCreds("stu-1", "p@ss1234", "USER", "Y")));
 
         TokenResponse token = authService.login(new LoginRequest("stu-1", "p@ss1234", "user"));
 
@@ -112,7 +108,7 @@ class AuthServiceTest {
 
     @Test
     void user_login_unknown_account_fails() {
-        when(userAccountMapper.findByUserId(any())).thenReturn(Optional.empty());
+        when(userLookup.findByUserId(any())).thenReturn(Optional.empty());
 
         assertThatThrownBy(() ->
             authService.login(new LoginRequest("ghost", "pw", "user"))
@@ -122,8 +118,7 @@ class AuthServiceTest {
 
     @Test
     void user_login_wrong_password_fails() {
-        UserAccountVO vo = userFixture("stu-1", "correct-pw", "USER", "Y");
-        when(userAccountMapper.findByUserId("stu-1")).thenReturn(Optional.of(vo));
+        when(userLookup.findByUserId("stu-1")).thenReturn(Optional.of(userCreds("stu-1", "correct-pw", "USER", "Y")));
 
         assertThatThrownBy(() ->
             authService.login(new LoginRequest("stu-1", "WRONG-pw", "user"))
@@ -133,8 +128,7 @@ class AuthServiceTest {
 
     @Test
     void user_login_disabled_account_fails() {
-        UserAccountVO vo = userFixture("stu-1", "pw", "USER", "N");
-        when(userAccountMapper.findByUserId("stu-1")).thenReturn(Optional.of(vo));
+        when(userLookup.findByUserId("stu-1")).thenReturn(Optional.of(userCreds("stu-1", "pw", "USER", "N")));
 
         assertThatThrownBy(() ->
             authService.login(new LoginRequest("stu-1", "pw", "user"))
@@ -144,8 +138,7 @@ class AuthServiceTest {
 
     @Test
     void admin_role_account_cannot_login_via_user_audience() {
-        UserAccountVO vo = userFixture("ops", "pw", "ADMIN", "Y");
-        when(userAccountMapper.findByUserId("ops")).thenReturn(Optional.of(vo));
+        when(userLookup.findByUserId("ops")).thenReturn(Optional.of(userCreds("ops", "pw", "ADMIN", "Y")));
 
         assertThatThrownBy(() ->
             authService.login(new LoginRequest("ops", "pw", "user"))
