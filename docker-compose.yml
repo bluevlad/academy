@@ -1,10 +1,14 @@
 # Academy 통합 학원 운영 시스템 — 개발 compose
 #
 # 4 컨테이너: backend · admin-web · user-web · redis
-# DB (MariaDB) 는 외부 network(database-network) 의 기존 postgresql/mariadb 컨테이너 재사용.
+# DB (MariaDB) 는 외부 network(database-network) 의 기존 mariadb 컨테이너 재사용.
 #
 # 기동:  docker compose --profile all up -d
 # 로그:  docker compose logs -f --tail=100 academy-backend
+#
+# FE 경로 (ADR-006):
+#   apps/admin-web  — Vite 7 + React 19 + TS + Ant Design 6 (port 4001)
+#   apps/user-web   — 동일 스택                               (port 3003)
 services:
 
   academy-backend:
@@ -25,6 +29,8 @@ services:
       REDIS_PORT: ${REDIS_PORT:-6379}
       REDIS_PASSWORD: ${REDIS_PASSWORD:-}
       JWT_SECRET: ${JWT_SECRET:-}
+      JWT_ACCESS_TTL: ${JWT_ACCESS_TTL:-PT30M}
+      JWT_REFRESH_TTL: ${JWT_REFRESH_TTL:-P14D}
       GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID:-}
       SUPER_ADMIN_EMAILS: ${SUPER_ADMIN_EMAILS:-}
       CORS_ALLOWED_ORIGINS: ${CORS_ALLOWED_ORIGINS:-http://localhost:4001,http://localhost:3003}
@@ -44,13 +50,14 @@ services:
 
   academy-admin-web:
     build:
-      context: ./admin-web
-      dockerfile: Dockerfile
+      context: .
+      dockerfile: apps/admin-web/Dockerfile
     container_name: academy-admin-web
     environment:
-      VITE_API_BASE_URL: ${VITE_API_BASE_URL:-http://localhost:9000/api}
+      # build time 주입 (Vite 는 런타임 env 지원 안 함 — Nginx 정적 서빙)
+      VITE_API_BASE_URL: ${VITE_ADMIN_API_BASE_URL:-/api}
     ports:
-      - "${ADMIN_WEB_PORT:-4001}:3000"
+      - "${ADMIN_WEB_PORT:-4001}:80"
     depends_on:
       - academy-backend
     restart: unless-stopped
@@ -62,13 +69,13 @@ services:
 
   academy-user-web:
     build:
-      context: ./user-web
-      dockerfile: Dockerfile
+      context: .
+      dockerfile: apps/user-web/Dockerfile
     container_name: academy-user-web
     environment:
-      VITE_API_BASE_URL: ${VITE_API_BASE_URL:-http://localhost:9000/api}
+      VITE_API_BASE_URL: ${VITE_USER_API_BASE_URL:-/api}
     ports:
-      - "${USER_WEB_PORT:-3003}:3000"
+      - "${USER_WEB_PORT:-3003}:80"
     depends_on:
       - academy-backend
     restart: unless-stopped
