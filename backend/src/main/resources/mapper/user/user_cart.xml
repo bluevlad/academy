@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+    "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.academy.user.cart.CartMapper">
+
+  <resultMap id="CartItemResult" type="com.academy.user.cart.CartItem">
+    <constructor>
+      <idArg column="cart_item_id"     javaType="String"/>
+      <arg   column="user_id"          javaType="String"/>
+      <arg   column="mst_code"         javaType="String"/>
+      <arg   column="quantity"         javaType="int"/>
+      <arg   column="price_snapshot"   javaType="java.math.BigDecimal"/>
+      <arg   column="added_at"         javaType="java.time.LocalDateTime"/>
+    </constructor>
+  </resultMap>
+
+  <select id="findByUserId" resultMap="CartItemResult">
+    SELECT cart_item_id, user_id, mst_code, quantity, price_snapshot, added_at
+      FROM en_cart_item
+     WHERE user_id = #{userId}
+     ORDER BY added_at DESC
+  </select>
+
+  <!-- user_id + mst_code 유니크 키 기준으로 quantity 합산 -->
+  <insert id="upsert">
+    INSERT INTO en_cart_item (cart_item_id, user_id, mst_code, quantity, price_snapshot)
+    VALUES (#{cartItemId}, #{userId}, #{mstCode}, #{quantity}, #{priceSnapshot})
+    ON DUPLICATE KEY UPDATE
+        quantity = quantity + VALUES(quantity),
+        price_snapshot = VALUES(price_snapshot)
+  </insert>
+
+  <delete id="delete">
+    DELETE FROM en_cart_item WHERE user_id = #{userId} AND mst_code = #{mstCode}
+  </delete>
+
+  <delete id="clear">
+    DELETE FROM en_cart_item WHERE user_id = #{userId}
+  </delete>
+
+</mapper>

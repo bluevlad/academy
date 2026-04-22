@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+    "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.academy.user.enrollment.EnrollmentMapper">
+
+  <resultMap id="EnrollmentResult" type="com.academy.user.enrollment.Enrollment">
+    <constructor>
+      <idArg column="enrollment_id"    javaType="String"/>
+      <arg   column="user_id"          javaType="String"/>
+      <arg   column="mst_code"         javaType="String"/>
+      <arg   column="order_id"         javaType="String"/>
+      <arg   column="status"           javaType="String"/>
+      <arg   column="period_start"     javaType="java.time.LocalDate"/>
+      <arg   column="period_end"       javaType="java.time.LocalDate"/>
+      <arg   column="manual_progress"  javaType="int"/>
+      <arg   column="created_at"       javaType="java.time.LocalDateTime"/>
+    </constructor>
+  </resultMap>
+
+  <insert id="upsertActive">
+    INSERT INTO en_enrollment
+      (enrollment_id, user_id, mst_code, order_id, status, period_start, period_end)
+    VALUES
+      (#{enrollmentId}, #{userId}, #{mstCode}, #{orderId}, 'ACTIVE', #{periodStart}, #{periodEnd})
+    ON DUPLICATE KEY UPDATE
+      status = 'ACTIVE',
+      period_start = VALUES(period_start),
+      period_end   = VALUES(period_end),
+      order_id     = VALUES(order_id)
+  </insert>
+
+  <select id="findActiveByUserId" resultMap="EnrollmentResult">
+    SELECT * FROM en_enrollment WHERE user_id = #{userId} AND status = 'ACTIVE'
+     ORDER BY created_at DESC
+  </select>
+
+  <update id="updateProgress">
+    UPDATE en_enrollment
+       SET manual_progress = #{manualProgress}
+     WHERE enrollment_id = #{enrollmentId}
+  </update>
+
+</mapper>

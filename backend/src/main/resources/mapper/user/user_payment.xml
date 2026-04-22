@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+    "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.academy.user.payment.PaymentMapper">
+
+  <insert id="insert">
+    INSERT INTO od_payment (payment_id, order_id, method, status, amount)
+    VALUES (#{paymentId}, #{orderId}, #{method}, 'PENDING', #{amount})
+  </insert>
+
+  <update id="markApproved">
+    UPDATE od_payment
+       SET status = 'APPROVED',
+           pg_txn_id = #{pgTxnId},
+           approved_at = #{approvedAt},
+           raw_response = #{rawResponse}
+     WHERE payment_id = #{paymentId}
+  </update>
+
+</mapper>
