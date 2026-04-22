@@ -1,0 +1,34 @@
+{
+  "name": "@academy/ui-core",
+  "version": "0.2.0",
+  "private": true,
+  "description": "academy admin-web / user-web 공용 컴포넌트·훅 (ADR-006/007 · Ant Design 6 기반)",
+  "type": "module",
+  "main": "./src/index.ts",
+  "types": "./src/index.ts",
+  "exports": {
+    ".":              "./src/index.ts",
+    "./theme":        "./src/theme/index.ts",
+    "./layout":       "./src/layout/index.ts",
+    "./components":   "./src/components/index.ts",
+    "./api":          "./src/api/index.ts",
+    "./auth":         "./src/auth/index.ts",
+    "./hooks":        "./src/hooks/index.ts",
+    "./types":        "./src/types/index.ts"
+  },
+  "peerDependencies": {
+    "antd":       "^6.0.0",
+    "axios":      "^1.0.0",
+    "react":      "^19.0.0",
+    "react-dom":  "^19.0.0",
+    "react-router-dom": "^6.0.0"
+  },
+  "scripts": {
+    "typecheck": "tsc --noEmit"
+  },
+  "devDependencies": {
+    "@types/react": "^19.0.0",
+    "@types/react-dom": "^19.0.0",
+    "typescript": "^5.5.0"
+  }
+}
