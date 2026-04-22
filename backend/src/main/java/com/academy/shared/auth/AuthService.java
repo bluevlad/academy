@@ -1,21 +1,20 @@
 package com.academy.shared.auth;
 
-import com.academy.login.service.LoginService;
-import com.academy.login.service.MemberVO;
 import com.academy.shared.auth.dto.LoginRequest;
 import com.academy.shared.auth.dto.TokenResponse;
 import com.academy.shared.security.Audience;
 import com.academy.shared.security.JwtTokenProvider;
 import com.academy.shared.security.RefreshTokenStore;
 import com.academy.shared.security.Role;
-import org.json.simple.JSONObject;
+import com.academy.user.login.UserAccountMapper;
+import com.academy.user.login.UserAccountVO;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.security.authentication.AuthenticationManager;
-import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.time.Instant;
@@ -23,12 +22,13 @@ import java.time.Instant;
 /**
  * 로그인·리프레시·로그아웃 비즈니스 (ADR-002).
  *
- * <p>Sprint 1-1a 에서는:
+ * <p>저장소:
  * <ul>
- *   <li>관리자 = Spring Security {@link AuthenticationManager} (기존 InMemory admin)</li>
- *   <li>수강생 = {@link LoginService#getUser} (기존 TB_MA_MEMBER 경로)</li>
+ *   <li>관리자 (audience=admin) → {@link AuthenticationManager} +
+ *       {@link com.academy.shared.admin.AdminUserDetailsService} (id_admin · BCrypt)</li>
+ *   <li>수강생 (audience=user) → {@link UserAccountMapper} (acm_member · BCrypt,
+ *       Sprint 1-2 에서 평문 → BCrypt 일괄 마이그레이션 완료)</li>
  * </ul>
- * Sprint 1-1b 에서 관리자 저장소를 {@code id_admin} DB 로 교체 예정.
  */
 @Service
 public class AuthService {
@@ -36,18 +36,21 @@ public class AuthService {
     private static final Logger log = LoggerFactory.getLogger(AuthService.class);
 
     private final AuthenticationManager authenticationManager;
-    private final LoginService loginService;
+    private final UserAccountMapper userAccountMapper;
+    private final PasswordEncoder passwordEncoder;
     private final JwtTokenProvider tokenProvider;
     private final RefreshTokenStore refreshStore;
 
     public AuthService(
         AuthenticationManager authenticationManager,
-        LoginService loginService,
+        UserAccountMapper userAccountMapper,
+        PasswordEncoder passwordEncoder,
         JwtTokenProvider tokenProvider,
         RefreshTokenStore refreshStore
     ) {
         this.authenticationManager = authenticationManager;
-        this.loginService = loginService;
+        this.userAccountMapper = userAccountMapper;
+        this.passwordEncoder = passwordEncoder;
         this.tokenProvider = tokenProvider;
         this.refreshStore = refreshStore;
     }
@@ -78,14 +81,26 @@ public class AuthService {
     }
 
     private TokenResponse loginUser(String userId, String password) {
-        MemberVO vo = new MemberVO();
-        vo.setUserId(userId);
-        vo.setUserPwd(password);
-        JSONObject info = loginService.getUser(vo);
-        if (info == null || info.isEmpty()) {
-            log.debug("user 로그인 실패: userId={}", userId);
+        UserAccountVO account = userAccountMapper.findByUserId(userId)
+            .orElseThrow(() -> {
+                log.debug("user 로그인 실패 — 계정 없음: userId={}", userId);
+                return new AuthFailedException("아이디 또는 비밀번호가 일치하지 않습니다.");
+            });
+
+        if (!account.isActive()) {
+            log.debug("user 로그인 실패 — 비활성 계정: userId={}", userId);
+            throw new AuthFailedException("사용이 정지된 계정입니다.");
+        }
+        if (account.getUserPwd() == null
+            || !passwordEncoder.matches(password, account.getUserPwd())) {
+            log.debug("user 로그인 실패 — 비밀번호 불일치: userId={}", userId);
             throw new AuthFailedException("아이디 또는 비밀번호가 일치하지 않습니다.");
         }
+        if (!"USER".equalsIgnoreCase(account.getUserRole())) {
+            log.debug("user 로그인 거부 — 사용자 권한 아님: userId={} role={}", userId, account.getUserRole());
+            throw new AuthFailedException("사용자 권한이 아닙니다.");
+        }
+
         return issueTokens(userId, Role.USER, Audience.USER);
     }
 

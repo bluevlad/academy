@@ -27,7 +27,7 @@
 |---|---|---|
 | 1-1a | ✅ `shared.security` — JwtTokenProvider(HS256, access 30m+refresh 14d, jti) · RefreshTokenStore(Redis) · AdminJwtAuthenticationFilter · UserJwtAuthenticationFilter · SecurityConfig STATELESS · `/api/auth/login\|refresh\|logout\|me` · ApiResponse envelope | + admin-web sign-in/AuthContext 를 JWT 로 교체, AdminSessionApi 제거 |
 | 1-1b | ✅ 관리자 `id_admin` DB 전환 — Flyway V2 · AdminVO/Mapper/UserDetailsService · AdminBootstrap(BCrypt upsert) · Testcontainers 인프라 도입 | 통합 smoke 는 OrbStack 29.x 호환 이슈로 @Disabled |
-| 1-2 | `user.login` 이관 — academy-user `com.academy.login` → `com.academy.user.login` | 레거시 HttpServletRequest → `@AuthenticationPrincipal` 전환 |
+| 1-2 | ✅ 수강생 로그인 React+JWT 전환 — `acm_member` 기반 `com.academy.user.login.*` · Flyway V3(컬럼 확장) + V4 Java migration (평문 → BCrypt 일괄) · AuthService.loginUser BCrypt matches · user-web 은 Sprint 2 Vite 현대화 시 `/api/auth/login` 전환 예정 | 기존 `/api/auth/sign-in` 은 V4 이후 작동 중단 (의도) |
 | 1-3 | `user.signup` 신규 — 이메일 가입·OAuth·약관 | academy-user 원본엔 signup 흐름 부분구현 |
 | 1-4 | `user.mypage` 이관 — privateinfo/counsel/coupon/cart/note/pay/passlecture/mylecture 8 하위 | 범위 큼, 우선 핵심 3 (privateinfo/cart/mylecture) |
 | 1-5 | `admin` 회원관리 화면 연결 확인 | 기존 admin-web 화면 재사용 |

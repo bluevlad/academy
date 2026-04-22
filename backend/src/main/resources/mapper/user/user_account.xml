@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+    "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.academy.user.login.UserAccountMapper">
+
+  <resultMap id="UserAccountResult" type="com.academy.user.login.UserAccountVO">
+    <result property="userId"    column="user_id"/>
+    <result property="userNm"    column="user_nm"/>
+    <result property="userPwd"   column="user_pwd"/>
+    <result property="userRole"  column="user_role"/>
+    <result property="adminRole" column="admin_role"/>
+    <result property="email"     column="email"/>
+    <result property="isUse"     column="is_use"/>
+    <result property="regDt"     column="reg_dt"/>
+    <result property="updDt"     column="upd_dt"/>
+  </resultMap>
+
+  <select id="findByUserId" resultMap="UserAccountResult">
+    SELECT user_id, user_nm, user_pwd, user_role, admin_role,
+           email, is_use, reg_dt, upd_dt
+      FROM acm_member
+     WHERE user_id = #{userId}
+     LIMIT 1
+  </select>
+
+  <update id="updatePassword">
+    UPDATE acm_member
+       SET user_pwd = #{passwordHash},
+           upd_dt   = NOW()
+     WHERE user_id  = #{userId}
+  </update>
+
+</mapper>

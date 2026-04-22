@@ -1,13 +1,12 @@
 package com.academy.shared.auth;
 
-import com.academy.login.service.LoginService;
-import com.academy.login.service.MemberVO;
 import com.academy.shared.auth.dto.LoginRequest;
 import com.academy.shared.auth.dto.TokenResponse;
 import com.academy.shared.security.Audience;
 import com.academy.shared.security.InMemoryRefreshTokenStore;
 import com.academy.shared.security.JwtTokenProvider;
-import org.json.simple.JSONObject;
+import com.academy.user.login.UserAccountMapper;
+import com.academy.user.login.UserAccountVO;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -15,9 +14,12 @@ import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.crypto.password.PasswordEncoder;
 
 import java.time.Duration;
 import java.util.List;
+import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -26,13 +28,14 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 /**
- * AuthService — 로그인·리프레시·로그아웃 비즈니스 검증.
+ * AuthService — admin · user 양쪽 로그인·리프레시·로그아웃 비즈니스 검증.
  * Redis/DB 없이 in-memory store + Mockito stub 으로 독립 검증.
  */
 class AuthServiceTest {
 
     private AuthenticationManager authManager;
-    private LoginService loginService;
+    private UserAccountMapper userAccountMapper;
+    private PasswordEncoder passwordEncoder;
     private JwtTokenProvider tokenProvider;
     private InMemoryRefreshTokenStore refreshStore;
     private AuthService authService;
@@ -40,15 +43,30 @@ class AuthServiceTest {
     @BeforeEach
     void setUp() {
         authManager = mock(AuthenticationManager.class);
-        loginService = mock(LoginService.class);
+        userAccountMapper = mock(UserAccountMapper.class);
+        passwordEncoder = new BCryptPasswordEncoder();
         tokenProvider = new JwtTokenProvider(
             "unit-test-secret-at-least-32-bytes-please-ok",
             Duration.ofMinutes(30),
             Duration.ofDays(14)
         );
         refreshStore = new InMemoryRefreshTokenStore();
-        authService = new AuthService(authManager, loginService, tokenProvider, refreshStore);
+        authService = new AuthService(
+            authManager, userAccountMapper, passwordEncoder, tokenProvider, refreshStore
+        );
     }
+
+    private UserAccountVO userFixture(String userId, String rawPassword, String role, String isUse) {
+        UserAccountVO vo = new UserAccountVO();
+        vo.setUserId(userId);
+        vo.setUserNm(userId);
+        vo.setUserPwd(passwordEncoder.encode(rawPassword));
+        vo.setUserRole(role);
+        vo.setIsUse(isUse);
+        return vo;
+    }
+
+    // ===== admin =====
 
     @Test
     void admin_login_success_issues_tokens_and_stores_refresh() {
@@ -77,29 +95,65 @@ class AuthServiceTest {
         ).isInstanceOf(AuthService.AuthFailedException.class);
     }
 
-    @Test
-    void user_login_success_uses_login_service() {
-        JSONObject info = new JSONObject();
-        info.put("userId", "u-10");
-        when(loginService.getUser(any(MemberVO.class))).thenReturn(info);
+    // ===== user (BCrypt 경로) =====
 
-        TokenResponse token = authService.login(new LoginRequest("u-10", "pw", "user"));
+    @Test
+    void user_login_success_with_bcrypt_match() {
+        UserAccountVO vo = userFixture("stu-1", "p@ss1234", "USER", "Y");
+        when(userAccountMapper.findByUserId("stu-1")).thenReturn(Optional.of(vo));
+
+        TokenResponse token = authService.login(new LoginRequest("stu-1", "p@ss1234", "user"));
 
         assertThat(token.role()).isEqualTo("USER");
         assertThat(token.audience()).isEqualTo("user");
-
         JwtTokenProvider.ParsedToken refreshParsed = tokenProvider.parse(token.refreshToken());
-        assertThat(refreshStore.exists(Audience.USER, "u-10", refreshParsed.jti())).isTrue();
+        assertThat(refreshStore.exists(Audience.USER, "stu-1", refreshParsed.jti())).isTrue();
     }
 
     @Test
-    void user_login_unknown_user_fails() {
-        when(loginService.getUser(any(MemberVO.class))).thenReturn(null);
+    void user_login_unknown_account_fails() {
+        when(userAccountMapper.findByUserId(any())).thenReturn(Optional.empty());
 
         assertThatThrownBy(() ->
-            authService.login(new LoginRequest("nope", "pw", "user"))
-        ).isInstanceOf(AuthService.AuthFailedException.class);
+            authService.login(new LoginRequest("ghost", "pw", "user"))
+        ).isInstanceOf(AuthService.AuthFailedException.class)
+            .hasMessageContaining("일치하지 않습니다");
     }
+
+    @Test
+    void user_login_wrong_password_fails() {
+        UserAccountVO vo = userFixture("stu-1", "correct-pw", "USER", "Y");
+        when(userAccountMapper.findByUserId("stu-1")).thenReturn(Optional.of(vo));
+
+        assertThatThrownBy(() ->
+            authService.login(new LoginRequest("stu-1", "WRONG-pw", "user"))
+        ).isInstanceOf(AuthService.AuthFailedException.class)
+            .hasMessageContaining("일치하지 않습니다");
+    }
+
+    @Test
+    void user_login_disabled_account_fails() {
+        UserAccountVO vo = userFixture("stu-1", "pw", "USER", "N");
+        when(userAccountMapper.findByUserId("stu-1")).thenReturn(Optional.of(vo));
+
+        assertThatThrownBy(() ->
+            authService.login(new LoginRequest("stu-1", "pw", "user"))
+        ).isInstanceOf(AuthService.AuthFailedException.class)
+            .hasMessageContaining("정지");
+    }
+
+    @Test
+    void admin_role_account_cannot_login_via_user_audience() {
+        UserAccountVO vo = userFixture("ops", "pw", "ADMIN", "Y");
+        when(userAccountMapper.findByUserId("ops")).thenReturn(Optional.of(vo));
+
+        assertThatThrownBy(() ->
+            authService.login(new LoginRequest("ops", "pw", "user"))
+        ).isInstanceOf(AuthService.AuthFailedException.class)
+            .hasMessageContaining("사용자 권한");
+    }
+
+    // ===== refresh & logout =====
 
     @Test
     void refresh_with_valid_token_returns_new_access() {
