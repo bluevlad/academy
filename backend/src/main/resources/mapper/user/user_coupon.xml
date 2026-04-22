@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+    "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.academy.user.coupon.CouponMapper">
+
+  <resultMap id="CouponUserResult" type="com.academy.user.coupon.CouponUser">
+    <constructor>
+      <idArg column="coupon_user_id"  javaType="String"/>
+      <arg   column="user_id"         javaType="String"/>
+      <arg   column="coupon_id"       javaType="String"/>
+      <arg   column="name"            javaType="String"/>
+      <arg   column="discount_type"   javaType="String"/>
+      <arg   column="discount_value"  javaType="java.math.BigDecimal"/>
+      <arg   column="issued_at"       javaType="java.time.LocalDateTime"/>
+      <arg   column="used_at"         javaType="java.time.LocalDateTime"/>
+      <arg   column="valid_to"        javaType="java.time.LocalDateTime"/>
+    </constructor>
+  </resultMap>
+
+  <select id="findUsableByUserId" resultMap="CouponUserResult">
+    SELECT cu.coupon_user_id, cu.user_id, cu.coupon_id,
+           c.name, c.discount_type, c.discount_value,
+           cu.issued_at, cu.used_at, c.valid_to
+      FROM pt_coupon_user cu
+      INNER JOIN pt_coupon c ON cu.coupon_id = c.coupon_id
+     WHERE cu.user_id = #{userId}
+       AND cu.used_at IS NULL
+       AND c.is_active = 1
+       AND c.valid_to >= NOW()
+     ORDER BY c.valid_to ASC
+  </select>
+
+  <select id="findOwnedByUserAndCoupon" resultMap="CouponUserResult">
+    SELECT cu.coupon_user_id, cu.user_id, cu.coupon_id,
+           c.name, c.discount_type, c.discount_value,
+           cu.issued_at, cu.used_at, c.valid_to
+      FROM pt_coupon_user cu
+      INNER JOIN pt_coupon c ON cu.coupon_id = c.coupon_id
+     WHERE cu.user_id = #{userId} AND cu.coupon_id = #{couponId}
+     LIMIT 1
+  </select>
+
+  <insert id="issueToUser">
+    INSERT INTO pt_coupon_user (coupon_user_id, user_id, coupon_id)
+    VALUES (#{couponUserId}, #{userId}, #{couponId})
+  </insert>
+
+  <update id="markUsed">
+    UPDATE pt_coupon_user
+       SET used_at = #{usedAt}, order_id = #{orderId}
+     WHERE coupon_user_id = #{couponUserId} AND used_at IS NULL
+  </update>
+
+</mapper>

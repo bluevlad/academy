@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+    "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.academy.user.book.BookMapper">
+
+  <resultMap id="BookResult" type="com.academy.user.book.Book">
+    <constructor>
+      <idArg column="book_id"  javaType="String"/>
+      <arg   column="title"    javaType="String"/>
+      <arg   column="author"   javaType="String"/>
+      <arg   column="price"    javaType="java.math.BigDecimal"/>
+      <arg   column="stock"    javaType="int"/>
+      <arg   column="is_active" javaType="boolean"/>
+    </constructor>
+  </resultMap>
+
+  <select id="findActive" resultMap="BookResult">
+    SELECT book_id, title, author, price, stock, is_active
+      FROM bk_book
+     WHERE is_active = 1
+     <if test="keyword != null and keyword != ''">
+       AND (LOWER(title) LIKE LOWER(CONCAT('%', #{keyword}, '%'))
+         OR LOWER(author) LIKE LOWER(CONCAT('%', #{keyword}, '%')))
+     </if>
+     ORDER BY title
+  </select>
+
+  <select id="findById" resultMap="BookResult">
+    SELECT * FROM bk_book WHERE book_id = #{bookId} LIMIT 1
+  </select>
+
+</mapper>
