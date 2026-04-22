@@ -4,6 +4,7 @@ import com.academy.shared.auth.AuthService;
 import com.academy.shared.security.Audience;
 import com.academy.user.login.UserAccountMapper;
 import com.academy.user.login.UserAccountVO;
+import com.academy.user.mylecture.MyLectureMapper;
 import com.academy.user.mypage.privateinfo.dto.CertificateResponse;
 import com.academy.user.mypage.privateinfo.dto.PasswordChangeRequest;
 import com.academy.user.mypage.privateinfo.dto.ProfileUpdateRequest;
@@ -26,6 +27,7 @@ class PrivateInfoServiceTest {
     private UserAccountMapper mapper;
     private PasswordEncoder encoder;
     private AuthService authService;
+    private MyLectureMapper myLectureMapper;
     private PrivateInfoService service;
 
     @BeforeEach
@@ -33,7 +35,9 @@ class PrivateInfoServiceTest {
         mapper = mock(UserAccountMapper.class);
         encoder = new BCryptPasswordEncoder();
         authService = mock(AuthService.class);
-        service = new PrivateInfoService(mapper, encoder, authService);
+        myLectureMapper = mock(MyLectureMapper.class);
+        when(myLectureMapper.findActiveByUserId(any())).thenReturn(java.util.List.of());
+        service = new PrivateInfoService(mapper, encoder, authService, myLectureMapper);
     }
 
     private UserAccountVO fixture(String userId, String rawPwd, String isUse) {

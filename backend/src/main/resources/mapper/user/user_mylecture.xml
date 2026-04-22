@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+    "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.academy.user.mylecture.MyLectureMapper">
+
+  <resultMap id="MyLectureResult" type="com.academy.user.mylecture.MyLectureView">
+    <constructor>
+      <idArg column="enrollment_id"   javaType="String"/>
+      <arg   column="mst_code"        javaType="String"/>
+      <arg   column="subject_title"   javaType="String"/>
+      <arg   column="subject_nm"      javaType="String"/>
+      <arg   column="teacher_nm"      javaType="String"/>
+      <arg   column="period_start"    javaType="java.time.LocalDate"/>
+      <arg   column="period_end"      javaType="java.time.LocalDate"/>
+      <arg   column="manual_progress" javaType="int"/>
+      <arg   column="status"          javaType="String"/>
+    </constructor>
+  </resultMap>
+
+  <select id="findActiveByUserId" resultMap="MyLectureResult">
+    SELECT e.enrollment_id                        AS enrollment_id,
+           e.mst_code                             AS mst_code,
+           m.SUBJECT_TITLE                        AS subject_title,
+           s.SUBJECT_NM                           AS subject_nm,
+           t.USER_NM                              AS teacher_nm,
+           e.period_start                         AS period_start,
+           e.period_end                           AS period_end,
+           e.manual_progress                      AS manual_progress,
+           e.status                               AS status
+      FROM en_enrollment e
+      LEFT JOIN TB_TOP_MST       m ON e.mst_code = m.MSTCODE
+      LEFT JOIN TB_SUBJECT_INFO  s ON m.SUBJECT_SJT_CD = s.SUBJECT_CD
+      LEFT JOIN TB_MA_MEMBER     t ON m.SUBJECT_TEACHER = t.USER_ID
+     WHERE e.user_id = #{userId}
+       AND e.status = 'ACTIVE'
+     ORDER BY e.created_at DESC
+  </select>
+
+</mapper>

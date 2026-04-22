@@ -4,6 +4,8 @@ import com.academy.shared.auth.AuthService;
 import com.academy.shared.security.Audience;
 import com.academy.user.login.UserAccountMapper;
 import com.academy.user.login.UserAccountVO;
+import com.academy.user.mylecture.MyLectureMapper;
+import com.academy.user.mylecture.MyLectureView;
 import com.academy.user.mypage.privateinfo.dto.CertificateResponse;
 import com.academy.user.mypage.privateinfo.dto.PasswordChangeRequest;
 import com.academy.user.mypage.privateinfo.dto.ProfileResponse;
@@ -15,29 +17,33 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
 
 /**
- * 수강생 마이페이지 — P0 4건 (Sprint 1-4).
- * 개인정보 조회/수정 · 비밀번호 변경 · 회원탈퇴 · 수강확인증 (skeleton).
+ * 수강생 마이페이지 — P0 4건 (Sprint 1-4 · Sprint 5 에서 certificate 를 en_enrollment 실데이터와 연동).
  */
 @Service
 public class PrivateInfoService {
 
     private static final Logger log = LoggerFactory.getLogger(PrivateInfoService.class);
+    private static final DateTimeFormatter DATE_FMT = DateTimeFormatter.ofPattern("yyyy-MM-dd");
 
     private final UserAccountMapper userAccountMapper;
     private final PasswordEncoder passwordEncoder;
     private final AuthService authService;
+    private final MyLectureMapper myLectureMapper;
 
     public PrivateInfoService(
         UserAccountMapper userAccountMapper,
         PasswordEncoder passwordEncoder,
-        AuthService authService
+        AuthService authService,
+        MyLectureMapper myLectureMapper
     ) {
         this.userAccountMapper = userAccountMapper;
         this.passwordEncoder = passwordEncoder;
         this.authService = authService;
+        this.myLectureMapper = myLectureMapper;
     }
 
     public ProfileResponse getProfile(String userId) {
@@ -88,20 +94,36 @@ public class PrivateInfoService {
     }
 
     /**
-     * 수강확인증 — 현재 enrollment 테이블이 없으므로 기본 필드 + 빈 리스트 반환.
-     * Sprint 3 (enrollment 구축) 이후 실제 수강 이력 매핑.
+     * 수강확인증 — en_enrollment + TB_TOP_MST JOIN 결과를 그대로 발급 리스트로 매핑 (Sprint 5).
      */
     public CertificateResponse issueCertificate(String userId) {
         UserAccountVO vo = userAccountMapper.findByUserId(userId)
             .orElseThrow(() -> new AccountNotFoundException("계정을 찾을 수 없습니다."));
+
+        List<MyLectureView> mine = myLectureMapper.findActiveByUserId(userId);
+        List<CertificateResponse.EnrollmentSummary> enrollments = mine.stream()
+            .map(v -> new CertificateResponse.EnrollmentSummary(
+                v.mstCode(),
+                v.subjectTitle() == null ? v.mstCode() : v.subjectTitle(),
+                formatPeriod(v.periodStart(), v.periodEnd()),
+                v.status()
+            ))
+            .toList();
+
         return new CertificateResponse(
             vo.getUserId(),
             vo.getUserNm(),
             vo.getEmail(),
             LocalDate.now(),
-            List.of(),
-            "수강 이력 연동은 Sprint 3(enrollment) 이후 제공됩니다."
+            enrollments,
+            enrollments.isEmpty() ? "현재 활성 수강권이 없습니다." : null
         );
+    }
+
+    private String formatPeriod(LocalDate start, LocalDate end) {
+        return (start == null ? "" : start.format(DATE_FMT))
+            + " ~ "
+            + (end == null ? "" : end.format(DATE_FMT));
     }
 
     public static class AccountNotFoundException extends RuntimeException {

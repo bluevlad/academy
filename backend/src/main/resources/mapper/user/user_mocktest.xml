@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+    "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.academy.user.mocktest.MockTestMapper">
+
+  <resultMap id="ExamResult" type="com.academy.user.mocktest.MockExam">
+    <constructor>
+      <idArg column="exam_id"       javaType="String"/>
+      <arg   column="name"          javaType="String"/>
+      <arg   column="subject_cd"    javaType="String"/>
+      <arg   column="schedule_date" javaType="java.time.LocalDate"/>
+      <arg   column="max_score"     javaType="int"/>
+      <arg   column="is_open"       javaType="boolean"/>
+      <arg   column="created_at"    javaType="java.time.LocalDateTime"/>
+    </constructor>
+  </resultMap>
+
+  <resultMap id="AttemptResult" type="com.academy.user.mocktest.MockAttempt">
+    <constructor>
+      <idArg column="attempt_id"    javaType="String"/>
+      <arg   column="user_id"       javaType="String"/>
+      <arg   column="exam_id"       javaType="String"/>
+      <arg   column="score"         javaType="java.lang.Integer"/>
+      <arg   column="status"        javaType="String"/>
+      <arg   column="registered_at" javaType="java.time.LocalDateTime"/>
+      <arg   column="submitted_at"  javaType="java.time.LocalDateTime"/>
+    </constructor>
+  </resultMap>
+
+  <select id="findOpenExams" resultMap="ExamResult">
+    SELECT * FROM ex_mock_exam WHERE is_open = 1 ORDER BY schedule_date ASC
+  </select>
+
+  <select id="findExamById" resultMap="ExamResult">
+    SELECT * FROM ex_mock_exam WHERE exam_id = #{examId} LIMIT 1
+  </select>
+
+  <insert id="register">
+    INSERT INTO ex_mock_attempt (attempt_id, user_id, exam_id, status)
+    VALUES (#{attemptId}, #{userId}, #{examId}, 'REGISTERED')
+  </insert>
+
+  <select id="findAttempt" resultMap="AttemptResult">
+    SELECT * FROM ex_mock_attempt
+     WHERE user_id = #{userId} AND exam_id = #{examId} LIMIT 1
+  </select>
+
+  <select id="findAttemptsByUser" resultMap="AttemptResult">
+    SELECT * FROM ex_mock_attempt WHERE user_id = #{userId} ORDER BY registered_at DESC
+  </select>
+
+  <update id="submit">
+    UPDATE ex_mock_attempt
+       SET answer_sheet = #{answerSheet},
+           score = #{score},
+           status = CASE WHEN #{score} IS NOT NULL THEN 'SCORED' ELSE 'SUBMITTED' END,
+           submitted_at = #{submittedAt}
+     WHERE attempt_id = #{attemptId}
+  </update>
+
+</mapper>
