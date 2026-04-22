@@ -28,10 +28,10 @@
 | 1-1a | ✅ `shared.security` — JwtTokenProvider(HS256, access 30m+refresh 14d, jti) · RefreshTokenStore(Redis) · AdminJwtAuthenticationFilter · UserJwtAuthenticationFilter · SecurityConfig STATELESS · `/api/auth/login\|refresh\|logout\|me` · ApiResponse envelope | + admin-web sign-in/AuthContext 를 JWT 로 교체, AdminSessionApi 제거 |
 | 1-1b | ✅ 관리자 `id_admin` DB 전환 — Flyway V2 · AdminVO/Mapper/UserDetailsService · AdminBootstrap(BCrypt upsert) · Testcontainers 인프라 도입 | 통합 smoke 는 OrbStack 29.x 호환 이슈로 @Disabled |
 | 1-2 | ✅ 수강생 로그인 React+JWT 전환 — `acm_member` 기반 `com.academy.user.login.*` · Flyway V3(컬럼 확장) + V4 Java migration (평문 → BCrypt 일괄) · AuthService.loginUser BCrypt matches · user-web 은 Sprint 2 Vite 현대화 시 `/api/auth/login` 전환 예정 | 기존 `/api/auth/sign-in` 은 V4 이후 작동 중단 (의도) |
-| 1-3 | `user.signup` 신규 — 이메일 가입·OAuth·약관 | academy-user 원본엔 signup 흐름 부분구현 |
-| 1-4 | `user.mypage` 이관 — privateinfo/counsel/coupon/cart/note/pay/passlecture/mylecture 8 하위 | 범위 큼, 우선 핵심 3 (privateinfo/cart/mylecture) |
-| 1-5 | `admin` 회원관리 화면 연결 확인 | 기존 admin-web 화면 재사용 |
-| 1-6 | 통합 smoke: 로그인→토큰→ /api/user/mypage 200 | |
+| 1-3 | ✅ `user.signup` — `POST /api/auth/signup` (userId/email 중복 체크 + BCrypt + acm_member insert). OAuth · 약관은 후속 | `com.academy.user.signup` 패키지 신규 |
+| 1-4 | ✅ `user.mypage.privateinfo` — P0 4건 (프로필 조회/수정 · 비번 변경 + 전 refresh 폐기 · 회원탈퇴 soft delete · 수강확인증 skeleton). cart/mylecture/counsel 등 나머지는 Sprint 3~5 로 | `@AuthenticationPrincipal` 전환 완료 |
+| 1-5 | ✅ admin 경로 보안 강화 — AdminJwtAuthenticationFilter 를 `/api/` 전역으로 확장(user/auth/shared 제외), SecurityConfig `anyRequest` 를 `hasRole(ADMIN)` 로 — 기존 `/api/board`·`/api/book` 등 `/api/admin/` prefix 가 아닌 admin API 가 모두 ADMIN 검증 대상 | 이전 상태에서는 permitAll 누수 |
+| 1-6 | ✅ `Phase1IntegrationTest` — signup→login(user)→profile→password→재로그인→탈퇴→admin login 8단계 e2e. Testcontainers OrbStack 호환 이슈로 `@Disabled` | owner 가 Docker Engine 27 이하 또는 호환 해결 시 활성화 |
 
 Go/No-Go: `/api/user/**` 36 endpoint 중 P0 (15개) 가 JWT 기반 200 응답 + Swagger 에 표기.
 

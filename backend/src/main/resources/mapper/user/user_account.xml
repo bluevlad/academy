@@ -30,4 +30,41 @@
      WHERE user_id  = #{userId}
   </update>
 
+  <select id="existsByUserId" resultType="int">
+    SELECT COUNT(*) FROM acm_member WHERE user_id = #{userId}
+  </select>
+
+  <select id="existsByEmail" resultType="int">
+    SELECT COUNT(*) FROM acm_member WHERE email = #{email}
+  </select>
+
+  <insert id="insert" parameterType="com.academy.user.login.UserAccountVO">
+    INSERT INTO acm_member (
+      user_id, user_nm, user_pwd, user_role, email, is_use,
+      reg_dt, reg_id, upd_dt, upd_id
+    ) VALUES (
+      #{userId}, #{userNm}, #{userPwd},
+      COALESCE(#{userRole}, 'USER'), #{email},
+      COALESCE(#{isUse}, 'Y'),
+      NOW(), #{userId}, NOW(), #{userId}
+    )
+  </insert>
+
+  <update id="updateProfile" parameterType="com.academy.user.login.UserAccountVO">
+    UPDATE acm_member
+       SET user_nm = #{userNm},
+           email   = #{email},
+           upd_dt  = NOW(),
+           upd_id  = #{userId}
+     WHERE user_id = #{userId}
+  </update>
+
+  <update id="markWithdrawn">
+    UPDATE acm_member
+       SET is_use = 'N',
+           upd_dt = NOW(),
+           upd_id = #{userId}
+     WHERE user_id = #{userId}
+  </update>
+
 </mapper>

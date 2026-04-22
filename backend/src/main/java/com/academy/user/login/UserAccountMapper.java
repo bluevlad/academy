@@ -16,5 +16,15 @@ public interface UserAccountMapper {
 
     Optional<UserAccountVO> findByUserId(@Param("userId") String userId);
 
+    int existsByUserId(@Param("userId") String userId);
+
+    int existsByEmail(@Param("email") String email);
+
+    int insert(UserAccountVO account);
+
     int updatePassword(@Param("userId") String userId, @Param("passwordHash") String passwordHash);
+
+    int updateProfile(UserAccountVO account);
+
+    int markWithdrawn(@Param("userId") String userId);
 }

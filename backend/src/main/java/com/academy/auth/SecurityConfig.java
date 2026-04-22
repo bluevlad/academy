@@ -95,8 +95,10 @@ public class SecurityConfig {
                     "/actuator/health",
                     "/actuator/health/**"
                 ).permitAll()
-                .requestMatchers("/api/admin/**").hasRole("ADMIN")
                 .requestMatchers("/api/user/**").hasRole("USER")
+                // /api/admin/** + 기존 admin 모듈 경로 (/api/board, /api/book, /api/banner, ...) 전부
+                // AdminJwtAuthenticationFilter 가 /api/user·auth·shared 를 제외한 /api/ 전체를 감싼다.
+                .requestMatchers("/api/**").hasRole("ADMIN")
                 .anyRequest().permitAll()
             )
             .addFilterBefore(adminJwtFilter, UsernamePasswordAuthenticationFilter.class)
