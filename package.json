@@ -1,0 +1,21 @@
+{
+  "name": "academy-monorepo",
+  "version": "0.2.0-fe-rewrite",
+  "private": true,
+  "description": "academy 통합 — monorepo (backend Spring Boot + apps admin-web/user-web + packages/ui-core). ADR-006/007 기반 FE 재작성.",
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "scripts": {
+    "dev:admin": "npm -w @academy/admin-web run dev",
+    "dev:user":  "npm -w @academy/user-web run dev",
+    "build":     "npm -w @academy/ui-core run build && npm -w @academy/admin-web run build && npm -w @academy/user-web run build",
+    "typecheck": "npm -w @academy/ui-core run typecheck && npm -w @academy/admin-web run typecheck && npm -w @academy/user-web run typecheck",
+    "lint":      "eslint apps packages --ext .ts,.tsx,.js,.jsx"
+  },
+  "engines": {
+    "node": ">=20",
+    "npm":  ">=10"
+  }
+}

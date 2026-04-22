@@ -1,32 +1,30 @@
-# legacy/
+# legacy/ — 참조용 원본 코드
 
-academy-integrated 로 흡수·재구성되기 전의 원본 repo 들.
+academy-integrated 로 흡수·재구성되기 전의 원본 repo 들 + ADR-006 으로 재작성 대상이 된 FE 앱들.
 
-**이 디렉토리는 로컬 안전망 사본**이며 git 이력에는 포함되지 않는다 (`.gitignore`).
-수정이 필요하면 아래 원본 repo 에서 한다.
+## 분류
 
-## 원본 출처
-
-| 로컬 경로 | 원본 remote | 마지막 알려진 브랜치/커밋 | 흡수 상태 |
+| 경로 | 용도 | Git 추적 | 최종 처리 |
 |---|---|---|---|
-| `legacy/academy-admin.old/backend/` | github.com/bluevlad/academy-admin-back-end-JavaSpring | main · `4051e18` | Sprint 0 에 `backend/` 로 이전 (유지) |
-| `legacy/academy-admin.old/frontend/` | github.com/bluevlad/academy-admin-front-end-React | main | Sprint 0 에 `admin-web/` 로 이전 |
-| `legacy/academy-user.old/backend/` | github.com/bluevlad/academy-user-back-end-JavaSpring | main | Sprint 1 에 `backend/src/main/java/com/academy/user/*` 로 흡수 예정 |
-| `legacy/academy-user.old/frontend/` | github.com/bluevlad/academy-user-front-end-React-material-dashboard | master | Sprint 2 에 `user-web/` Vite 현대화와 함께 재작성 |
+| `legacy/admin-web-mui/` | ADR-006 이전의 Vite+MUI+Material Dashboard 버전 admin-web | **tracked** (재작성 중 참조 필요) | FE 재작성 완료 + 배포 후 삭제 commit |
+| `legacy/user-web-cra/` | ADR-006 이전의 CRA+MUI+Material Dashboard 버전 user-web | **tracked** | 위와 동일 |
+| `legacy/academy-admin.old/` | 원본 academy-admin repo 복제 (참조 전용) | **untracked** (`.gitignore`) | 로컬에만 보존, SSOT 는 원본 github repo |
+| `legacy/academy-user.old/` | 원본 academy-user repo 복제 | **untracked** | 로컬에만 보존 |
 
-## 흡수 진행률
+## 원본 repo (SSOT)
 
-- [x] admin backend → `backend/` (그대로 유지, pom.xml 만 `academy-integrated` 로 교체)
-- [x] admin frontend → `admin-web/`
-- [x] user frontend → `user-web/` (Vite 현대화는 Sprint 2)
-- [ ] user backend → `backend/src/main/java/com/academy/user/*` (Sprint 1)
+- `legacy/academy-admin.old/` ← github.com/bluevlad/academy-admin-back-end-JavaSpring + academy-admin-front-end-React
+- `legacy/academy-user.old/`  ← github.com/bluevlad/academy-user-back-end-JavaSpring + academy-user-front-end-React-material-dashboard
 
-## 복구/조회 방법
+## 참조 규칙
 
-원본 이력 필요 시:
-```bash
-cd legacy/academy-admin.old/backend
-git log --oneline   # .git 포함 사본이라 동작함
-```
+- **읽기 전용** — legacy 내부 파일 수정 금지
+- **복붙 금지** — 신규 `apps/*` 는 Ant Design + TS 로 재작성 (ADR-007). 비즈니스 로직 의도만 파악
+- **복구 필요 시** 원본 github repo 에서 clone (별도 경로)
 
-또는 원본 github 에서 clone.
+## 재작성 흡수 진행
+
+- [x] admin backend → `backend/` (Spring Boot 통합, Sprint 0)
+- [x] user backend → `backend/src/main/java/com/academy/user/*` (Sprint 1~5)
+- [ ] admin frontend → `apps/admin-web/` (ADR-006 · Ant Design 6)
+- [ ] user frontend  → `apps/user-web/`  (ADR-006 · Ant Design 6)

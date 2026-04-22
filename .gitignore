@@ -42,7 +42,8 @@ Thumbs.db
 .claude/settings.local.json
 
 # ====== Legacy (이력 보존용, 별도 관리) ======
-# legacy/ 실 파일은 로컬 안전망용 사본. Git 이력에는 포함하지 않는다.
-# 각 원본 repo (github) 이 SSOT. legacy/README.md 만 commit.
-legacy/*
-!legacy/README.md
+# legacy/academy-*.old/ 는 원본 repo 사본(.git 포함) — 로컬 안전망. git 추적 제외.
+# legacy/admin-web-mui/ 및 legacy/user-web-cra/ 는 ADR-006 FE 재작성 중 참조 필요 —
+# 재작성 완료+배포 후 별도 commit 으로 삭제 예정.
+legacy/academy-admin.old/
+legacy/academy-user.old/
