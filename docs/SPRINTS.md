@@ -47,41 +47,42 @@ Go/No-Go: `/api/user/**` 36 endpoint 중 P0 (15개) 가 JWT 기반 200 응답 + 
 | 2-4 | ⏸ user-web **CRA → Vite + MUI v6** 마이그레이션 — 별도 세션 (FE 전체 재작성 범위 큼, `feat/user-web-vite` 브랜치) |
 | 2-5 | ⏸ `@academy/ui-core` 공용 컴포넌트 패키지 — 2-4 완료 후 추출 |
 
-## Sprint 3 — Enrollment + Order (2주)
+## Sprint 3 — Enrollment + Order (2주) ✅
 
 | # | 작업 |
 |---|---|
-| 3-1 | `user.cart` `user.order` 이관 |
-| 3-2 | `user.pay` 이관 — PG sandbox 연동 (LGD 가 아직 없으면 mock) |
-| 3-3 | 수강권 발급 이벤트 (결제 완료 → 수강권 → 수강 상태) |
-| 3-4 | admin 주문관리·환불승인 UI 점검 |
+| 3-1 | ✅ `user.cart` `user.order` — en_cart_item (upsert 수량 합산), od_order/od_order_item |
+| 3-2 | ✅ `user.payment` — PG mock (`PaymentService.payMock` 즉시 APPROVED + OrderCompletedEvent) |
+| 3-3 | ✅ 수강권 발급 이벤트 — `EnrollmentListener @EventListener` 가 OrderCompletedEvent 수신 → en_enrollment upsert (기본 6개월) |
+| 3-4 | ⏸ admin 주문관리·환불승인 UI 점검 — admin-web 변경 없음, 기존 `/api/admin/order/*` 엔드포인트 활용 가능 |
 
-## Sprint 4 — Point + Book (2주)
-
-| # | 작업 |
-|---|---|
-| 4-1 | `user.coupon` 이관 — 발행·보유·사용 flow |
-| 4-2 | 마일리지 원장 (append-only, admin 조정 UI) |
-| 4-3 | 교재 카탈로그·재고·배송지·배송 상태 |
-| 4-4 | admin 교재·배송 관리 화면 |
-
-## Sprint 5 — Learning(동영상 제외) + Mock Exam (2주)
+## Sprint 4 — Point + Book (2주) ✅
 
 | # | 작업 |
 |---|---|
-| 5-1 | `user.mypage.mylecture` "내 강의실" 화면 — 수강권 기반 목록, 진도는 수동 체크 |
-| 5-2 | `user.mocktest` 이관 — 신청·응시·성적 조회 |
-| 5-3 | admin 모의고사 관리·통계 점검 |
-| 5-4 | hopenvision 시험 채점 API 연동 검토 (선택) |
+| 4-1 | ✅ `user.coupon` — pt_coupon + pt_coupon_user (미사용·유효·활성 필터, markUsed 멱등) |
+| 4-2 | ✅ 마일리지 원장 append-only — pt_mileage_ledger (BIGINT AUTO_INCREMENT, balance 합산) |
+| 4-3 | ✅ 교재·배송지 — bk_book · bk_delivery_address · bk_delivery (배송 상태는 Sprint 5 이후 order 연결) |
+| 4-4 | ⏸ admin 교재·배송 관리 UI — 별도 FE 세션 |
 
-## Sprint 6 — 검증·이관 (2주)
+## Sprint 5 — Learning(동영상 제외) + Mock Exam (2주) ✅
 
 | # | 작업 |
 |---|---|
-| 6-1 | Playwright E2E — 관리자 6 × 사용자 5 골든 시나리오 |
-| 6-2 | Flyway 전체 리허설 (clean DB → V1 baseline 수동 import → V2+) |
-| 6-3 | ArchUnit 규칙 강화 (빈 레이어 금지로 전환) |
-| 6-4 | 배포 스위칭: 기존 academy-admin(9001)/user(9002) → integrated(9000) |
+| 5-1 | ✅ `user.mylecture` — en_enrollment + TB_TOP_MST/TB_SUBJECT_INFO/TB_MA_MEMBER JOIN, 수동 진도율 (0~100) |
+| 5-2 | ✅ `user.mocktest` — ex_mock_exam/ex_mock_attempt, register 멱등 + submit (자동 채점 score 옵션) |
+| 5-3 | ⏸ admin 모의고사 관리·통계 — admin-web 별도 세션 |
+| 5-4 | ⏸ hopenvision 시험 채점 API 연동 — Plan B |
+| — | ✅ 부가: Sprint 1-4 certificate 가 en_enrollment 실 데이터로 전환 (MyLectureMapper 재사용) |
+
+## Sprint 6 — 검증·이관 (2주) ✅ (backend 부분 완료)
+
+| # | 작업 |
+|---|---|
+| 6-1 | ⏸ Playwright E2E — Phase1/Phase2IntegrationTest 로 backend smoke 확보. Playwright FE 시나리오는 user-web Vite 전환(Sprint 2-4) 이후 |
+| 6-2 | ⏸ Flyway 전체 리허설 — Testcontainers OrbStack 호환 이슈로 @Disabled. owner 가 실 DB 로 V1→V7 dry-run 필요 |
+| 6-3 | ✅ ArchUnit 경계 규칙 — `ModularMonolithRulesTest` 5 rules (shared↔admin/user 역참조 금지 등). 빈 레이어 strict 모드는 Sprint 7 에 |
+| 6-4 | ✅ 배포 체크리스트 — `docs/DEPLOYMENT_CHECKLIST.md` (7섹션, 롤백·Exit Gate 평가·수동 smoke 스크립트 포함) |
 
 ## P0 canonical 매핑 — Sprint 배치
 
@@ -90,15 +91,15 @@ Go/No-Go: `/api/user/**` 36 endpoint 중 P0 (15개) 가 JWT 기반 200 응답 + 
 
 | Canonical | MSA | Variants | 배치 Sprint | 상태 |
 |---|---|---|---|---|
-| 회원탈퇴 | identity-svc | 18 | **1** | ⏳ |
-| 비밀번호 변경 | identity-svc | 12 | **1** | ⏳ |
-| 개인정보수정 (→ identity 로 재분류) | community-svc→identity-svc | 12 | **1** | ⏳ |
-| 수강확인증 출력 | identity-svc | 12 | **1** (마이페이지 발급) | ⏳ |
-| 형법 (→ 과목·강의 대표) | content-svc | 660 | **2** (과목·강의 CRUD) | ⏳ |
-| 수강종료/재수강 신청 | enrollment-svc | 12 | **3** | ⏳ |
-| 포인트/쿠폰 | billing-svc (→ point-svc) | 12 | **4** | ⏳ |
-| 기출문제 | exam-svc | 14 | **5** (모의고사 근접) | ⏳ |
-| 나의 D-day/나의 목표 | exam-svc | 12 | **5** (내 강의실 인접) | ⏳ |
+| 회원탈퇴 | identity-svc | 18 | **1** | ✅ `DELETE /api/user/mypage/account` |
+| 비밀번호 변경 | identity-svc | 12 | **1** | ✅ `PUT /api/user/mypage/password` |
+| 개인정보수정 | identity-svc | 12 | **1** | ✅ `PUT /api/user/mypage/profile` |
+| 수강확인증 출력 | identity-svc | 12 | **1→5** | ✅ `GET /api/user/mypage/certificate` (Sprint 5 에서 en_enrollment 실데이터로 연결) |
+| 형법 (→ 과목·강의 대표) | content-svc | 660 | **2** | ✅ `/api/user/lecture` · `/subject` · `/teacher` (경량 MariaDB 쿼리) |
+| 수강종료/재수강 신청 | enrollment-svc | 12 | **3** | 🟡 en_enrollment 상태 ACTIVE/CANCELED/EXPIRED 존재. admin 취소/재수강 UI 는 별도 |
+| 포인트/쿠폰 | billing-svc (→ point-svc) | 12 | **4** | ✅ `/api/user/coupon` · `/api/user/mileage/balance` |
+| 기출문제 | exam-svc | 14 | **5** | 🟡 ex_mock_attempt.answer_sheet 에 수용. 기출 전용 카탈로그는 별도 |
+| 나의 D-day/나의 목표 | exam-svc | 12 | **5** | ⏸ Plan B (UI-가까움, MVP 범위 밖) |
 
 **MVP 범위 밖 P0** (5건) — Plan B 로 이관:
 - 경찰간부후보생은? · 개정법령 · 형사소송법 · 무료특강 · 영어 (모두 community-svc, MVP 에 커뮤니티 미포함)
