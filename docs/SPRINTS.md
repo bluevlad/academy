@@ -4,7 +4,7 @@
 > 상위 문서: [../README.md](../README.md) · [adr/ADR-001-integration-strategy.md](adr/ADR-001-integration-strategy.md)
 > 원본 플랜: [DocumetsToAiPipeLine IMPLEMENTATION_PLAN_v3.md](../../DocumetsToAiPipeLine/docs/integration/IMPLEMENTATION_PLAN_v3.md)
 
-## Sprint 0 — 기반 (1주, 진행 중)
+## Sprint 0 — 기반 (1주, 완료 ✅)
 
 | # | 작업 | 상태 |
 |---|---|---|
@@ -16,8 +16,8 @@
 | 0-6 | `shared/` · `user/` 패키지 skeleton (package-info.java) | ✅ |
 | 0-7 | Flyway V1 baseline marker | ✅ |
 | 0-8 | 통합 `README.md` + `CLAUDE.md` + Sprint 로드맵 | ✅ |
-| 0-9 | `/api/shared/health` 엔드포인트 + 통합 smoke test | ⏳ |
-| 0-10 | `./mvnw compile` 통과 확인 + git init/first commit | ⏳ |
+| 0-9 | `/api/shared/health` 엔드포인트 + 통합 smoke test (`HealthControllerTest`) + SecurityConfig permitAll 에 `/api/shared/**`·`/actuator/health` 개방 | ✅ |
+| 0-10 | `./mvnw compile` BUILD SUCCESS + `./mvnw test` BUILD SUCCESS (`AcademyApplicationTests` 은 Sprint 1 Testcontainers 도입까지 `@Disabled`) | ✅ |
 
 ## Sprint 1 — Identity + Platform (2주)
 

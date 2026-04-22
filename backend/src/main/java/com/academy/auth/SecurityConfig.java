@@ -96,7 +96,10 @@ public class SecurityConfig {
                     "/api/admin-auth/login",
                     "/api/admin-auth/logout",
                     "/api/admin-auth/me",
-                    "/api/auth/**"
+                    "/api/auth/**",
+                    "/api/shared/**",
+                    "/actuator/health",
+                    "/actuator/health/**"
                 ).permitAll()
                 .requestMatchers("/api/**").hasRole("ADMIN")
                 .anyRequest().permitAll()
