@@ -28,7 +28,7 @@ import com.academy.lecture.service.TeacherVO;
  * Book API Controller
  * 교재 관리 RESTful API
  */
-@RestController
+@RestController("adminBookApi")
 @RequestMapping("/api/book")
 public class BookApi extends CORSFilter {
 

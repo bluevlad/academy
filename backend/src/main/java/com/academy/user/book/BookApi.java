@@ -15,7 +15,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
 
-@RestController
+@RestController("userBookApi")
 @RequestMapping("/api/user/book")
 @Tag(name = "User Book", description = "교재 카탈로그")
 @SecurityRequirement(name = "bearer-jwt")
