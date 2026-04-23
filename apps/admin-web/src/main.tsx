@@ -24,7 +24,7 @@ createRoot(document.getElementById('root')!).render(
   <React.StrictMode>
     <ConfigProvider theme={academyTheme} locale={koKR}>
       <QueryClientProvider client={queryClient}>
-        <BrowserRouter>
+        <BrowserRouter basename="/admin">
           <AuthProvider audience="admin" apiClient={apiClient}>
             <App />
           </AuthProvider>

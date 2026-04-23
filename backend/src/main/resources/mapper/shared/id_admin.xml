@@ -44,4 +44,13 @@
     SELECT COUNT(*) FROM id_admin WHERE username = #{username}
   </select>
 
+  <update id="updateAccount">
+    UPDATE id_admin
+       SET password_hash = #{passwordHash},
+           email         = #{email},
+           role          = #{role},
+           enabled       = #{enabled}
+     WHERE username = #{username}
+  </update>
+
 </mapper>

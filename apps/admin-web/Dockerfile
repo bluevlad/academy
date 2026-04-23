@@ -13,8 +13,10 @@ RUN npm install --workspaces --include-workspace-root
 # 소스 복사 후 admin-web 만 빌드
 COPY packages/ui-core packages/ui-core
 COPY apps/admin-web   apps/admin-web
-ARG VITE_API_BASE_URL=/api
+ARG VITE_API_BASE_URL=/admin/api
+ARG VITE_GOOGLE_CLIENT_ID=
 ENV VITE_API_BASE_URL=$VITE_API_BASE_URL
+ENV VITE_GOOGLE_CLIENT_ID=$VITE_GOOGLE_CLIENT_ID
 RUN npm -w @academy/admin-web run build
 
 # ===== serve =====

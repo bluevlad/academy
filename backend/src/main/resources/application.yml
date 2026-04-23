@@ -74,7 +74,8 @@ cors:
 app:
   super-admin-emails: ${SUPER_ADMIN_EMAILS:rainend00@gmail.com}
   admin:
-    username: ${ADMIN_USERNAME:admin}
+    # 복수 지정 시 comma-separated. legacy app.admin.username 도 그대로 지원.
+    usernames: ${ADMIN_USERNAMES:admin,rainend}
     password: ${ADMIN_PASSWORD:dnflskfk}
   jwt:
     secret: ${JWT_SECRET:academy-integrated-dev-secret-change-in-production-minimum-32-bytes}

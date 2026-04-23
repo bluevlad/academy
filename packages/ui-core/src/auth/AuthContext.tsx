@@ -18,6 +18,14 @@ export interface AuthContextValue {
   login: (userId: string, password: string) => Promise<void>;
   logout: () => Promise<void>;
   refresh: () => Promise<void>;
+  /** 외부 IdP(Google 등) 로 이미 access/refresh 를 받았을 때 세션 확정. */
+  setSession: (tokens: {
+    accessToken: string;
+    refreshToken: string;
+    userId: string;
+    role: 'ADMIN' | 'USER';
+    audience: 'admin' | 'user';
+  }) => void;
 }
 
 const AuthContext = createContext<AuthContextValue | null>(null);
@@ -91,9 +99,21 @@ export function AuthProvider({ audience, apiClient, children }: AuthProviderProp
     })();
   }, [refresh]);
 
+  const setSession = useCallback<AuthContextValue['setSession']>((tokens) => {
+    tokenStorage.setAccess(tokens.accessToken);
+    tokenStorage.setRefresh(tokens.refreshToken);
+    const next: StoredUser = {
+      userId: tokens.userId,
+      role: tokens.role,
+      audience: tokens.audience,
+    };
+    tokenStorage.setUser(next);
+    setUser(next);
+  }, []);
+
   const value = useMemo<AuthContextValue>(
-    () => ({ ready, authenticated: !!user, user, login, logout, refresh }),
-    [ready, user, login, logout, refresh],
+    () => ({ ready, authenticated: !!user, user, login, logout, refresh, setSession }),
+    [ready, user, login, logout, refresh, setSession],
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
