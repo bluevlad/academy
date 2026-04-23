@@ -71,18 +71,18 @@ open http://localhost:3003
 
 ## 주요 문서
 
-**ADR**
-- [ADR-001 통합 전략](docs/adr/ADR-001-integration-strategy.md)
-- [ADR-002 인증 통합 (Stateless JWT + Redis Refresh)](docs/adr/ADR-002-auth-scheme.md)
-- [ADR-003 Response envelope](docs/adr/ADR-003-response-envelope.md)
-- [ADR-004 트랙 수렴 기준](docs/adr/ADR-004-track-convergence-criteria.md)
-- [ADR-005 DB 테이블 전략 (하이브리드)](docs/adr/ADR-005-db-table-strategy.md)
-- [ADR-006 FE 재작성 (Ant Design 전환)](docs/adr/ADR-006-fe-rewrite-with-ant-design.md)
-- [ADR-007 FE 기술 스택](docs/adr/ADR-007-fe-tech-stack.md)
+> 프로젝트 문서는 메타 repo `Claude-Opus-bluevlad/services/academy/` 로 이관되었습니다.
+> 현재 폴더의 [`docs/README.md`](docs/README.md) 에 전체 색인이 있습니다.
 
-**Sprint · 배포**
-- [Sprint 로드맵 + P0 매핑](docs/SPRINTS.md)
-- [배포 체크리스트](docs/DEPLOYMENT_CHECKLIST.md)
+**ADR** — `../Claude-Opus-bluevlad/services/academy/adr/`
+- ADR-001 통합 전략 · ADR-002 인증 통합 · ADR-003 Response envelope
+- ADR-004 트랙 수렴 기준 · ADR-005 DB 테이블 전략 · ADR-006 FE 재작성 · ADR-007 FE 기술 스택
+
+**Sprint · 배포** — `../Claude-Opus-bluevlad/services/academy/`
+- `SPRINTS.md` — Sprint 로드맵 + P0 매핑
+- `DEPLOYMENT_CHECKLIST.md` — 배포 체크리스트
+- `CI_CD_SETUP.md` — CI/CD 셋업
+- `api/` — 모듈별 API 가이드
 
 ## 스택 요약
 

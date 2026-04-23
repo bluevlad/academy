@@ -38,7 +38,14 @@ academy-user 의 수강생 기능을 **user 모듈** 로 흡수하여 단일 배
 - **Sprint 0** ✅ monorepo 생성 · 통합 pom · docker-compose · Flyway baseline · shared/user 패키지 skeleton
 - **Sprint 1** 🔜 academy-user 22 모듈 → `com.academy.user.*` 로 흡수 (HttpServletRequest → JWT 전환)
 - **Sprint 2** 🔜 user-web CRA → Vite + MUI v6 현대화
-- **Sprint 3~6** 🔜 MVP 11기능 완성 (docs/SPRINTS.md 참고)
+- **Sprint 3~6** 🔜 MVP 11기능 완성 (`Claude-Opus-bluevlad/services/academy/SPRINTS.md` 참고)
+
+## 문서 위치
+
+프로젝트 설계·운영 문서는 모두 **메타 repo** 로 이관되었습니다:
+`/Users/rainend/GIT/Claude-Opus-bluevlad/services/academy/`
+(ADR / SPRINTS / DEPLOYMENT_CHECKLIST / CI_CD_SETUP / api/ / db/).
+`./docs/` 폴더에는 포인터 [`README.md`](docs/README.md) 만 있습니다.
 
 ## 유용 명령
 
