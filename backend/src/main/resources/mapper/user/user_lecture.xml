@@ -27,7 +27,7 @@
       <arg    column="learning_cd"     javaType="String"/>
       <arg    column="subject_option"  javaType="String"/>
       <arg    column="reg_dt"          javaType="java.time.LocalDateTime"/>
-      <arg    column="chapters"        javaType="java.util.List"
+      <arg    javaType="java.util.List"
               select="findChaptersByMstCode" column="mst_code"/>
     </constructor>
   </resultMap>

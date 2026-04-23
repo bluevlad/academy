@@ -24,7 +24,7 @@
       <arg   column="created_at"       javaType="java.time.LocalDateTime"/>
       <arg   column="paid_at"          javaType="java.time.LocalDateTime"/>
       <arg   column="canceled_at"      javaType="java.time.LocalDateTime"/>
-      <arg   column="items"            javaType="java.util.List"
+      <arg   javaType="java.util.List"
              select="findItemsByOrderId" column="order_id"/>
     </constructor>
   </resultMap>
