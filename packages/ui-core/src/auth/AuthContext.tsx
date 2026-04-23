@@ -70,12 +70,13 @@ export function AuthProvider({ audience, apiClient, children }: AuthProviderProp
   }, [apiClient]);
 
   const refresh = useCallback(async () => {
-    const access = tokenStorage.getAccess();
-    if (!access) {
+    // access · refresh 둘 다 없으면 미로그인 확정 — 네트워크 호출 생략
+    if (!tokenStorage.getAccess() && !tokenStorage.getRefresh()) {
       setUser(null);
       return;
     }
     try {
+      // access 만료/부재 시 client 인터셉터가 refreshToken 으로 재발급 후 재시도
       const res = await apiClient.get('/auth/me');
       const me = unwrap<MeResponse>({ data: res.data as never });
       if (me.audience !== audience) {

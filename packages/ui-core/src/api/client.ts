@@ -5,17 +5,26 @@ export interface CreateClientOptions {
   baseURL: string;
   /** access token 조회 함수 — storage 또는 store 참조 */
   getAccessToken: () => string | null;
+  /**
+   * 401 응답 시 access 재발급 시도. 새 access 반환 시 원요청 1회 재시도.
+   * null 반환 시 onUnauthorized 호출. 콜백 내부에서 storage 갱신 책임.
+   */
+  refreshAccessToken?: () => Promise<string | null>;
   /** 401 시 실행 — 토큰 정리 + 리다이렉트 담당 */
   onUnauthorized?: () => void;
   /** 추가 헤더 (테스트/디버그) */
   extraHeaders?: Record<string, string>;
 }
 
+interface RetriableConfig extends InternalAxiosRequestConfig {
+  _retriedAuth?: boolean;
+}
+
 /**
  * academy 표준 axios 클라이언트.
  *
  * - 요청 시 Bearer 자동 주입
- * - 401 → onUnauthorized() 호출 (앱별 처리)
+ * - 401 → refreshAccessToken() 시도 후 원요청 재시도, 실패 시 onUnauthorized()
  * - ApiResponse envelope 를 그대로 반환 (unwrap 은 호출부 책임)
  */
 export function createApiClient(opts: CreateClientOptions): AxiosInstance {
@@ -41,10 +50,39 @@ export function createApiClient(opts: CreateClientOptions): AxiosInstance {
     return config;
   });
 
+  let pendingRefresh: Promise<string | null> | null = null;
+
   client.interceptors.response.use(
     (res) => res,
-    (err: AxiosError) => {
-      if (err.response?.status === 401 && opts.onUnauthorized) {
+    async (err: AxiosError) => {
+      const original = err.config as RetriableConfig | undefined;
+      const status = err.response?.status;
+
+      if (
+        status === 401 &&
+        opts.refreshAccessToken &&
+        original &&
+        !original._retriedAuth
+      ) {
+        original._retriedAuth = true;
+
+        if (!pendingRefresh) {
+          pendingRefresh = opts
+            .refreshAccessToken()
+            .catch(() => null)
+            .finally(() => {
+              pendingRefresh = null;
+            });
+        }
+        const newAccess = await pendingRefresh;
+
+        if (newAccess) {
+          original.headers.set('Authorization', `Bearer ${newAccess}`);
+          return client.request(original);
+        }
+      }
+
+      if (status === 401 && opts.onUnauthorized) {
         opts.onUnauthorized();
       }
       return Promise.reject(err);
