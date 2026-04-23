@@ -7,7 +7,7 @@ import java.util.List;
 import java.util.Optional;
 
 @Mapper
-public interface BookMapper {
+public interface UserBookMapper {
     List<Book> findActive(@Param("keyword") String keyword);
 
     Optional<Book> findById(@Param("bookId") String bookId);

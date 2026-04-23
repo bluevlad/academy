@@ -21,9 +21,9 @@ import java.util.List;
 @SecurityRequirement(name = "bearer-jwt")
 public class BookApi {
 
-    private final BookMapper mapper;
+    private final UserBookMapper mapper;
 
-    public BookApi(BookMapper mapper) {
+    public BookApi(UserBookMapper mapper) {
         this.mapper = mapper;
     }
 
