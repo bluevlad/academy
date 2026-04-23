@@ -59,10 +59,8 @@ management:
       probes:
         enabled: true
 
-# Swagger / OpenAPI
+# Swagger / OpenAPI — api-docs 는 기본 /v3/api-docs 유지 (SecurityConfig permitAll 과 일치)
 springdoc:
-  api-docs:
-    path: /api-docs
   swagger-ui:
     path: /swagger-ui.html
     operations-sorter: method
@@ -104,11 +102,8 @@ logging:
     org.springframework.web: WARN
     org.mybatis: WARN
 
-springdoc:
-  api-docs:
-    enabled: false
-  swagger-ui:
-    enabled: false
+# Swagger UI/OpenAPI 는 prod 에서도 무인증 공개 열람 (SecurityConfig permitAll)
+# — 실제 API 호출은 ADMIN/USER 역할 검증 유지
 
 ---
 # ===== local profile (mvn spring-boot:run -Dspring-boot.run.profiles=local) =====
