@@ -30,7 +30,12 @@ public class InquiryAgentClient {
 
     private static final Logger log = LoggerFactory.getLogger(InquiryAgentClient.class);
 
+    /**
+     * HTTP/1.1 명시 — FastAPI/uvicorn 은 HTTP/2 미지원. 기본값으로 두면
+     * "Unsupported upgrade request" 로 agent 가 body 받지 못해 422 반환.
+     */
     private final HttpClient http = HttpClient.newBuilder()
+        .version(HttpClient.Version.HTTP_1_1)
         .connectTimeout(Duration.ofSeconds(3))
         .build();
     private final ObjectMapper mapper = new ObjectMapper();
