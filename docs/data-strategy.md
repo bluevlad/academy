@@ -81,6 +81,40 @@ scripts/data-migrate/
 - 개발/스테이징 환경에만 실행
 - 운영 환경에서 실행 시 즉시 abort (스크립트 첫 줄에서 환경 변수 체크)
 
+## CS 게시판 (`acm_board_cs`) 이관 정책
+
+`tb_board_cs` (legacy, 약 5,430건) → `acm_board_cs` 이관 시:
+
+| 원본 컬럼 | 처리 | 비고 |
+|----------|------|------|
+| `REG_ID` (작성자 ID) | `usr_{sha256[0:8]}` 결정적 해시 → `inquiry_user_id` | 동일 원값→동일 더미 (id_map 캐시) |
+| `CREATENAME` (이름) | Faker ko_KR 이름 → `inquiry_name` | user_id 매핑 고정 |
+| `COUNSELOR_ID` (담당자 ID) | 동일 해시 매핑 → `answered_by`/`assigned_to` | 직원 프라이버시 |
+| `SUBJECT` (제목) | 원본 보존 → `inquiry_title` | 정규식 스크러빙만 (전화·이메일) |
+| `CONTENT` / `ANSWER` (longblob) | UTF-8 디코딩 + 정규식 PII 치환 → `inquiry_body` / `answer_body` | 연락처·주민번호·이메일·한글이름(화이트리스트 제외) |
+| `CS_DIV` / `CS_KIND` | `legacy_cs_div` / `legacy_cs_kind` 로 보존 | AI Ground Truth 학습용 |
+| `REG_DT` (date) | `inquiry_date` (datetime) | 시분초 없음 |
+
+### 본문 스크러빙 정규식
+
+- 휴대폰: `01[016789][- ]?\d{3,4}[- ]?\d{4}` → `010-XXXX-XXXX`
+- 주민등록번호: `\d{6}[- ]?[1-4]\d{6}` → `XXXXXX-XXXXXXX`
+- 이메일: 표준 패턴 → `[email]`
+- 한글 이름 (보수적): 2-4음절 + 상위 20개 성씨 → `[이름]` (화이트리스트 단어 제외)
+
+### 실행 환경 가드
+
+ETL 스크립트는 다음 조건 불충족시 즉시 abort:
+- `DATA_MIGRATE_ENV` ∈ {dev, staging}
+- `TARGET_DB_HOST` = localhost/127.0.0.1 또는 `staging` 포함 호스트명
+
+### 학습 Ground Truth 활용
+
+Legacy `CS_DIV` 값 (`CSCOUNSEL` / `CSREFUND`) 을 `acm_board_cs.actual_category` 에 매핑 적재:
+- `CSCOUNSEL` → `ACADEMIC` (가정, 운영자 재검토 유도)
+- `CSREFUND` → `ORDER`
+- Phase B 의 AI 분류는 이 초기 값을 ground truth 로 **정확도 측정** 가능 (별도 수동 라벨링 불필요)
+
 ## 강사·교수소개 특별 정책
 
 저작권·초상권 우려로 **교수소개 영역은 전면 더미 데이터**:
