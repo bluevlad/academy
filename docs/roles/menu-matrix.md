@@ -58,6 +58,7 @@
 | **학사관리** | 과목관리 | ✅ | | 신규 — `/api/subject/*` (Oracle SQL 호환 작업 대기) |
 | | 강의관리 | ✅ | | 신규 — `/api/lecture/*` (동일 대기) |
 | | 강사관리 | ✅ | | 신규 — `acm_member where user_role='PRF'` (members API 재사용) |
+| **고객센터** | 1:1 문의 응대 | ✅ | | 신규 — `/api/inquiries/*` + academy-agent (qwen2.5:7b) AI 분류·재배정 피드백 (Phase C) |
 | | 강의 카테고리 | ✅ | | TBD (DUTYCODE 일반화) |
 | | 강의 승인 | ✅ | | TBD |
 | **주문·결제** | 수강(주문)관리 | ✅ | | 현행 |

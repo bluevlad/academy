@@ -14,6 +14,7 @@ import {
   FileTextOutlined,
   TeamOutlined,
   ApartmentOutlined,
+  CustomerServiceOutlined,
 } from '@ant-design/icons';
 
 const menuGroups: SidebarMenuGroup[] = [
@@ -40,6 +41,13 @@ const menuGroups: SidebarMenuGroup[] = [
       { key: 'subjects', icon: <ApartmentOutlined />, label: '과목관리', to: '/subjects' },
       { key: 'lectures', icon: <BookOutlined />, label: '강의관리', to: '/lectures' },
       { key: 'instructors', icon: <TeamOutlined />, label: '강사관리', to: '/instructors' },
+    ],
+  },
+  {
+    key: 'support',
+    label: '고객센터',
+    items: [
+      { key: 'inquiries', icon: <CustomerServiceOutlined />, label: '1:1 문의 응대', to: '/support/inquiries' },
     ],
   },
 ];

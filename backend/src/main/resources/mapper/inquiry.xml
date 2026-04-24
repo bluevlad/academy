@@ -1,0 +1,134 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<!--
+  CS 문의 운영자 콘솔용 쿼리. acm_board_cs (Phase A) 기반.
+-->
+<mapper namespace="com.academy.mapper.InquiryMapper">
+
+    <sql id="listWhere">
+        <where>
+            is_deleted = 'N'
+            <if test="req.category != null and req.category != ''">
+                AND (actual_category = #{req.category}
+                     OR (actual_category IS NULL AND predicted_category = #{req.category}))
+            </if>
+            <if test="req.resolutionState != null and req.resolutionState != ''">
+                AND resolution_state = #{req.resolutionState}
+            </if>
+            <if test="req.assignedTo != null and req.assignedTo != ''">
+                AND assigned_to = #{req.assignedTo}
+            </if>
+            <if test="req.keyword != null and req.keyword != ''">
+                AND (inquiry_title LIKE CONCAT('%', #{req.keyword}, '%')
+                     OR inquiry_body LIKE CONCAT('%', #{req.keyword}, '%'))
+            </if>
+        </where>
+    </sql>
+
+    <select id="selectList" resultType="com.academy.inquiry.dto.InquiryDto">
+        SELECT
+            cs_seq                AS csSeq,
+            inquiry_user_id       AS inquiryUserId,
+            inquiry_name          AS inquiryName,
+            inquiry_title         AS inquiryTitle,
+            LEFT(inquiry_body, 200)  AS bodyPreview,
+            NULL                  AS body,
+            inquiry_date          AS inquiryDate,
+            predicted_category    AS predictedCategory,
+            predicted_confidence  AS predictedConfidence,
+            classified_by_model   AS classifiedByModel,
+            classified_at         AS classifiedAt,
+            actual_category       AS actualCategory,
+            assigned_to           AS assignedTo,
+            reroute_count         AS rerouteCount,
+            NULL                  AS answerBody,
+            answered_by           AS answeredBy,
+            answered_at           AS answeredAt,
+            resolution_state      AS resolutionState,
+            user_satisfaction     AS userSatisfaction
+        FROM acm_board_cs
+        <include refid="listWhere"/>
+        ORDER BY inquiry_date DESC, cs_seq DESC
+        LIMIT #{req.sizeOrDefault} OFFSET #{req.offset}
+    </select>
+
+    <select id="selectCount" resultType="long">
+        SELECT COUNT(*) FROM acm_board_cs
+        <include refid="listWhere"/>
+    </select>
+
+    <select id="selectDetail" resultType="com.academy.inquiry.dto.InquiryDto">
+        SELECT
+            cs_seq                AS csSeq,
+            inquiry_user_id       AS inquiryUserId,
+            inquiry_name          AS inquiryName,
+            inquiry_title         AS inquiryTitle,
+            NULL                  AS bodyPreview,
+            inquiry_body          AS body,
+            inquiry_date          AS inquiryDate,
+            predicted_category    AS predictedCategory,
+            predicted_confidence  AS predictedConfidence,
+            classified_by_model   AS classifiedByModel,
+            classified_at         AS classifiedAt,
+            actual_category       AS actualCategory,
+            assigned_to           AS assignedTo,
+            reroute_count         AS rerouteCount,
+            answer_body           AS answerBody,
+            answered_by           AS answeredBy,
+            answered_at           AS answeredAt,
+            resolution_state      AS resolutionState,
+            user_satisfaction     AS userSatisfaction
+        FROM acm_board_cs
+        WHERE cs_seq = #{csSeq}
+          AND is_deleted = 'N'
+    </select>
+
+    <update id="updateClassification">
+        UPDATE acm_board_cs
+           SET predicted_category   = #{category},
+               predicted_confidence = #{confidence},
+               classified_by_model  = #{model},
+               classified_at        = #{classifiedAt}
+         WHERE cs_seq = #{csSeq}
+    </update>
+
+    <update id="updateAnswer">
+        UPDATE acm_board_cs
+           SET answer_body      = #{body},
+               answered_by      = #{by},
+               answered_at      = #{answeredAt},
+               resolution_state = #{state},
+               upd_dt           = CURRENT_TIMESTAMP
+         WHERE cs_seq = #{csSeq}
+    </update>
+
+    <update id="updateReassign">
+        UPDATE acm_board_cs
+           SET actual_category = #{toCategory},
+               assigned_to     = #{toUser},
+               reroute_count   = reroute_count + 1,
+               upd_dt          = CURRENT_TIMESTAMP
+         WHERE cs_seq = #{csSeq}
+    </update>
+
+    <insert id="insertRoutingLog">
+        INSERT INTO acm_inquiry_routing_log (
+            cs_seq, from_category, to_category, from_user, to_user,
+            reason, changed_by, is_ai_error
+        ) VALUES (
+            #{csSeq}, #{fromCategory}, #{toCategory}, #{fromUser}, #{toUser},
+            #{reason}, #{changedBy}, #{isAiError}
+        )
+    </insert>
+
+    <insert id="insertAnalysisLog">
+        INSERT INTO acm_inquiry_analysis (
+            cs_seq, model_name, prompt_template, parsed_category,
+            confidence, latency_ms, raw_output
+        ) VALUES (
+            #{csSeq}, #{modelName}, #{promptTemplate}, #{parsedCategory},
+            #{confidence}, #{latencyMs}, #{rawOutput}
+        )
+    </insert>
+
+</mapper>
