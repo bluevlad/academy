@@ -14,7 +14,8 @@
 					user_role = #{userRole}
 				</when>
 				<otherwise>
-					user_role = 'USER'
+					<!-- 미지정시 USER/PRF/ADMIN 모두 조회 (회원관리 화면 권한 셀렉트 '전체') -->
+					user_role IN ('USER', 'PRF', 'ADMIN')
 				</otherwise>
 			</choose>
 			<if test="userId != null and userId != ''">

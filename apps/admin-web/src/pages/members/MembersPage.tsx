@@ -34,15 +34,21 @@ type SearchForm = {
   userNm?: string;
   email?: string;
   isUse?: '' | 'Y' | 'N';
-  userRole?: '' | 'USER' | 'ADMIN' | 'TEACHER';
+  userRole?: '' | 'USER' | 'PRF' | 'ADMIN';
 };
 
 type DrawerMode = 'create' | 'edit' | null;
 
 const ROLE_COLOR: Record<string, string> = {
   USER: 'blue',
+  PRF: 'green',
   ADMIN: 'red',
-  TEACHER: 'green',
+};
+
+const ROLE_LABEL: Record<string, string> = {
+  USER: '회원',
+  PRF: '강사',
+  ADMIN: '관리자',
 };
 
 export function MembersPage() {
@@ -196,7 +202,9 @@ export function MembersPage() {
       dataIndex: 'USER_ROLE',
       key: 'USER_ROLE',
       width: 90,
-      render: (v: string) => <Tag color={ROLE_COLOR[v] ?? 'default'}>{v || '-'}</Tag>,
+      render: (v: string) => (
+        <Tag color={ROLE_COLOR[v] ?? 'default'}>{v ? `${ROLE_LABEL[v] ?? v} (${v})` : '-'}</Tag>
+      ),
     },
     {
       title: '성별',
@@ -299,9 +307,9 @@ export function MembersPage() {
             style={{ width: 140 }}
             options={[
               { value: '', label: '전체' },
-              { value: 'USER', label: 'USER' },
-              { value: 'ADMIN', label: 'ADMIN' },
-              { value: 'TEACHER', label: 'TEACHER' },
+              { value: 'USER', label: '회원 (USER)' },
+              { value: 'PRF', label: '강사 (PRF)' },
+              { value: 'ADMIN', label: '관리자 (ADMIN)' },
             ]}
           />
         </Form.Item>
@@ -397,9 +405,9 @@ export function MembersPage() {
             <Form.Item name="userRole" label="권한" style={{ flex: 1 }}>
               <Select
                 options={[
-                  { value: 'USER', label: 'USER' },
-                  { value: 'ADMIN', label: 'ADMIN' },
-                  { value: 'TEACHER', label: 'TEACHER' },
+                  { value: 'USER', label: '회원 (USER)' },
+                  { value: 'PRF', label: '강사 (PRF)' },
+                  { value: 'ADMIN', label: '관리자 (ADMIN)' },
                 ]}
               />
             </Form.Item>
