@@ -62,7 +62,7 @@ CREATE TABLE IF NOT EXISTS acm_inquiry_routing_log (
 -- 3. 월간 집계 (배치 갱신, materialized view 대체)
 -- ---------------------------------------------------------------------
 CREATE TABLE IF NOT EXISTS acm_inquiry_stats_monthly (
-    year_month          CHAR(7)       NOT NULL COMMENT 'YYYY-MM',
+    stat_ym          CHAR(7)       NOT NULL COMMENT 'YYYY-MM',
     category            VARCHAR(30)   NOT NULL,
 
     total_count         INT           NOT NULL DEFAULT 0,
@@ -75,7 +75,7 @@ CREATE TABLE IF NOT EXISTS acm_inquiry_stats_monthly (
     updated_at          DATETIME      NOT NULL DEFAULT CURRENT_TIMESTAMP
                         ON UPDATE CURRENT_TIMESTAMP,
 
-    PRIMARY KEY (year_month, category)
+    PRIMARY KEY (stat_ym, category)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
   COMMENT='월간 카테고리별 인사이트 (매월 1일 배치)';
 
