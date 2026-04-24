@@ -1,4 +1,4 @@
-# academy — 역할별 메뉴 명세 (DRAFT v0.1)
+# academy — 역할별 메뉴 명세 (DRAFT v0.2)
 
 > **목적**: 공무원/경찰 학원 레거시에서 출발한 기능을 **범용 학원 운영 시스템** 으로 표준화.
 > 4개 역할별 메뉴를 단일 출처로 정의하고, PDF 산출물로 운영자에게 배포.
@@ -16,15 +16,30 @@
 
 > **마이그레이션 메모**: `STUDENT=USER alias`, `OPERATOR ⊂ ADMIN`, `SYS_ADMIN ⊃ OPERATOR` 로 점진 분화. JWT claim 에 `role` 추가 시 기존 `USER/ADMIN` 토큰 호환 유지 (Role enum 확장).
 
+## 영역 모델 (v0.2)
+
+```
+user-web  (academy.unmong.com)
+  ├─ 🌐 공개 영역     — 비로그인 가능 (학원소개·교수소개·수강신청·교재·학습정보·멤버쉽·고객센터)
+  └─ 🔐 개인 영역     — 로그인 후 (내강의실 · 마이페이지)
+
+admin-web (academy.unmong.com/admin)
+  ├─ 🛠️ 운영자 콘솔   — 회원·강의·주문·교재·시험·공개콘텐츠·고객센터 응대
+  └─ ⚙️ 시스템 콘솔   — 권한·메뉴·코드·로그·AI라우팅·환경설정
+
+instructor 화면    — user-web 의 `/classroom/instructor` (내강의실 진입시 role 분기)
+```
+
 ## 문서 구성
 
 | 파일 | 내용 |
 |------|------|
 | [menu-matrix.md](menu-matrix.md) | 역할 × 메뉴 권한 매트릭스 (단일 출처) |
-| [01-student.md](01-student.md) | 학생 메뉴 트리 + 화면 설명 |
+| [00-public.md](00-public.md) | **공개 영역** 메뉴 (비로그인 가능 — 학원소개·수강신청·교재·학습정보·고객센터 등) |
+| [01-student.md](01-student.md) | 학생 개인 영역 (내강의실 · 마이페이지) |
 | [02-instructor.md](02-instructor.md) | 강사 메뉴 트리 |
-| [03-operator.md](03-operator.md) | 운영자 메뉴 트리 |
-| [04-sysadmin.md](04-sysadmin.md) | 시스템관리자 메뉴 트리 |
+| [03-operator.md](03-operator.md) | 운영자 메뉴 (운영·공개콘텐츠·고객센터 응대) |
+| [04-sysadmin.md](04-sysadmin.md) | 시스템관리자 (권한·메뉴·AI라우팅) |
 
 ## 표기 규약
 
