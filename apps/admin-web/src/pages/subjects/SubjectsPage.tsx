@@ -4,46 +4,51 @@ import type { ColumnsType } from 'antd/es/table';
 import { ReloadOutlined, SearchOutlined } from '@ant-design/icons';
 import { useQuery } from '@tanstack/react-query';
 import { PageContainer } from '@academy/ui-core';
-import { listLectures, type Lecture, type LectureSearch } from '../../api/lectures';
+import { listSubjects, type Subject, type SubjectSearch } from '../../api/subjects';
 
 type SearchForm = {
-  subjectTitle?: string;
-  teacherNm?: string;
+  sjtNm?: string;
   isUse?: '' | 'Y' | 'N';
 };
 
-export function LecturesPage() {
+export function SubjectsPage() {
   const [searchForm] = Form.useForm<SearchForm>();
   const [search, setSearch] = useState<SearchForm>({});
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(10);
 
-  const params: LectureSearch = useMemo(
+  const params: SubjectSearch = useMemo(
     () => ({ ...search, currentPage: page, pageRow: pageSize }),
     [search, page, pageSize],
   );
 
   const listQuery = useQuery({
-    queryKey: ['lectures', params],
-    queryFn: () => listLectures(params),
+    queryKey: ['subjects', params],
+    queryFn: () => listSubjects(params),
     placeholderData: (prev) => prev,
     retry: false,
   });
 
   const sqlError = listQuery.isError;
 
-  const columns: ColumnsType<Lecture> = [
-    { title: '강의코드', dataIndex: 'LECCODE', key: 'LECCODE', width: 140 },
-    { title: '강의명', dataIndex: 'SUBJECT_TITLE', key: 'SUBJECT_TITLE', ellipsis: true },
-    { title: '카테고리', dataIndex: 'CATEGORY_CD', key: 'CATEGORY_CD', width: 100 },
-    { title: '학습유형', dataIndex: 'LEARNING_CD', key: 'LEARNING_CD', width: 100 },
+  const columns: ColumnsType<Subject> = [
+    { title: '과목코드', dataIndex: 'SJT_CD', key: 'SJT_CD', width: 140 },
+    { title: '과목명', dataIndex: 'SJT_NM', key: 'SJT_NM' },
     {
-      title: '가격',
-      dataIndex: 'SUBJECT_PRICE',
-      key: 'SUBJECT_PRICE',
-      width: 110,
+      title: '깊이',
+      dataIndex: 'SJT_DEPTH',
+      key: 'SJT_DEPTH',
+      width: 80,
       align: 'right',
-      render: (v) => (v == null ? '-' : Number(v).toLocaleString()),
+      render: (v) => v ?? '-',
+    },
+    {
+      title: '순서',
+      dataIndex: 'SJT_ORDR',
+      key: 'SJT_ORDR',
+      width: 80,
+      align: 'right',
+      render: (v) => v ?? '-',
     },
     {
       title: '사용',
@@ -63,8 +68,8 @@ export function LecturesPage() {
 
   return (
     <PageContainer
-      title="강의관리"
-      crumbs={[{ label: '학사관리' }, { label: '강의관리' }]}
+      title="과목관리"
+      crumbs={[{ label: '학사관리' }, { label: '과목관리' }]}
       extra={
         <Space>
           <Button icon={<ReloadOutlined />} onClick={() => listQuery.refetch()}>
@@ -81,8 +86,8 @@ export function LecturesPage() {
           message="백엔드 SQL 마이그레이션 대기 중"
           description={
             <span>
-              <code>/api/lecture/list</code> 가 Oracle 잔존 SQL 로 인해 MariaDB 환경에서
-              500 응답 중. <code>backend/src/main/resources/mapper/lectureLectureSQL.xml</code>{' '}
+              <code>/api/subject/list</code> 가 Oracle 잔존 SQL 로 인해 MariaDB 환경에서
+              500 응답 중. <code>backend/src/main/resources/mapper/lectureSubjectSQL.xml</code>{' '}
               MariaDB 호환화 후 본 화면이 활성화됩니다. 메뉴 구조·UI 골격은 미리 준비.
             </span>
           }
@@ -98,11 +103,8 @@ export function LecturesPage() {
         }}
         style={{ marginBottom: 16, rowGap: 8 }}
       >
-        <Form.Item name="subjectTitle" label="강의명">
-          <Input allowClear placeholder="강의명" style={{ width: 200 }} />
-        </Form.Item>
-        <Form.Item name="teacherNm" label="강사명">
-          <Input allowClear placeholder="강사명" style={{ width: 160 }} />
+        <Form.Item name="sjtNm" label="과목명">
+          <Input allowClear placeholder="과목명" style={{ width: 200 }} />
         </Form.Item>
         <Form.Item name="isUse" label="사용여부" initialValue="">
           <Select
@@ -133,12 +135,11 @@ export function LecturesPage() {
       </Form>
 
       <Flex vertical>
-        <Table<Lecture>
-          rowKey="LECCODE"
+        <Table<Subject>
+          rowKey="SJT_CD"
           columns={columns}
           dataSource={listQuery.data?.items ?? []}
           loading={listQuery.isFetching}
-          scroll={{ x: 1100 }}
           size="middle"
           pagination={{
             current: page,

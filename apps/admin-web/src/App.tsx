@@ -4,7 +4,9 @@ import { LoginPage } from './pages/LoginPage';
 import { AdminShell } from './pages/AdminShell';
 import { DashboardPage } from './pages/DashboardPage';
 import { MembersPage } from './pages/members/MembersPage';
+import { SubjectsPage } from './pages/subjects/SubjectsPage';
 import { LecturesPage } from './pages/lectures/LecturesPage';
+import { InstructorsPage } from './pages/instructors/InstructorsPage';
 import { OrdersPage } from './pages/orders/OrdersPage';
 import { CouponsPage } from './pages/coupons/CouponsPage';
 import { BooksPage } from './pages/books/BooksPage';
@@ -25,7 +27,9 @@ export function App() {
         <Route index element={<Navigate to="/dashboard" replace />} />
         <Route path="dashboard" element={<DashboardPage />} />
         <Route path="members" element={<MembersPage />} />
+        <Route path="subjects" element={<SubjectsPage />} />
         <Route path="lectures" element={<LecturesPage />} />
+        <Route path="instructors" element={<InstructorsPage />} />
         <Route path="orders" element={<OrdersPage />} />
         <Route path="coupons" element={<CouponsPage />} />
         <Route path="books" element={<BooksPage />} />

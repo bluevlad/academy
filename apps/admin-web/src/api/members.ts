@@ -1,6 +1,14 @@
 import { apiClient } from './client';
 
-export type MemberRole = 'USER' | 'ADMIN' | 'TEACHER';
+/**
+ * acm_member.user_role 코드:
+ *  - USER  = 일반 회원(학생)
+ *  - PRF   = 강사 (Professor 약자, legacy 코드 유지)
+ *  - ADMIN = 관리자
+ *
+ * 화면 표시는 강사 = "강사", PRF = "강사" 로 매핑 (UI 라벨)
+ */
+export type MemberRole = 'USER' | 'PRF' | 'ADMIN';
 
 export interface Member {
   USER_ID: string;
