@@ -84,6 +84,10 @@ app:
     refresh-ttl: ${JWT_REFRESH_TTL:P14D}
   google:
     client-id: ${GOOGLE_CLIENT_ID:}
+  agent:
+    # academy-agent (services/agent) HTTP endpoint. docker-compose 내부에선
+    # 서비스명, 로컬 개발에선 localhost:9011.
+    url: ${ACADEMY_AGENT_URL:http://academy-agent:9011}
 
 logging:
   level:

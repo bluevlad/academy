@@ -7,6 +7,7 @@ import { MembersPage } from './pages/members/MembersPage';
 import { SubjectsPage } from './pages/subjects/SubjectsPage';
 import { LecturesPage } from './pages/lectures/LecturesPage';
 import { InstructorsPage } from './pages/instructors/InstructorsPage';
+import { InquiriesPage } from './pages/inquiries/InquiriesPage';
 import { OrdersPage } from './pages/orders/OrdersPage';
 import { CouponsPage } from './pages/coupons/CouponsPage';
 import { BooksPage } from './pages/books/BooksPage';
@@ -34,6 +35,7 @@ export function App() {
         <Route path="coupons" element={<CouponsPage />} />
         <Route path="books" element={<BooksPage />} />
         <Route path="mocktest" element={<MockExamsPage />} />
+        <Route path="support/inquiries" element={<InquiriesPage />} />
       </Route>
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>

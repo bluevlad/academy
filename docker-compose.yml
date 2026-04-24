@@ -37,6 +37,7 @@ services:
       ADMIN_USERNAMES: ${ADMIN_USERNAMES:-admin,rainend}
       ADMIN_PASSWORD: ${ADMIN_PASSWORD:-dnflskfk}
       CORS_ALLOWED_ORIGINS: ${ACADEMY_CORS_ORIGINS:-https://academy.unmong.com,http://localhost:4001,http://localhost:4002}
+      ACADEMY_AGENT_URL: ${ACADEMY_AGENT_URL:-http://academy-agent:9011}
       TZ: ${TZ:-Asia/Seoul}
     ports:
       - "${ACADEMY_BACKEND_PORT:-9001}:9001"
