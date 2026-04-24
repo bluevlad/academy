@@ -46,8 +46,11 @@
 ### 🤖 AI · 고객센터 (신설)
 | 메뉴 | 경로 | 설명 | 상태 |
 |------|------|------|------|
-| AI 라우팅 모델 설정 | `/system/ai-routing` | 1:1 문의 **카테고리 분류 규칙** + **카테고리 → 담당자 매핑** 관리. 룰베이스(키워드) 또는 LLM 모델 선택. | 신규 |
-| AI 모델 로그 | `/system/ai-routing/logs` | 분류 결과·담당자 할당·재배정 이력 | 신규 |
+| AI agent 연동 설정 | `/system/ai-routing` | **로컬 LLM agent** endpoint(URL/포트)·인증·timeout 관리 + 카테고리 분류 룰 + 카테고리→담당자 매핑 | 신규 |
+| AI agent 헬스 | `/system/ai-routing/health` | agent 응답 속도·실패율 모니터링·fallback 통계 | 신규 |
+| AI 모델 로그 | `/system/ai-routing/logs` | 분류 결과·담당자 할당·재배정 이력·agent 호출 로그 | 신규 |
+
+> **AI 라우팅 구현 방침** (확정): 로컬 LLM 기반 별도 agent 서비스. 백엔드는 HTTP/gRPC 호출만 담당. 외부 클라우드 API 의존 없음 (개인정보 외부 유출 차단). 모델 종류·구동 방식은 구현 Sprint 에서 결정. 상세는 [03-operator.md](03-operator.md) "AI 기반 1:1 문의 라우팅" 참조.
 
 ### 💾 운영
 | 메뉴 | 경로 | 설명 | 상태 |
