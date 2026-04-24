@@ -83,6 +83,33 @@ services:
       - all
       - frontend
 
+  # CS Agent — Phase B, Python FastAPI + Ollama 로컬 LLM 연동
+  # 호스트 Ollama(:11434) 의 Metal 가속을 활용하려고 호스트 ollama 에 HTTP 호출.
+  # 관련 플랜: Claude-Opus-bluevlad/services/academy/CS_INQUIRY_AI_PLAN.md
+  academy-agent:
+    build:
+      context: ./services/agent
+      dockerfile: Dockerfile
+    container_name: academy-agent
+    environment:
+      OLLAMA_BASE_URL: ${ACADEMY_OLLAMA_BASE_URL:-http://host.docker.internal:11434}
+      CLASSIFIER_MODEL: ${ACADEMY_AGENT_CLASSIFIER_MODEL:-qwen2.5:7b}
+      EMBEDDING_MODEL: ${ACADEMY_AGENT_EMBEDDING_MODEL:-nomic-embed-text}
+      DB_HOST: ${ACADEMY_AGENT_DB_HOST:-host.docker.internal}
+      DB_PORT: ${ACADEMY_AGENT_DB_PORT:-3306}
+      DB_USER: ${ACADEMY_DB_USERNAME:-root}
+      DB_PASSWORD: ${ACADEMY_DB_PASSWORD:?ACADEMY_DB_PASSWORD is required}
+      DB_NAME: ${ACADEMY_DB_NAME:-acm_basic}
+      AGENT_PORT: 9011
+    ports:
+      - "${ACADEMY_AGENT_PORT:-9011}:9011"
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    restart: unless-stopped
+    profiles:
+      - all
+      - agent
+
   # Redis — 캐시·JWT refresh·장바구니 임시
   academy-redis:
     image: redis:7-alpine
