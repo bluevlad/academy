@@ -53,7 +53,12 @@ async def classify_inquiry(title: str, body: str) -> ClassifyResult:
     """
     # 본문 너무 길면 4000자로 절단 (한글 tokenizer 기준 약 2000 토큰)
     body_short = (body or "")[:4000]
-    prompt = PROMPT_TEMPLATE.format(title=title or "(제목없음)", body=body_short)
+    # .format() 은 프롬프트 내 JSON 예시의 {} 와 충돌 → 단순 replace 사용
+    prompt = (
+        PROMPT_TEMPLATE
+        .replace("{title}", title or "(제목없음)")
+        .replace("{body}", body_short)
+    )
 
     raw = ""
     latency = 0
