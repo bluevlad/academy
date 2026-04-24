@@ -31,8 +31,8 @@ export const apiClient = createApiClient({
   onUnauthorized: () => {
     tokenStorage.clearAll();
     const current = window.location.pathname;
-    if (!current.startsWith('/login')) {
-      window.location.href = '/login';
+    if (!current.startsWith('/admin/login')) {
+      window.location.href = '/admin/login';
     }
   },
 });
