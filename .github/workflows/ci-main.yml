@@ -1,0 +1,43 @@
+name: CI - main branch validation
+
+# main 으로의 PR / push 시 backend·frontend 빌드와 단위 테스트를 검증.
+# 통과해야 prod 로 promotion 가능 (수동 절차 — branch-strategy.md 참조).
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+  backend:
+    name: Backend (Maven verify)
+    runs-on: self-hosted
+    defaults:
+      run:
+        working-directory: backend
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Maven test (unit only — 통합 테스트는 @Disabled)
+        run: ./mvnw -B clean test
+
+      - name: Maven package (skip tests, sanity)
+        run: ./mvnw -B package -DskipTests
+
+  frontend:
+    name: Frontend (typecheck + build)
+    runs-on: self-hosted
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install workspace deps
+        run: npm ci
+
+      - name: Typecheck (ui-core + admin-web + user-web)
+        run: npm run typecheck
+
+      - name: Build all
+        run: npm run build

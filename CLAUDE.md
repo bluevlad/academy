@@ -47,6 +47,26 @@ academy-user 의 수강생 기능을 **user 모듈** 로 흡수하여 단일 배
 (ADR / SPRINTS / DEPLOYMENT_CHECKLIST / CI_CD_SETUP / api/ / db/).
 `./docs/` 폴더에는 포인터 [`README.md`](docs/README.md) 만 있습니다.
 
+## 브랜치 전략 & 배포 (표준 프로세스)
+
+> **상세**: [`docs/workflow/branch-strategy.md`](docs/workflow/branch-strategy.md)
+
+- **브랜치**: `main` (검증 stable, PR 만) · `prod` (배포 트리거, FF only) · `feat/*`·`fix/*`·`chore/*` (작업)
+- **머지**: feature → main 은 `squash`, main → prod 는 `--ff-only` 강제
+- **CI**: `ci-main.yml` (PR/push 시 backend `mvn test` + frontend `typecheck`/`build`)
+- **CD**: `deploy-prod.yml` (prod push 시 docker 재빌드)
+
+### "prod push" 요청 시 Claude 가 수행할 5단계
+
+1. **사전 검증** — 현재 브랜치가 feature 인지, 작업 트리 clean, 미푸시 커밋 존재 확인
+2. **PR 생성** — `git push -u origin <branch>` → `gh pr create --base main`
+3. **PR CI 통과 대기** — `gh pr checks --watch`. 실패 시 즉시 중단, prod push 금지
+4. **squash merge** — `gh pr merge <#> --squash --delete-branch`
+5. **main → prod 승격** — `git merge --ff-only origin/main` → `git push origin prod` → deploy watch
+6. **로컬 정리** — `git branch -D <branch>` + `git remote prune origin`
+
+⚠️ **prod 직접 push 금지** — 반드시 main 경유. 단계 실패 시 사용자에게 보고 후 중단.
+
 ## 유용 명령
 
 ```bash
