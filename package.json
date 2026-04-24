@@ -10,7 +10,7 @@
   "scripts": {
     "dev:admin": "npm -w @academy/admin-web run dev",
     "dev:user":  "npm -w @academy/user-web run dev",
-    "build":     "npm -w @academy/ui-core run build && npm -w @academy/admin-web run build && npm -w @academy/user-web run build",
+    "build":     "npm -w @academy/admin-web run build && npm -w @academy/user-web run build",
     "typecheck": "npm -w @academy/ui-core run typecheck && npm -w @academy/admin-web run typecheck && npm -w @academy/user-web run typecheck",
     "lint":      "eslint apps packages --ext .ts,.tsx,.js,.jsx"
   },
