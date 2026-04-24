@@ -41,6 +41,11 @@ instructor 화면    — user-web 의 `/classroom/instructor` (내강의실 진�
 | [03-operator.md](03-operator.md) | 운영자 메뉴 (운영·공개콘텐츠·고객센터 응대) |
 | [04-sysadmin.md](04-sysadmin.md) | 시스템관리자 (권한·메뉴·AI라우팅) |
 
+## 관련 표준 문서
+
+- [`../data-strategy.md`](../data-strategy.md) — 데이터 이관·마스킹 표준 (개인정보 더미 + 통계 실데이터 정책)
+- [`../workflow/branch-strategy.md`](../workflow/branch-strategy.md) — 브랜치·배포 표준 프로세스
+
 ## 표기 규약
 
 - **현행**: 현재 코드에 이미 구현된 메뉴 (`AdminShell.tsx` / `UserShell.tsx`)
