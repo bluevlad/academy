@@ -61,8 +61,8 @@ public interface InquiryMapper {
         @Param("rawOutput") String rawOutput
     );
 
-    /** 사용자 문의 신규 등록. generated cs_seq 반환 위해 VO 대신 Long 사용시 useGeneratedKeys 필요. */
-    long insertInquiry(
+    /** 사용자 문의 신규 등록. int = affected rows. Service 에서 selectMyList 로 최신 행 재조회. */
+    int insertInquiry(
         @Param("userId") String userId,
         @Param("name") String name,
         @Param("title") String title,

@@ -135,7 +135,10 @@
     <!-- Phase D 추가 — 사용자 문의 작성·본인 목록·통계                   -->
     <!-- ============================================================== -->
 
-    <insert id="insertInquiry" useGeneratedKeys="true" keyProperty="csSeq">
+    <!-- useGeneratedKeys + keyProperty 는 @Param 기반 mapper 에 쓰면 Jdbc3KeyGenerator 가
+         parameter 를 Map/POJO 로 가정하고 BeanWrapper NPE. Service 에서 selectMyList(limit=1)
+         로 재조회하므로 생성 키 반환 불필요. -->
+    <insert id="insertInquiry">
         INSERT INTO acm_board_cs (
             inquiry_user_id, inquiry_name,
             inquiry_title, inquiry_body, inquiry_date,
