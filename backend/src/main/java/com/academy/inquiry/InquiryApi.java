@@ -94,6 +94,14 @@ public class InquiryApi {
         return ResponseEntity.ok(ApiResponse.ok(d));
     }
 
+    @Operation(summary = "월간 통계 (카테고리 트렌드·AI 정확도·미해결 top)")
+    @GetMapping("/stats")
+    public ApiResponse<com.academy.inquiry.dto.MonthlyStatsResponse> stats(
+        @RequestParam(name = "ym") String yearMonth
+    ) {
+        return ApiResponse.ok(service.monthlyStats(yearMonth));
+    }
+
     @Operation(summary = "유사 문의 추천 (agent 호출)")
     @GetMapping("/{csSeq}/related")
     public ResponseEntity<ApiResponse<InquiryAgentClient.SuggestResponse>> related(@PathVariable long csSeq) {

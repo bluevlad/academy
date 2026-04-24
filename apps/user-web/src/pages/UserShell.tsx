@@ -7,6 +7,8 @@ import {
   UserOutlined,
   PlayCircleOutlined,
   FileTextOutlined,
+  CustomerServiceOutlined,
+  EditOutlined,
 } from '@ant-design/icons';
 
 const menuGroups: SidebarMenuGroup[] = [
@@ -30,6 +32,14 @@ const menuGroups: SidebarMenuGroup[] = [
     items: [
       { key: 'cart', icon: <ShoppingCartOutlined />, label: '장바구니', to: '/cart' },
       { key: 'profile', icon: <UserOutlined />, label: '내 정보', to: '/mypage/profile' },
+    ],
+  },
+  {
+    key: 'support',
+    label: '고객센터',
+    items: [
+      { key: 'inquiry-write', icon: <EditOutlined />, label: '1:1 문의 작성', to: '/support/inquiry' },
+      { key: 'inquiries', icon: <CustomerServiceOutlined />, label: '내 문의 내역', to: '/support/inquiries' },
     ],
   },
 ];

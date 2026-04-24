@@ -95,3 +95,32 @@ export async function getRelated(csSeq: number): Promise<SuggestResponse> {
   const res = await apiClient.get<ApiResponse<SuggestResponse>>(`/inquiries/${csSeq}/related`);
   return unwrap<SuggestResponse>({ data: res.data });
 }
+
+export interface CategoryStat {
+  category: string;
+  totalCount: number;
+  resolvedCount: number;
+  prevMonthCount: number;
+  momDeltaPct: number | null;
+  decreasing: boolean;
+  avgSatisfaction: number | null;
+}
+
+export interface MonthlyStats {
+  yearMonth: string;
+  categories: CategoryStat[];
+  totalInquiries: number;
+  resolvedCount: number;
+  resolutionRate: number | null;
+  aiAccuracyRate: number | null;
+  aiErrorCount: number;
+  totalRoutingChanges: number;
+  unresolvedTop: Inquiry[];
+}
+
+export async function getMonthlyStats(ym: string): Promise<MonthlyStats> {
+  const res = await apiClient.get<ApiResponse<MonthlyStats>>('/inquiries/stats', {
+    params: { ym },
+  });
+  return unwrap<MonthlyStats>({ data: res.data });
+}
