@@ -18,6 +18,7 @@ import type { ColumnsType } from 'antd/es/table';
 import { ReloadOutlined, SearchOutlined, ThunderboltOutlined } from '@ant-design/icons';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { PageContainer } from '@academy/ui-core';
+import { InquiryStatsPanel } from './InquiryStatsPanel';
 import {
   classifyNow,
   getInquiryDetail,
@@ -175,11 +176,12 @@ export function InquiriesPage() {
         </Space>
       }
     >
+      <InquiryStatsPanel />
       <Alert
         type="info"
         showIcon
         style={{ marginBottom: 16 }}
-        message="Phase C — AI 분류는 agent (qwen2.5:7b) 가 처리. 운영자가 재배정하면 학습 데이터에 누적."
+        message="AI 분류는 agent (qwen2.5:7b) 가 처리. 운영자가 재배정하면 학습 데이터에 누적."
         description="데이터가 없을 경우 Phase A ETL 을 먼저 실행하세요: scripts/data-migrate/board/"
       />
 

@@ -131,4 +131,102 @@
         )
     </insert>
 
+    <!-- ============================================================== -->
+    <!-- Phase D 추가 — 사용자 문의 작성·본인 목록·통계                   -->
+    <!-- ============================================================== -->
+
+    <insert id="insertInquiry" useGeneratedKeys="true" keyProperty="csSeq">
+        INSERT INTO acm_board_cs (
+            inquiry_user_id, inquiry_name,
+            inquiry_title, inquiry_body, inquiry_date,
+            resolution_state, reg_dt
+        ) VALUES (
+            #{userId}, #{name},
+            #{title}, #{body}, NOW(),
+            'OPEN', NOW()
+        )
+    </insert>
+
+    <select id="selectMyList" resultType="com.academy.inquiry.dto.InquiryDto">
+        SELECT
+            cs_seq                AS csSeq,
+            inquiry_user_id       AS inquiryUserId,
+            inquiry_name          AS inquiryName,
+            inquiry_title         AS inquiryTitle,
+            LEFT(inquiry_body, 200)  AS bodyPreview,
+            NULL                  AS body,
+            inquiry_date          AS inquiryDate,
+            predicted_category    AS predictedCategory,
+            predicted_confidence  AS predictedConfidence,
+            classified_by_model   AS classifiedByModel,
+            classified_at         AS classifiedAt,
+            actual_category       AS actualCategory,
+            assigned_to           AS assignedTo,
+            reroute_count         AS rerouteCount,
+            NULL                  AS answerBody,
+            answered_by           AS answeredBy,
+            answered_at           AS answeredAt,
+            resolution_state      AS resolutionState,
+            user_satisfaction     AS userSatisfaction
+        FROM acm_board_cs
+        WHERE inquiry_user_id = #{userId}
+          AND is_deleted = 'N'
+        ORDER BY inquiry_date DESC, cs_seq DESC
+        LIMIT #{limit} OFFSET #{offset}
+    </select>
+
+    <select id="selectMyCount" resultType="long">
+        SELECT COUNT(*) FROM acm_board_cs
+        WHERE inquiry_user_id = #{userId}
+          AND is_deleted = 'N'
+    </select>
+
+    <select id="selectMonthlyStats" resultType="java.util.Map">
+        SELECT
+            COALESCE(actual_category, predicted_category, 'OTHER') AS category,
+            COUNT(*) AS totalCount,
+            SUM(CASE WHEN resolution_state IN ('ANSWERED','RESOLVED') THEN 1 ELSE 0 END) AS resolvedCount,
+            AVG(user_satisfaction) AS avgSatisfaction
+        FROM acm_board_cs
+        WHERE DATE_FORMAT(inquiry_date, '%Y-%m') = #{ym}
+          AND is_deleted = 'N'
+        GROUP BY category
+    </select>
+
+    <select id="selectRoutingStats" resultType="java.util.Map">
+        SELECT
+            COUNT(*) AS totalLog,
+            SUM(CASE WHEN is_ai_error = 'Y' THEN 1 ELSE 0 END) AS aiErrorCount
+        FROM acm_inquiry_routing_log
+        WHERE DATE_FORMAT(changed_at, '%Y-%m') = #{ym}
+    </select>
+
+    <select id="selectUnresolvedTop" resultType="com.academy.inquiry.dto.InquiryDto">
+        SELECT
+            cs_seq                AS csSeq,
+            inquiry_user_id       AS inquiryUserId,
+            inquiry_name          AS inquiryName,
+            inquiry_title         AS inquiryTitle,
+            LEFT(inquiry_body, 100)  AS bodyPreview,
+            NULL                  AS body,
+            inquiry_date          AS inquiryDate,
+            predicted_category    AS predictedCategory,
+            predicted_confidence  AS predictedConfidence,
+            classified_by_model   AS classifiedByModel,
+            classified_at         AS classifiedAt,
+            actual_category       AS actualCategory,
+            assigned_to           AS assignedTo,
+            reroute_count         AS rerouteCount,
+            NULL                  AS answerBody,
+            answered_by           AS answeredBy,
+            answered_at           AS answeredAt,
+            resolution_state      AS resolutionState,
+            user_satisfaction     AS userSatisfaction
+        FROM acm_board_cs
+        WHERE is_deleted = 'N'
+          AND resolution_state = 'OPEN'
+        ORDER BY inquiry_date ASC
+        LIMIT #{limit}
+    </select>
+
 </mapper>

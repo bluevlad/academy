@@ -10,6 +10,9 @@ import { CartPage } from './pages/cart/CartPage';
 import { MyLecturePage } from './pages/mypage/MyLecturePage';
 import { ProfilePage } from './pages/mypage/ProfilePage';
 import { MockExamsPage } from './pages/mocktest/MockExamsPage';
+import { InquiryWritePage } from './pages/support/InquiryWritePage';
+import { MyInquiriesPage } from './pages/support/MyInquiriesPage';
+import { InquiryDetailPage } from './pages/support/InquiryDetailPage';
 
 export function App() {
   return (
@@ -31,6 +34,9 @@ export function App() {
         <Route path="mypage/profile" element={<ProfilePage />} />
         <Route path="mypage/mylecture" element={<MyLecturePage />} />
         <Route path="mocktest" element={<MockExamsPage />} />
+        <Route path="support/inquiry" element={<InquiryWritePage />} />
+        <Route path="support/inquiries" element={<MyInquiriesPage />} />
+        <Route path="support/inquiries/:csSeq" element={<InquiryDetailPage />} />
       </Route>
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
