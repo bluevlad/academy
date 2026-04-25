@@ -11,8 +11,11 @@ import { apiClient } from './client';
 export type InquiryCategory = 'ACADEMIC' | 'ORDER' | 'SYSTEM' | 'OTHER';
 export type ResolutionState = 'OPEN' | 'ANSWERED' | 'RESOLVED' | 'CLOSED';
 
+export type InquirySource = 'L' | 'N';
+
 export interface Inquiry {
-  csSeq: number;
+  source: InquirySource;
+  csSeq: string;
   inquiryUserId: string;
   inquiryName: string;
   inquiryTitle: string;
@@ -61,38 +64,43 @@ export async function listInquiries(params: InquirySearch): Promise<PagedRespons
   return unwrap<PagedResponse<Inquiry>>({ data: res.data });
 }
 
-export async function getInquiryDetail(csSeq: number): Promise<Inquiry> {
-  const res = await apiClient.get<ApiResponse<Inquiry>>(`/inquiries/${csSeq}`);
+export async function getInquiryDetail(csSeq: string): Promise<Inquiry> {
+  const res = await apiClient.get<ApiResponse<Inquiry>>(`/inquiries/${encodeURIComponent(csSeq)}`);
   return unwrap<Inquiry>({ data: res.data });
 }
 
-export async function classifyNow(csSeq: number): Promise<Inquiry> {
-  const res = await apiClient.post<ApiResponse<Inquiry>>(`/inquiries/${csSeq}/classify`);
+export async function classifyNow(csSeq: string): Promise<Inquiry> {
+  const res = await apiClient.post<ApiResponse<Inquiry>>(`/inquiries/${encodeURIComponent(csSeq)}/classify`);
   return unwrap<Inquiry>({ data: res.data });
 }
 
 export async function postAnswer(
-  csSeq: number,
+  csSeq: string,
   answerBody: string,
   resolutionState?: ResolutionState,
 ): Promise<Inquiry> {
-  const res = await apiClient.post<ApiResponse<Inquiry>>(`/inquiries/${csSeq}/answer`, {
-    answerBody,
-    resolutionState,
-  });
+  const res = await apiClient.post<ApiResponse<Inquiry>>(
+    `/inquiries/${encodeURIComponent(csSeq)}/answer`,
+    { answerBody, resolutionState },
+  );
   return unwrap<Inquiry>({ data: res.data });
 }
 
 export async function reassignInquiry(
-  csSeq: number,
+  csSeq: string,
   payload: { toCategory: string; toUser: string; reason?: string; isAiError?: boolean },
 ): Promise<Inquiry> {
-  const res = await apiClient.post<ApiResponse<Inquiry>>(`/inquiries/${csSeq}/reassign`, payload);
+  const res = await apiClient.post<ApiResponse<Inquiry>>(
+    `/inquiries/${encodeURIComponent(csSeq)}/reassign`,
+    payload,
+  );
   return unwrap<Inquiry>({ data: res.data });
 }
 
-export async function getRelated(csSeq: number): Promise<SuggestResponse> {
-  const res = await apiClient.get<ApiResponse<SuggestResponse>>(`/inquiries/${csSeq}/related`);
+export async function getRelated(csSeq: string): Promise<SuggestResponse> {
+  const res = await apiClient.get<ApiResponse<SuggestResponse>>(
+    `/inquiries/${encodeURIComponent(csSeq)}/related`,
+  );
   return unwrap<SuggestResponse>({ data: res.data });
 }
 

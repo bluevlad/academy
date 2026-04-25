@@ -20,12 +20,11 @@ const STATE_LABELS: Record<string, { label: string; color: string }> = {
 export function InquiryDetailPage() {
   const { csSeq } = useParams();
   const navigate = useNavigate();
-  const seqNum = Number(csSeq);
 
   const q = useQuery({
-    queryKey: ['my-inquiry', seqNum],
-    queryFn: () => myInquiryDetail(seqNum),
-    enabled: !isNaN(seqNum),
+    queryKey: ['my-inquiry', csSeq],
+    queryFn: () => myInquiryDetail(csSeq!),
+    enabled: !!csSeq,
   });
 
   const d = q.data;

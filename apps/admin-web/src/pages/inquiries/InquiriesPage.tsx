@@ -58,7 +58,7 @@ export function InquiriesPage() {
   const [filter, setFilter] = useState<InquirySearch>({});
   const [page, setPage] = useState(1);
   const [size, setSize] = useState(20);
-  const [detailTarget, setDetailTarget] = useState<number | null>(null);
+  const [detailTarget, setDetailTarget] = useState<string | null>(null);
   const [reassignOpen, setReassignOpen] = useState(false);
 
   const params: InquirySearch = useMemo(
@@ -90,21 +90,34 @@ export function InquiriesPage() {
   });
 
   const answerMut = useMutation({
-    mutationFn: (v: { csSeq: number; answerBody: string; state?: ResolutionState }) =>
+    mutationFn: (v: { csSeq: string; answerBody: string; state?: ResolutionState }) =>
       postAnswer(v.csSeq, v.answerBody, v.state),
     onSuccess: () => { message.success('답변 저장'); answerForm.resetFields(['answerBody']); invalidate(); },
     onError: (e: Error) => message.error(e.message),
   });
 
   const reassignMut = useMutation({
-    mutationFn: (v: { csSeq: number; toCategory: string; toUser: string; reason?: string; isAiError?: boolean }) =>
+    mutationFn: (v: { csSeq: string; toCategory: string; toUser: string; reason?: string; isAiError?: boolean }) =>
       reassignInquiry(v.csSeq, v),
     onSuccess: () => { message.success('재배정 완료'); setReassignOpen(false); reassignForm.resetFields(); invalidate(); },
     onError: (e: Error) => message.error(e.message),
   });
 
   const columns: ColumnsType<Inquiry> = [
-    { title: '#', dataIndex: 'csSeq', key: 'csSeq', width: 70 },
+    {
+      title: '#',
+      dataIndex: 'csSeq',
+      key: 'csSeq',
+      width: 130,
+      render: (v: string, row) => (
+        <Space size={4}>
+          <Tag color={row.source === 'L' ? 'default' : 'green'} style={{ marginInlineEnd: 0 }}>
+            {row.source === 'L' ? 'Legacy' : 'New'}
+          </Tag>
+          <span>{v}</span>
+        </Space>
+      ),
+    },
     {
       title: '제목',
       dataIndex: 'inquiryTitle',
@@ -254,7 +267,7 @@ export function InquiriesPage() {
         destroyOnClose
         loading={detail.isLoading}
         extra={
-          target && (
+          target && target.source === 'N' && (
             <Space>
               <Button
                 icon={<ThunderboltOutlined />}
@@ -337,35 +350,47 @@ export function InquiriesPage() {
               </>
             )}
 
-            <h4 style={{ marginTop: 20 }}>답변 {target.answerBody ? '수정' : '등록'}</h4>
-            <Form
-              form={answerForm}
-              layout="vertical"
-              onFinish={(v) =>
-                answerMut.mutate({
-                  csSeq: target.csSeq,
-                  answerBody: v.answerBody,
-                  state: v.resolutionState,
-                })
-              }
-            >
-              <Form.Item name="answerBody" rules={[{ required: true, message: '답변 본문을 입력하세요.' }]}>
-                <Input.TextArea rows={6} placeholder="답변 내용 (Markdown/HTML)" />
-              </Form.Item>
-              <Form.Item name="resolutionState" label="처리 상태" initialValue="ANSWERED">
-                <Select
-                  style={{ width: 200 }}
-                  options={[
-                    { value: 'ANSWERED', label: '답변 완료' },
-                    { value: 'RESOLVED', label: '해결됨' },
-                    { value: 'CLOSED', label: '종료' },
-                  ]}
-                />
-              </Form.Item>
-              <Button type="primary" htmlType="submit" loading={answerMut.isPending}>
-                답변 저장
-              </Button>
-            </Form>
+            {target.source === 'N' ? (
+              <>
+                <h4 style={{ marginTop: 20 }}>답변 {target.answerBody ? '수정' : '등록'}</h4>
+                <Form
+                  form={answerForm}
+                  layout="vertical"
+                  onFinish={(v) =>
+                    answerMut.mutate({
+                      csSeq: target.csSeq,
+                      answerBody: v.answerBody,
+                      state: v.resolutionState,
+                    })
+                  }
+                >
+                  <Form.Item name="answerBody" rules={[{ required: true, message: '답변 본문을 입력하세요.' }]}>
+                    <Input.TextArea rows={6} placeholder="답변 내용 (Markdown/HTML)" />
+                  </Form.Item>
+                  <Form.Item name="resolutionState" label="처리 상태" initialValue="ANSWERED">
+                    <Select
+                      style={{ width: 200 }}
+                      options={[
+                        { value: 'ANSWERED', label: '답변 완료' },
+                        { value: 'RESOLVED', label: '해결됨' },
+                        { value: 'CLOSED', label: '종료' },
+                      ]}
+                    />
+                  </Form.Item>
+                  <Button type="primary" htmlType="submit" loading={answerMut.isPending}>
+                    답변 저장
+                  </Button>
+                </Form>
+              </>
+            ) : (
+              <Alert
+                type="warning"
+                showIcon
+                style={{ marginTop: 20 }}
+                message="Legacy 아카이브 — 읽기 전용"
+                description="원본 TB_BOARD_CS 데이터입니다. 답변·재배정·재분류는 신규 문의에서만 가능합니다."
+              />
+            )}
           </>
         )}
       </Drawer>

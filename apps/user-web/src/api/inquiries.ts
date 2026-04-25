@@ -5,8 +5,11 @@ import { unwrap } from '@academy/ui-core';
 import type { ApiResponse, PagedResponse } from '@academy/ui-core';
 import { apiClient } from './client';
 
+export type InquirySource = 'L' | 'N';
+
 export interface Inquiry {
-  csSeq: number;
+  source: InquirySource;
+  csSeq: string;
   inquiryUserId: string;
   inquiryName: string;
   inquiryTitle: string;
@@ -46,8 +49,8 @@ export async function myInquiries(page = 1, size = 20): Promise<PagedResponse<In
   return unwrap<PagedResponse<Inquiry>>({ data: res.data });
 }
 
-export async function myInquiryDetail(csSeq: number): Promise<Inquiry> {
-  const res = await apiClient.get<ApiResponse<Inquiry>>(`/inquiries/${csSeq}`);
+export async function myInquiryDetail(csSeq: string): Promise<Inquiry> {
+  const res = await apiClient.get<ApiResponse<Inquiry>>(`/inquiries/${encodeURIComponent(csSeq)}`);
   return unwrap<Inquiry>({ data: res.data });
 }
 
