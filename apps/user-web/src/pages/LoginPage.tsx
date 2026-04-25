@@ -18,7 +18,7 @@ export function LoginPage() {
     setSubmitting(true);
     try {
       await login(values.userId, values.password);
-      navigate(location.state?.from ?? '/', { replace: true });
+      navigate(location.state?.from ?? '/home', { replace: true });
     } catch (e) {
       setError(e instanceof Error ? e.message : '로그인 실패');
     } finally {
