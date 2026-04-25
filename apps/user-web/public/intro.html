@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Academy - Unmong Systems</title>
+    <meta name="description" content="Academy - 공무원 학원 통합 운영 시스템 (Admin + User Monorepo)">
+    <link rel="icon" type="image/x-icon" href="/favicon.ico">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/css/service-landing.css">
+    <style>
+        :root {
+            --service-color: #6366f1;
+            --glow-r: 99; --glow-g: 102; --glow-b: 241;
+        }
+    </style>
+</head>
+<body>
+    <div class="sl-container">
+
+        <nav class="sl-topnav">
+            <div class="sl-nav-links">
+                <a href="https://www.unmong.com/index.html" class="sl-nav-link"><span class="sl-nav-arrow">&#8593;</span> Portal</a>
+                <a href="https://www.unmong.com/architecture.html" class="sl-nav-link"><span class="sl-nav-arrow">&#8594;</span> Architecture</a>
+            </div>
+        </nav>
+
+        <section class="sl-hero">
+            <div class="sl-hero-status"><span class="dot"></span> Active</div>
+            <h1>Academy</h1>
+            <p class="tagline">Integrated Academy System (Admin + User Monorepo)</p>
+            <p class="desc">공무원 학원 통합 운영 시스템. 수강생 포털(User)과 관리자 콘솔(Admin)을 단일 Spring Boot 백엔드로 통합한 monorepo 아키텍처. URL prefix(/api/admin, /api/user, /api/shared)로 경계를 강제합니다.</p>
+            <div class="sl-hero-actions">
+                <a href="https://academy.unmong.com/" target="_blank" rel="noopener" class="sl-btn sl-btn-primary">수강 포털</a>
+                <a href="https://academy.unmong.com/admin/" target="_blank" rel="noopener" class="sl-btn sl-btn-outline">관리자 콘솔</a>
+                <a href="https://academy.unmong.com/api/swagger-ui/index.html" target="_blank" rel="noopener" class="sl-btn sl-btn-outline">User API</a>
+                <a href="https://academy.unmong.com/admin/api/swagger-ui/index.html" target="_blank" rel="noopener" class="sl-btn sl-btn-outline">Admin API</a>
+            </div>
+        </section>
+
+        <section class="sl-section">
+            <div class="sl-section-title">Features</div>
+            <div class="sl-features">
+                <a class="sl-feature" href="https://academy.unmong.com/" target="_blank" rel="noopener">
+                    <span class="sl-feature-icon">&#127891;</span>
+                    <div class="sl-feature-name">수강 포털</div>
+                    <div class="sl-feature-desc">강좌 검색/수강 신청, 마이페이지, 장바구니, 결제 및 학습 진도 관리</div>
+                    <span class="sl-feature-tag">User Portal</span>
+                </a>
+                <a class="sl-feature" href="https://academy.unmong.com/admin/" target="_blank" rel="noopener">
+                    <span class="sl-feature-icon">&#9881;</span>
+                    <div class="sl-feature-name">관리자 콘솔</div>
+                    <div class="sl-feature-desc">강좌, 수강생, 주문, 쿠폰, 배너, 팝업 등 학원 운영 통합 관리</div>
+                    <span class="sl-feature-tag">Admin</span>
+                </a>
+                <a class="sl-feature" href="https://academy.unmong.com/admin/" target="_blank" rel="noopener">
+                    <span class="sl-feature-icon">&#128221;</span>
+                    <div class="sl-feature-name">시험 / 모의고사</div>
+                    <div class="sl-feature-desc">시험 등록, 문제은행, 모의고사 운영, 오프라인 시험 관리</div>
+                    <span class="sl-feature-tag">Exam</span>
+                </a>
+                <a class="sl-feature" href="https://academy.unmong.com/admin/" target="_blank" rel="noopener">
+                    <span class="sl-feature-icon">&#128200;</span>
+                    <div class="sl-feature-name">매출 통계</div>
+                    <div class="sl-feature-desc">강사별/과목별 매출 분석, 수강생 통계, 강사 정산 리포트</div>
+                    <span class="sl-feature-tag">Statistics</span>
+                </a>
+                <a class="sl-feature" href="https://academy.unmong.com/api/swagger-ui/index.html" target="_blank" rel="noopener">
+                    <span class="sl-feature-icon">&#128268;</span>
+                    <div class="sl-feature-name">User API</div>
+                    <div class="sl-feature-desc">사용자 서비스 RESTful API 문서 — /api/user/** (Swagger UI)</div>
+                    <span class="sl-feature-tag">Backend API</span>
+                </a>
+                <a class="sl-feature" href="https://academy.unmong.com/admin/api/swagger-ui/index.html" target="_blank" rel="noopener">
+                    <span class="sl-feature-icon">&#128273;</span>
+                    <div class="sl-feature-name">Admin API</div>
+                    <div class="sl-feature-desc">관리자 서비스 RESTful API 문서 — /api/admin/** (Swagger UI)</div>
+                    <span class="sl-feature-tag">Backend API</span>
+                </a>
+            </div>
+        </section>
+
+        <section class="sl-section sl-arch">
+            <div class="sl-section-title">Architecture</div>
+            <div class="sl-arch-diagram">
+                <div class="sl-arch-node">
+                    <div class="sl-arch-node-label">User Web (4002)</div>
+                    <div class="sl-arch-node-tech">Vite 7 + React 19 + AntD 6</div>
+                </div>
+                <div class="sl-arch-arrow">&#8594;</div>
+                <div class="sl-arch-node highlight">
+                    <div class="sl-arch-node-label">Academy Backend (9001)</div>
+                    <div class="sl-arch-node-tech">Spring Boot 3.2 · URL prefix 경계</div>
+                </div>
+                <div class="sl-arch-arrow">&#8594;</div>
+                <div class="sl-arch-node">
+                    <div class="sl-arch-node-label">MariaDB 11.8</div>
+                    <div class="sl-arch-node-tech">acm_basic · Flyway</div>
+                </div>
+                <div class="sl-arch-arrow">&#8592;</div>
+                <div class="sl-arch-node">
+                    <div class="sl-arch-node-label">Admin Web (4001)</div>
+                    <div class="sl-arch-node-tech">Vite 7 + React 19 + AntD 6</div>
+                </div>
+            </div>
+        </section>
+
+        <section class="sl-section sl-flow">
+            <div class="sl-section-title">Service Flow</div>
+            <div class="sl-flow-steps">
+                <div class="sl-flow-step">
+                    <div class="sl-flow-step-num">1</div>
+                    <div class="sl-flow-step-label">Google OAuth</div>
+                    <div class="sl-flow-step-desc">사용자/관리자 인증</div>
+                </div>
+                <div class="sl-flow-arrow">&#8594;</div>
+                <div class="sl-flow-step">
+                    <div class="sl-flow-step-num">2</div>
+                    <div class="sl-flow-step-label">수강 신청 / 결제</div>
+                    <div class="sl-flow-step-desc">장바구니 → 주문 → 쿠폰</div>
+                </div>
+                <div class="sl-flow-arrow">&#8594;</div>
+                <div class="sl-flow-step">
+                    <div class="sl-flow-step-num">3</div>
+                    <div class="sl-flow-step-label">학습 / 시험</div>
+                    <div class="sl-flow-step-desc">강좌 수강 · 모의고사</div>
+                </div>
+                <div class="sl-flow-arrow">&#8594;</div>
+                <div class="sl-flow-step">
+                    <div class="sl-flow-step-num">4</div>
+                    <div class="sl-flow-step-label">통계 / 정산</div>
+                    <div class="sl-flow-step-desc">매출 리포트 · 강사 정산</div>
+                </div>
+            </div>
+        </section>
+
+        <section class="sl-section sl-tech">
+            <div class="sl-section-title">Tech Stack</div>
+            <div class="sl-tech-list">
+                <span class="sl-tech-badge"><span class="sl-tech-dot" style="background:#61dafb;"></span> React 19</span>
+                <span class="sl-tech-badge"><span class="sl-tech-dot" style="background:#3178c6;"></span> TypeScript</span>
+                <span class="sl-tech-badge"><span class="sl-tech-dot" style="background:#1677ff;"></span> Ant Design 6</span>
+                <span class="sl-tech-badge"><span class="sl-tech-dot" style="background:#b03a2e;"></span> Vite 7</span>
+                <span class="sl-tech-badge"><span class="sl-tech-dot" style="background:#6db33f;"></span> Spring Boot 3.2</span>
+                <span class="sl-tech-badge"><span class="sl-tech-dot" style="background:#003545;"></span> MariaDB 11.8</span>
+                <span class="sl-tech-badge"><span class="sl-tech-dot" style="background:#dc382d;"></span> Redis 7</span>
+                <span class="sl-tech-badge"><span class="sl-tech-dot" style="background:#cc0000;"></span> Flyway</span>
+                <span class="sl-tech-badge"><span class="sl-tech-dot" style="background:#85ea2d;"></span> Swagger UI</span>
+                <span class="sl-tech-badge"><span class="sl-tech-dot" style="background:#f97316;"></span> Nginx</span>
+                <span class="sl-tech-badge"><span class="sl-tech-dot" style="background:#2496ed;"></span> Docker Compose</span>
+            </div>
+        </section>
+
+        <section class="sl-section sl-connected">
+            <div class="sl-section-title">Connected Services</div>
+            <div class="sl-connected-grid">
+                <a href="https://infrawatcher.unmong.com/intro.html" class="sl-connected-card">
+                    <span class="sl-connected-dot" style="background:#06b6d4;"></span>
+                    <div class="sl-connected-info">
+                        <div class="sl-connected-name">InfraWatcher</div>
+                        <div class="sl-connected-role">컨테이너 모니터링</div>
+                    </div>
+                    <span class="sl-connected-arrow">&#8594;</span>
+                </a>
+                <a href="https://qadashboard.unmong.com/intro.html" class="sl-connected-card">
+                    <span class="sl-connected-dot" style="background:#8b5cf6;"></span>
+                    <div class="sl-connected-info">
+                        <div class="sl-connected-name">QA-Agent</div>
+                        <div class="sl-connected-role">품질 자동 테스트</div>
+                    </div>
+                    <span class="sl-connected-arrow">&#8594;</span>
+                </a>
+                <a href="https://loganalyzer.unmong.com/intro.html" class="sl-connected-card">
+                    <span class="sl-connected-dot" style="background:#22c55e;"></span>
+                    <div class="sl-connected-info">
+                        <div class="sl-connected-name">LogAnalyzer</div>
+                        <div class="sl-connected-role">로그 수집 / 분석</div>
+                    </div>
+                    <span class="sl-connected-arrow">&#8594;</span>
+                </a>
+            </div>
+        </section>
+
+    </div>
+</body>
+</html>
