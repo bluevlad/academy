@@ -19,7 +19,10 @@ import org.springframework.web.bind.annotation.*;
  * 학생(USER) 전용 1:1 문의 작성·조회. Phase D.
  *
  * <p>SecurityConfig 가 {@code /api/user/**} 을 hasRole(USER) 로 보호.
- * 본인 것만 조회 가능 (selectDetail owner check).
+ * 본인 것만 조회 가능 (myDetail owner check). legacy TB_BOARD_CS 는 본 화면에서 노출 안 함.
+ *
+ * <p>{@code inquiryId} = 신규 tb_inquiry.inquiry_id (BIGINT). 사용자 작성 도메인은
+ * legacy 와 무관하므로 long 그대로 사용.
  */
 @RestController
 @RequestMapping("/api/user/inquiries")
@@ -43,7 +46,7 @@ public class UserInquiryApi {
         return ResponseEntity.status(HttpStatus.CREATED).body(ApiResponse.ok(d));
     }
 
-    @Operation(summary = "내 문의 목록")
+    @Operation(summary = "내 문의 목록 (신규만, legacy 미노출)")
     @GetMapping
     public ApiResponse<PagedResponse<InquiryDto>> myList(
         @RequestParam(required = false, defaultValue = "1") int page,
@@ -54,14 +57,14 @@ public class UserInquiryApi {
         return ApiResponse.ok(service.myList(userId, page, size));
     }
 
-    @Operation(summary = "내 문의 상세")
-    @GetMapping("/{csSeq}")
+    @Operation(summary = "내 문의 상세 (신규만)")
+    @GetMapping("/{inquiryId}")
     public ResponseEntity<ApiResponse<InquiryDto>> myDetail(
-        @PathVariable long csSeq,
+        @PathVariable long inquiryId,
         Authentication auth
     ) {
         String userId = String.valueOf(auth.getPrincipal());
-        InquiryDto d = service.myDetail(userId, csSeq);
+        InquiryDto d = service.myDetail(userId, inquiryId);
         if (d == null) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND)
                 .body(ApiResponse.fail("INQUIRY_404", "문의를 찾을 수 없습니다."));

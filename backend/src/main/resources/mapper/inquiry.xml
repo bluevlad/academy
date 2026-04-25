@@ -1,10 +1,18 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <!--
-  CS 문의 운영자 콘솔용 쿼리. acm_board_cs (Phase A) 기반.
+  CS 1:1 문의 매퍼.
+
+  - 운영자 list/detail/통계/추천 → v_inquiry (legacy + 신규 통합)
+  - 분류/답변/재배정 UPDATE     → tb_inquiry 직접 (legacy 는 read-only)
+  - 사용자 신규 작성·본인 목록 → tb_inquiry 직접 (신규만)
+  - AI 호출·재배정 로그         → tb_inquiry_analysis / tb_inquiry_routing_log
 -->
 <mapper namespace="com.academy.mapper.InquiryMapper">
 
+    <!-- =============================================================
+         공통 WHERE — v_inquiry 기준
+         ============================================================= -->
     <sql id="listWhere">
         <where>
             is_deleted = 'N'
@@ -19,19 +27,23 @@
                 AND assigned_to = #{req.assignedTo}
             </if>
             <if test="req.keyword != null and req.keyword != ''">
-                AND (inquiry_title LIKE CONCAT('%', #{req.keyword}, '%')
-                     OR inquiry_body LIKE CONCAT('%', #{req.keyword}, '%'))
+                AND (title LIKE CONCAT('%', #{req.keyword}, '%')
+                     OR body  LIKE CONCAT('%', #{req.keyword}, '%'))
             </if>
         </where>
     </sql>
 
+    <!-- =============================================================
+         운영자 콘솔 조회 — v_inquiry
+         ============================================================= -->
     <select id="selectList" resultType="com.academy.inquiry.dto.InquiryDto">
         SELECT
-            cs_seq                AS csSeq,
-            inquiry_user_id       AS inquiryUserId,
-            inquiry_name          AS inquiryName,
-            inquiry_title         AS inquiryTitle,
-            LEFT(inquiry_body, 200)  AS bodyPreview,
+            source,
+            inquiry_id            AS csSeq,
+            user_id               AS inquiryUserId,
+            user_name             AS inquiryName,
+            title                 AS inquiryTitle,
+            LEFT(body, 200)       AS bodyPreview,
             NULL                  AS body,
             inquiry_date          AS inquiryDate,
             predicted_category    AS predictedCategory,
@@ -46,25 +58,26 @@
             answered_at           AS answeredAt,
             resolution_state      AS resolutionState,
             user_satisfaction     AS userSatisfaction
-        FROM acm_board_cs
+        FROM v_inquiry
         <include refid="listWhere"/>
-        ORDER BY inquiry_date DESC, cs_seq DESC
+        ORDER BY inquiry_date DESC, inquiry_id DESC
         LIMIT #{req.sizeOrDefault} OFFSET #{req.offset}
     </select>
 
     <select id="selectCount" resultType="long">
-        SELECT COUNT(*) FROM acm_board_cs
+        SELECT COUNT(*) FROM v_inquiry
         <include refid="listWhere"/>
     </select>
 
     <select id="selectDetail" resultType="com.academy.inquiry.dto.InquiryDto">
         SELECT
-            cs_seq                AS csSeq,
-            inquiry_user_id       AS inquiryUserId,
-            inquiry_name          AS inquiryName,
-            inquiry_title         AS inquiryTitle,
+            source,
+            inquiry_id            AS csSeq,
+            user_id               AS inquiryUserId,
+            user_name             AS inquiryName,
+            title                 AS inquiryTitle,
             NULL                  AS bodyPreview,
-            inquiry_body          AS body,
+            body                  AS body,
             inquiry_date          AS inquiryDate,
             predicted_category    AS predictedCategory,
             predicted_confidence  AS predictedConfidence,
@@ -78,70 +91,74 @@
             answered_at           AS answeredAt,
             resolution_state      AS resolutionState,
             user_satisfaction     AS userSatisfaction
-        FROM acm_board_cs
-        WHERE cs_seq = #{csSeq}
+        FROM v_inquiry
+        WHERE inquiry_id = #{csSeq}
           AND is_deleted = 'N'
     </select>
 
+    <!-- =============================================================
+         운영자 액션 — tb_inquiry 직접 (legacy 적용 불가)
+         ============================================================= -->
     <update id="updateClassification">
-        UPDATE acm_board_cs
+        UPDATE tb_inquiry
            SET predicted_category   = #{category},
                predicted_confidence = #{confidence},
                classified_by_model  = #{model},
                classified_at        = #{classifiedAt}
-         WHERE cs_seq = #{csSeq}
+         WHERE inquiry_id = #{inquiryId}
     </update>
 
     <update id="updateAnswer">
-        UPDATE acm_board_cs
+        UPDATE tb_inquiry
            SET answer_body      = #{body},
                answered_by      = #{by},
                answered_at      = #{answeredAt},
                resolution_state = #{state},
                upd_dt           = CURRENT_TIMESTAMP
-         WHERE cs_seq = #{csSeq}
+         WHERE inquiry_id = #{inquiryId}
     </update>
 
     <update id="updateReassign">
-        UPDATE acm_board_cs
+        UPDATE tb_inquiry
            SET actual_category = #{toCategory},
                assigned_to     = #{toUser},
                reroute_count   = reroute_count + 1,
                upd_dt          = CURRENT_TIMESTAMP
-         WHERE cs_seq = #{csSeq}
+         WHERE inquiry_id = #{inquiryId}
     </update>
 
     <insert id="insertRoutingLog">
-        INSERT INTO acm_inquiry_routing_log (
-            cs_seq, from_category, to_category, from_user, to_user,
+        INSERT INTO tb_inquiry_routing_log (
+            inquiry_id, from_category, to_category, from_user, to_user,
             reason, changed_by, is_ai_error
         ) VALUES (
-            #{csSeq}, #{fromCategory}, #{toCategory}, #{fromUser}, #{toUser},
+            #{inquiryId}, #{fromCategory}, #{toCategory}, #{fromUser}, #{toUser},
             #{reason}, #{changedBy}, #{isAiError}
         )
     </insert>
 
     <insert id="insertAnalysisLog">
-        INSERT INTO acm_inquiry_analysis (
-            cs_seq, model_name, prompt_template, parsed_category,
+        INSERT INTO tb_inquiry_analysis (
+            inquiry_id, model_name, prompt_template, parsed_category,
             confidence, latency_ms, raw_output
         ) VALUES (
-            #{csSeq}, #{modelName}, #{promptTemplate}, #{parsedCategory},
+            #{inquiryId}, #{modelName}, #{promptTemplate}, #{parsedCategory},
             #{confidence}, #{latencyMs}, #{rawOutput}
         )
     </insert>
 
-    <!-- ============================================================== -->
-    <!-- Phase D 추가 — 사용자 문의 작성·본인 목록·통계                   -->
-    <!-- ============================================================== -->
-
-    <!-- useGeneratedKeys + keyProperty 는 @Param 기반 mapper 에 쓰면 Jdbc3KeyGenerator 가
-         parameter 를 Map/POJO 로 가정하고 BeanWrapper NPE. Service 에서 selectMyList(limit=1)
-         로 재조회하므로 생성 키 반환 불필요. -->
+    <!-- =============================================================
+         사용자 신규 작성·본인 목록 — tb_inquiry 직접
+         ============================================================= -->
+    <!--
+       useGeneratedKeys + keyProperty 는 @Param 기반 mapper 에 쓰면 Jdbc3KeyGenerator 가
+       parameter 를 Map/POJO 로 가정하고 BeanWrapper NPE. Service 에서 selectMyList(limit=1)
+       로 재조회하므로 생성 키 반환 불필요.
+    -->
     <insert id="insertInquiry">
-        INSERT INTO acm_board_cs (
-            inquiry_user_id, inquiry_name,
-            inquiry_title, inquiry_body, inquiry_date,
+        INSERT INTO tb_inquiry (
+            user_id, user_name,
+            title, body, inquiry_date,
             resolution_state, reg_dt
         ) VALUES (
             #{userId}, #{name},
@@ -152,45 +169,49 @@
 
     <select id="selectMyList" resultType="com.academy.inquiry.dto.InquiryDto">
         SELECT
-            cs_seq                AS csSeq,
-            inquiry_user_id       AS inquiryUserId,
-            inquiry_name          AS inquiryName,
-            inquiry_title         AS inquiryTitle,
-            LEFT(inquiry_body, 200)  AS bodyPreview,
-            NULL                  AS body,
-            inquiry_date          AS inquiryDate,
-            predicted_category    AS predictedCategory,
-            predicted_confidence  AS predictedConfidence,
-            classified_by_model   AS classifiedByModel,
-            classified_at         AS classifiedAt,
-            actual_category       AS actualCategory,
-            assigned_to           AS assignedTo,
-            reroute_count         AS rerouteCount,
-            NULL                  AS answerBody,
-            answered_by           AS answeredBy,
-            answered_at           AS answeredAt,
-            resolution_state      AS resolutionState,
-            user_satisfaction     AS userSatisfaction
-        FROM acm_board_cs
-        WHERE inquiry_user_id = #{userId}
+            'N'                         AS source,
+            CAST(inquiry_id AS CHAR(20)) AS csSeq,
+            user_id                     AS inquiryUserId,
+            user_name                   AS inquiryName,
+            title                       AS inquiryTitle,
+            LEFT(body, 200)             AS bodyPreview,
+            NULL                        AS body,
+            inquiry_date                AS inquiryDate,
+            predicted_category          AS predictedCategory,
+            predicted_confidence        AS predictedConfidence,
+            classified_by_model         AS classifiedByModel,
+            classified_at               AS classifiedAt,
+            actual_category             AS actualCategory,
+            assigned_to                 AS assignedTo,
+            reroute_count               AS rerouteCount,
+            NULL                        AS answerBody,
+            answered_by                 AS answeredBy,
+            answered_at                 AS answeredAt,
+            resolution_state            AS resolutionState,
+            user_satisfaction           AS userSatisfaction
+        FROM tb_inquiry
+        WHERE user_id = #{userId}
           AND is_deleted = 'N'
-        ORDER BY inquiry_date DESC, cs_seq DESC
+        ORDER BY inquiry_date DESC, inquiry_id DESC
         LIMIT #{limit} OFFSET #{offset}
     </select>
 
     <select id="selectMyCount" resultType="long">
-        SELECT COUNT(*) FROM acm_board_cs
-        WHERE inquiry_user_id = #{userId}
+        SELECT COUNT(*) FROM tb_inquiry
+        WHERE user_id = #{userId}
           AND is_deleted = 'N'
     </select>
 
+    <!-- =============================================================
+         통계·추천 — v_inquiry (legacy + 신규 통합)
+         ============================================================= -->
     <select id="selectMonthlyStats" resultType="java.util.Map">
         SELECT
             COALESCE(actual_category, predicted_category, 'OTHER') AS category,
             COUNT(*) AS totalCount,
             SUM(CASE WHEN resolution_state IN ('ANSWERED','RESOLVED') THEN 1 ELSE 0 END) AS resolvedCount,
             AVG(user_satisfaction) AS avgSatisfaction
-        FROM acm_board_cs
+        FROM v_inquiry
         WHERE DATE_FORMAT(inquiry_date, '%Y-%m') = #{ym}
           AND is_deleted = 'N'
         GROUP BY category
@@ -200,17 +221,18 @@
         SELECT
             COUNT(*) AS totalLog,
             SUM(CASE WHEN is_ai_error = 'Y' THEN 1 ELSE 0 END) AS aiErrorCount
-        FROM acm_inquiry_routing_log
+        FROM tb_inquiry_routing_log
         WHERE DATE_FORMAT(changed_at, '%Y-%m') = #{ym}
     </select>
 
     <select id="selectUnresolvedTop" resultType="com.academy.inquiry.dto.InquiryDto">
         SELECT
-            cs_seq                AS csSeq,
-            inquiry_user_id       AS inquiryUserId,
-            inquiry_name          AS inquiryName,
-            inquiry_title         AS inquiryTitle,
-            LEFT(inquiry_body, 100)  AS bodyPreview,
+            source,
+            inquiry_id            AS csSeq,
+            user_id               AS inquiryUserId,
+            user_name             AS inquiryName,
+            title                 AS inquiryTitle,
+            LEFT(body, 100)       AS bodyPreview,
             NULL                  AS body,
             inquiry_date          AS inquiryDate,
             predicted_category    AS predictedCategory,
@@ -225,7 +247,7 @@
             answered_at           AS answeredAt,
             resolution_state      AS resolutionState,
             user_satisfaction     AS userSatisfaction
-        FROM acm_board_cs
+        FROM v_inquiry
         WHERE is_deleted = 'N'
           AND resolution_state = 'OPEN'
         ORDER BY inquiry_date ASC

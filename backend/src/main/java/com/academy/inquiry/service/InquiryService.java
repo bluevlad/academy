@@ -20,15 +20,17 @@ import java.math.RoundingMode;
 import java.time.LocalDateTime;
 import java.time.YearMonth;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.HashMap;
 
 @Service
 public class InquiryService implements Serializable {
 
     private static final long serialVersionUID = 1L;
     private static final Logger log = LoggerFactory.getLogger(InquiryService.class);
+
+    private static final String SOURCE_NEW = "N";
 
     private final InquiryMapper mapper;
     private final InquiryAgentClient agent;
@@ -46,52 +48,62 @@ public class InquiryService implements Serializable {
     }
 
     @Transactional(readOnly = true)
-    public InquiryDto detail(long csSeq) {
+    public InquiryDto detail(String csSeq) {
         return mapper.selectDetail(csSeq);
     }
 
-    /** agent 호출 → 분류 결과 저장. 실패시 예외 전파. */
+    /**
+     * agent 호출 → 분류 결과 저장. legacy 항목은 read-only 라 NotSupported 반환.
+     */
     @Transactional
-    public InquiryDto classifyNow(long csSeq) throws InquiryAgentClient.AgentException {
+    public InquiryDto classifyNow(String csSeq) throws InquiryAgentClient.AgentException {
         InquiryDto current = mapper.selectDetail(csSeq);
         if (current == null) return null;
+
+        long inquiryId = requireNewInquiryId(current);
 
         InquiryAgentClient.ClassifyResponse r = agent.classify(current.inquiryTitle(), current.body());
 
         LocalDateTime now = LocalDateTime.now();
-        mapper.updateClassification(csSeq, r.category(), r.confidence(), r.model(), now);
-        mapper.insertAnalysisLog(csSeq, r.model(), "v1", r.category(), r.confidence(),
+        mapper.updateClassification(inquiryId, r.category(), r.confidence(), r.model(), now);
+        mapper.insertAnalysisLog(inquiryId, r.model(), "v1", r.category(), r.confidence(),
             r.latency_ms(), truncate(r.reasoning(), 2000));
 
         return mapper.selectDetail(csSeq);
     }
 
     @Transactional
-    public InquiryDto answer(long csSeq, AnswerRequest req, String answeredBy) {
+    public InquiryDto answer(String csSeq, AnswerRequest req, String answeredBy) {
+        InquiryDto current = mapper.selectDetail(csSeq);
+        if (current == null) return null;
+
+        long inquiryId = requireNewInquiryId(current);
+
         String state = (req.resolutionState() == null || req.resolutionState().isBlank())
             ? "ANSWERED" : req.resolutionState();
-        mapper.updateAnswer(csSeq, req.answerBody(), answeredBy, state, LocalDateTime.now());
+        mapper.updateAnswer(inquiryId, req.answerBody(), answeredBy, state, LocalDateTime.now());
         return mapper.selectDetail(csSeq);
     }
 
     @Transactional
-    public InquiryDto reassign(long csSeq, ReassignRequest req, String changedBy) {
+    public InquiryDto reassign(String csSeq, ReassignRequest req, String changedBy) {
         InquiryDto current = mapper.selectDetail(csSeq);
         if (current == null) return null;
+
+        long inquiryId = requireNewInquiryId(current);
 
         String fromCategory = current.actualCategory() != null
             ? current.actualCategory() : current.predictedCategory();
         String fromUser = current.assignedTo();
 
-        mapper.updateReassign(csSeq, req.toCategory(), req.toUser());
+        mapper.updateReassign(inquiryId, req.toCategory(), req.toUser());
         mapper.insertRoutingLog(
-            csSeq, fromCategory, req.toCategory(), fromUser, req.toUser(),
+            inquiryId, fromCategory, req.toCategory(), fromUser, req.toUser(),
             req.reason(), changedBy, req.isAiError() ? "Y" : "N"
         );
 
-        // agent 에도 피드백 (best-effort, 실패해도 진행)
         try {
-            agent.recordFeedback(csSeq, fromCategory, req.toCategory(),
+            agent.recordFeedback(inquiryId, fromCategory, req.toCategory(),
                 req.toUser(), changedBy, req.reason(), req.isAiError());
         } catch (Exception e) {
             log.warn("agent 피드백 실패 (무시): {}", e.getMessage());
@@ -100,7 +112,7 @@ public class InquiryService implements Serializable {
         return mapper.selectDetail(csSeq);
     }
 
-    public InquiryAgentClient.SuggestResponse related(long csSeq) throws InquiryAgentClient.AgentException {
+    public InquiryAgentClient.SuggestResponse related(String csSeq) throws InquiryAgentClient.AgentException {
         InquiryDto d = mapper.selectDetail(csSeq);
         if (d == null) return null;
         return agent.suggestRelated(d.body(), 3);
@@ -113,38 +125,32 @@ public class InquiryService implements Serializable {
     /** 사용자 신규 문의 등록 후 async 분류 트리거. */
     @Transactional
     public InquiryDto createByUser(String userId, String userName, InquiryCreateRequest req) {
-        long csSeq = 0;
-        // MyBatis useGeneratedKeys — 삽입 후 키 채워짐
-        var params = new HashMap<String, Object>();
-        params.put("userId", userId);
-        params.put("name", req.inquiryName() != null && !req.inquiryName().isBlank()
-            ? req.inquiryName() : userName);
-        params.put("title", req.title());
-        params.put("body", req.body());
+        String name = req.inquiryName() != null && !req.inquiryName().isBlank()
+            ? req.inquiryName() : userName;
 
-        // 직접 mapper 메서드 호출 — return type 이 insert id
-        mapper.insertInquiry(userId,
-            req.inquiryName() != null && !req.inquiryName().isBlank()
-                ? req.inquiryName() : userName,
-            req.title(), req.body());
-        // Mapper 의 useGeneratedKeys=true 가 첫 번째 Long 반환을 채움. MyBatis 는 이를
-        // selectKey 없이 안전하게 리턴하려면 trick 필요. 간단히 재조회로 대체:
+        mapper.insertInquiry(userId, name, req.title(), req.body());
+
         InquiryDto created = mapper.selectMyList(userId, 1, 0).stream()
             .findFirst().orElse(null);
 
         if (created != null) {
-            classifyAsync(created.csSeq());
+            try {
+                long inquiryId = Long.parseLong(created.csSeq());
+                classifyAsync(inquiryId);
+            } catch (NumberFormatException e) {
+                log.warn("createByUser 후 csSeq 파싱 실패: {}", created.csSeq());
+            }
         }
         return created;
     }
 
     /** 비동기 분류 — 사용자 응답 블로킹 방지. 실패 시 로그만. */
     @Async
-    public void classifyAsync(long csSeq) {
+    public void classifyAsync(long inquiryId) {
         try {
-            classifyNow(csSeq);
+            classifyNow(String.valueOf(inquiryId));
         } catch (Exception e) {
-            log.warn("async classify 실패 cs_seq={}: {}", csSeq, e.getMessage());
+            log.warn("async classify 실패 inquiry_id={}: {}", inquiryId, e.getMessage());
         }
     }
 
@@ -158,11 +164,13 @@ public class InquiryService implements Serializable {
         return PagedResponse.of(items, p, s, total);
     }
 
-    /** 본인 문의 상세. 소유자 아니면 null. */
+    /** 본인 신규 문의 상세. 소유자 아니면 null. */
     @Transactional(readOnly = true)
-    public InquiryDto myDetail(String userId, long csSeq) {
-        InquiryDto d = mapper.selectDetail(csSeq);
-        if (d == null || !userId.equals(d.inquiryUserId())) return null;
+    public InquiryDto myDetail(String userId, long inquiryId) {
+        InquiryDto d = mapper.selectDetail(String.valueOf(inquiryId));
+        if (d == null || !SOURCE_NEW.equals(d.source()) || !userId.equals(d.inquiryUserId())) {
+            return null;
+        }
         return d;
     }
 
@@ -224,6 +232,21 @@ public class InquiryService implements Serializable {
         );
     }
 
+    /**
+     * legacy('L') 항목은 운영 액션(분류·답변·재배정) 불가. 신규('N') 항목의 csSeq 를
+     * BIGINT inquiry_id 로 파싱하여 반환.
+     */
+    private static long requireNewInquiryId(InquiryDto d) {
+        if (!SOURCE_NEW.equals(d.source())) {
+            throw new IllegalStateException("legacy 문의는 운영 액션 적용 불가: csSeq=" + d.csSeq());
+        }
+        try {
+            return Long.parseLong(d.csSeq());
+        } catch (NumberFormatException e) {
+            throw new IllegalStateException("신규 문의 csSeq 파싱 실패: " + d.csSeq(), e);
+        }
+    }
+
     private static long toLong(Object o) {
         if (o == null) return 0;
         if (o instanceof Number n) return n.longValue();
@@ -241,8 +264,4 @@ public class InquiryService implements Serializable {
         if (s == null) return null;
         return s.length() > max ? s.substring(0, max) : s;
     }
-
-    // 시그니처 미사용 — Jackson 직렬화용 더미 필드 아님
-    @SuppressWarnings("unused")
-    private static BigDecimal _unused;
 }
