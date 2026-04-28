@@ -1,7 +1,41 @@
 # academy-integrated
 
-> **Academy 통합 학원 운영 시스템** — 단일 Docker compose 로 관리자·수강생 풀 스택 배포.
-> Sprint 0~6 backend 완료, ADR-006/007 기반 FE 재작성 중 (feat/fe-ant-design-rewrite).
+> **Academy 통합 학원 운영 시스템** — Sprint 0~6 backend 완료, ADR-006/007 기반 FE 재작성 중 (feat/fe-ant-design-rewrite).
+
+---
+
+## ⚠️ [SUSPENDED] 단독 docker 운영 중단 — 2026-04-28
+
+이 repo 의 docker compose 운영은 **중단**되었습니다.
+academy 가 **hopenvision 통합 환경으로 흡수**되어, 운영은 hopenvision 쪽 단일 compose 에서 관리합니다.
+
+| 항목 | 상태 |
+|---|---|
+| 컨테이너 (backend·admin-web·user-web·redis·agent) | ⛔ 모두 stop + remove 완료 |
+| 이미지 | ✅ 보존 (`docker images | grep academy`) — rebuild 없이 재기동 가능 |
+| 볼륨 `academy_redis_data` | ✅ 보존 — 삭제 금지 |
+| 자동 재시작 정책 | 🚫 모든 compose 의 `restart: "no"` — **서버/도커 재부팅 시 자동 기동되지 않음** |
+| GitHub Actions `deploy-prod.yml` | 🚫 push 트리거 주석 처리, `workflow_dispatch` 수동 실행만 가능 |
+| 소스 / `docker-compose.yml` / `Dockerfile` | ✅ 보존 — 단독 재개 가능성을 위해 그대로 둠 |
+
+### 단독 재개가 필요한 경우 (긴급 시나리오 한정)
+
+> ⚠️ 정상 운영은 hopenvision 으로 가세요. 아래는 hopenvision 다운 등 비상 시나리오 전용.
+
+1. hopenvision 에서 academy 가 분리된 상태인지 확인 — 포트 9001 / 4001 / 4002 / 6379 / 9011 충돌 주의
+2. 환경변수 SSoT 링크 확인: `/Users/rainend/GIT/Claude-Opus-bluevlad/infrastructure/docker/.env.production`
+3. 기동:
+   ```bash
+   cd /Users/rainend/GIT/academy
+   docker compose --profile all up -d
+   ```
+4. 운영 종료 즉시:
+   ```bash
+   docker compose --profile all down
+   ```
+5. 다시 영구 운영하려면 각 compose 파일의 `restart: "no"` → `unless-stopped` 로 되돌리고, `deploy-prod.yml` 의 `push:` 트리거 주석을 풀어야 함.
+
+---
 
 ## 아키텍처
 
@@ -53,11 +87,9 @@ npm install                 # workspaces 설치 (루트에서)
 npm run dev:admin            # http://localhost:4001
 npm run dev:user             # http://localhost:3003
 
-# 3) 통합 (Docker compose)
-docker compose --profile all up -d
-curl http://localhost:9000/api/shared/health
-open http://localhost:4001
-open http://localhost:3003
+# 3) 통합 (Docker compose)  — ⚠️ SUSPENDED, hopenvision 통합으로 운영 이관됨
+#    상단 [SUSPENDED] 섹션 참조. 비상 시나리오 외에는 사용 금지.
+# docker compose --profile all up -d
 ```
 
 ## URL 경로 경계 (Sprint 1-5 · ADR-002)

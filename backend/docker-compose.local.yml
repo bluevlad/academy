@@ -1,3 +1,9 @@
+# =============================================================================
+# [SUSPENDED] backend Windows 로컬 compose — 2026-04-28
+# 사유: academy 가 hopenvision 통합 환경으로 흡수됨. 운영은 hopenvision 단일 compose.
+# 자동 재시작: restart: "no" — 서버/도커 재부팅에도 자동 기동 안 됨.
+# 단독 재개: cd backend && docker compose -f docker-compose.local.yml up -d (긴급 시나리오 한정)
+# =============================================================================
 version: '3.8'
 
 services:
@@ -16,4 +22,4 @@ services:
       - SUPER_ADMIN_EMAILS=${SUPER_ADMIN_EMAILS:-}
     extra_hosts:
       - "host.docker.internal:host-gateway"
-    restart: always
+    restart: "no"  # SUSPENDED — hopenvision 통합 후 단독 운영 중단 (2026-04-28)

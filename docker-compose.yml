@@ -1,17 +1,29 @@
-# Academy 통합 학원 운영 시스템 — compose
+# =============================================================================
+# [SUSPENDED] Academy 단독 docker 운영 중단 — 2026-04-28
+# -----------------------------------------------------------------------------
+# 사유: academy 가 hopenvision 통합 환경으로 흡수됨. 운영은 hopenvision 쪽에서
+#       단일 compose 로 관리. 이 파일은 단독 재개 가능성을 위해 보존만 한다.
 #
-# 4 컨테이너: backend · admin-web · user-web · redis
-# DB (MariaDB) 는 호스트 네이티브 mariadbd 를 host.docker.internal 로 접근.
+# 자동 재시작 정책:
+#   - 모든 서비스 restart: "no" — Docker daemon/서버 재부팅 시에도 살아나지 않음.
+#   - `docker compose ... up` 을 명시적으로 호출하지 않는 한 절대 기동되지 않음.
 #
-# 환경변수 (ENVIRONMENT_STANDARD §8.3 — Single Source of Truth):
-#   운영: /Users/rainend/GIT/Claude-Opus-bluevlad/infrastructure/docker/.env.production
-#   로컬 개발: academy repo 루트의 .env (gitignored)
-#   접두사 규약 §8.2: Academy 전용은 ACADEMY_*, 공통은 GOOGLE_*/SUPER_ADMIN_*/TZ
+# 단독 재개가 필요한 경우 (긴급 시나리오 한정):
+#   1) hopenvision 에서 academy 가 분리된 상태인지 확인 (포트 9001/4001/4002/6379 충돌 주의)
+#   2) cd /Users/rainend/GIT/academy
+#   3) docker compose --profile all up -d
+#   4) 운영 종료 시 즉시 docker compose --profile all down
 #
-# 포트 (§5.2): Admin 4001, User 4002, Backend 9001 (monorepo 단일)
+# 보존 자산:
+#   - 이미지: academy-academy-{backend,admin-web,user-web,agent} (rebuild 없이 재기동 가능)
+#   - 볼륨:  academy_redis_data (Redis 영속 데이터, 삭제 금지)
 #
-# 기동:  docker compose --profile all up -d
-# 로그:  docker compose logs -f --tail=100 academy-backend
+# 원본 운영 메모 (참고):
+#   4 컨테이너: backend · admin-web · user-web · redis (+ agent)
+#   DB(MariaDB) 호스트 네이티브 → host.docker.internal
+#   환경변수 SSoT: /Users/rainend/GIT/Claude-Opus-bluevlad/infrastructure/docker/.env.production
+#   포트(ENVIRONMENT_STANDARD §5.2): Admin 4001 · User 4002 · Backend 9001
+# =============================================================================
 services:
 
   academy-backend:
@@ -45,7 +57,7 @@ services:
       - academy-redis
     extra_hosts:
       - "host.docker.internal:host-gateway"
-    restart: unless-stopped
+    restart: "no"  # SUSPENDED — hopenvision 통합 후 단독 운영 중단 (2026-04-28)
     profiles:
       - all
       - backend
@@ -63,7 +75,7 @@ services:
       - "${ACADEMY_ADMIN_WEB_PORT:-4001}:80"
     depends_on:
       - academy-backend
-    restart: unless-stopped
+    restart: "no"  # SUSPENDED — hopenvision 통합 후 단독 운영 중단 (2026-04-28)
     profiles:
       - all
       - frontend
@@ -79,7 +91,7 @@ services:
       - "${ACADEMY_USER_WEB_PORT:-4002}:80"
     depends_on:
       - academy-backend
-    restart: unless-stopped
+    restart: "no"  # SUSPENDED — hopenvision 통합 후 단독 운영 중단 (2026-04-28)
     profiles:
       - all
       - frontend
@@ -106,7 +118,7 @@ services:
       - "${ACADEMY_AGENT_PORT:-9011}:9011"
     extra_hosts:
       - "host.docker.internal:host-gateway"
-    restart: unless-stopped
+    restart: "no"  # SUSPENDED — hopenvision 통합 후 단독 운영 중단 (2026-04-28)
     profiles:
       - all
       - agent
@@ -118,7 +130,7 @@ services:
     command: ["redis-server", "--appendonly", "yes"]
     volumes:
       - academy_redis_data:/data
-    restart: unless-stopped
+    restart: "no"  # SUSPENDED — hopenvision 통합 후 단독 운영 중단 (2026-04-28)
     profiles:
       - all
       - backend
