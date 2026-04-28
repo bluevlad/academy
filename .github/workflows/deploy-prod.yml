@@ -1,8 +1,17 @@
 name: Deploy Academy to Production
 
+# =============================================================================
+# [SUSPENDED] 자동 배포 비활성 — 2026-04-28
+# 사유: academy 가 hopenvision 통합 환경으로 흡수됨. 운영 배포는 hopenvision 쪽에서 처리.
+#       prod 브랜치에 push 가 들어와도 자동 docker compose up 되지 않도록 push 트리거 제거.
+# 단독 재개: 아래 push 트리거 주석을 풀고, 루트 docker-compose.yml 의 restart 정책도
+#            함께 unless-stopped 로 되돌려야 함 (현재 restart: "no" 로 설정됨).
+# 수동 실행 한정으로 workflow_dispatch 만 남겨둠 — Actions UI 에서 명시적으로만 실행 가능.
+# =============================================================================
 on:
-  push:
-    branches: [ "prod" ]
+  workflow_dispatch:
+  # push:
+  #   branches: [ "prod" ]
 
 env:
   # Claude-Opus-bluevlad ENVIRONMENT_STANDARD §8.3 — Single Source of Truth
