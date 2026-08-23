@@ -1,5 +1,7 @@
 # academy-integrated — 개발 가이드 (Claude Code 용)
 
+> 3-머신 작업 환경(MacBook 편집·운영 / Desktop 터미널·AutoQA / Notebook TIPAIP2 격리) 규칙: [WORKSTATION_GUIDE.md](https://github.com/bluevlad/Claude-Opus-bluevlad/blob/main/infrastructure/environments/WORKSTATION_GUIDE.md) — 개인 서비스 편집은 MacBook 에서만, Desktop 은 pull-only
+
 ## 목표
 기존 academy-admin (Spring Boot + MyBatis + React/Vite) 를 **base** 로 삼고,
 academy-user 의 수강생 기능을 **user 모듈** 로 흡수하여 단일 배포 가능한 통합 학원 운영 시스템을 구축.
