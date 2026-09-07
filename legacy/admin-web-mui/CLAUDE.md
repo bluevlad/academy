@@ -48,8 +48,8 @@ docker compose up -d --build   # Docker 컨테이너
 
 ## Help Page 관리
 
-> 작성 표준: [HELP_PAGE_GUIDE.md](https://github.com/bluevlad/Claude-Opus-bluevlad/blob/main/standards/documentation/HELP_PAGE_GUIDE.md)
-> HTML 템플릿: [help-page-template.html](https://github.com/bluevlad/Claude-Opus-bluevlad/blob/main/standards/documentation/templates/help-page-template.html)
+> 작성 표준: [HELP_PAGE_GUIDE.md](https://github.com/bluevlad/Ai-Legacy-bluevlad/blob/main/standards/documentation/HELP_PAGE_GUIDE.md)
+> HTML 템플릿: [help-page-template.html](https://github.com/bluevlad/Ai-Legacy-bluevlad/blob/main/standards/documentation/templates/help-page-template.html)
 
 - **기능 추가/변경/삭제 시 반드시 헬프 페이지도 함께 업데이트**
 - 헬프 파일 위치: `public/help/`

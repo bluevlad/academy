@@ -3,7 +3,7 @@
 CS/1:1 문의 데이터를 legacy `tb_board_cs` 에서 신규 `acm_board_cs` 로 이관.
 **PII 마스킹 필수** (userId → 해시·이름 → Faker·본문 내 연락처·이메일 정규식 치환).
 
-관련 플랜: `Claude-Opus-bluevlad/services/academy/CS_INQUIRY_AI_PLAN.md` (Phase A)
+관련 플랜: `Ai-Legacy-bluevlad/services/academy/CS_INQUIRY_AI_PLAN.md` (Phase A)
 
 ## 사전 요구
 

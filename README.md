@@ -23,7 +23,7 @@ academy 가 **hopenvision 통합 환경으로 흡수**되어, 운영은 hopenvis
 > ⚠️ 정상 운영은 hopenvision 으로 가세요. 아래는 hopenvision 다운 등 비상 시나리오 전용.
 
 1. hopenvision 에서 academy 가 분리된 상태인지 확인 — 포트 9001 / 4001 / 4002 / 6379 / 9011 충돌 주의
-2. 환경변수 SSoT 링크 확인: `/Users/rainend/GIT/Claude-Opus-bluevlad/infrastructure/docker/.env.production`
+2. 환경변수 SSoT 링크 확인: `/Users/rainend/GIT/Ai-Legacy-bluevlad/infrastructure/docker/.env.production`
 3. 기동:
    ```bash
    cd /Users/rainend/GIT/academy
@@ -103,14 +103,14 @@ npm run dev:user             # http://localhost:3003
 
 ## 주요 문서
 
-> 프로젝트 문서는 메타 repo `Claude-Opus-bluevlad/services/academy/` 로 이관되었습니다.
+> 프로젝트 문서는 메타 repo `Ai-Legacy-bluevlad/services/academy/` 로 이관되었습니다.
 > 현재 폴더의 [`docs/README.md`](docs/README.md) 에 전체 색인이 있습니다.
 
-**ADR** — `../Claude-Opus-bluevlad/services/academy/adr/`
+**ADR** — `../Ai-Legacy-bluevlad/services/academy/adr/`
 - ADR-001 통합 전략 · ADR-002 인증 통합 · ADR-003 Response envelope
 - ADR-004 트랙 수렴 기준 · ADR-005 DB 테이블 전략 · ADR-006 FE 재작성 · ADR-007 FE 기술 스택
 
-**Sprint · 배포** — `../Claude-Opus-bluevlad/services/academy/`
+**Sprint · 배포** — `../Ai-Legacy-bluevlad/services/academy/`
 - `SPRINTS.md` — Sprint 로드맵 + P0 매핑
 - `DEPLOYMENT_CHECKLIST.md` — 배포 체크리스트
 - `CI_CD_SETUP.md` — CI/CD 셋업

@@ -9,7 +9,7 @@
 -- 데이터 이관은 별도 ETL 스크립트 (scripts/data-migrate/board/) 에서 수행.
 -- 본 migration 은 빈 테이블만 생성 → prod 자동 실행 안전.
 --
--- 관련 플랜: Claude-Opus-bluevlad/services/academy/CS_INQUIRY_AI_PLAN.md §4.2
+-- 관련 플랜: Ai-Legacy-bluevlad/services/academy/CS_INQUIRY_AI_PLAN.md §4.2
 -- =====================================================================
 
 CREATE TABLE IF NOT EXISTS acm_board_cs (

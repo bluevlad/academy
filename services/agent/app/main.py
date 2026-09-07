@@ -1,6 +1,6 @@
 """Academy CS Agent — FastAPI 진입점.
 
-관련 플랜: Claude-Opus-bluevlad/services/academy/CS_INQUIRY_AI_PLAN.md (Phase B)
+관련 플랜: Ai-Legacy-bluevlad/services/academy/CS_INQUIRY_AI_PLAN.md (Phase B)
 """
 from __future__ import annotations
 

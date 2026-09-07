@@ -14,8 +14,8 @@ on:
   #   branches: [ "prod" ]
 
 env:
-  # Claude-Opus-bluevlad ENVIRONMENT_STANDARD §8.3 — Single Source of Truth
-  ENV_PRODUCTION_PATH: /Users/rainend/GIT/Claude-Opus-bluevlad/infrastructure/docker/.env.production
+  # Ai-Legacy-bluevlad ENVIRONMENT_STANDARD §8.3 — Single Source of Truth
+  ENV_PRODUCTION_PATH: /Users/rainend/GIT/Ai-Legacy-bluevlad/infrastructure/docker/.env.production
 
 jobs:
   deploy:

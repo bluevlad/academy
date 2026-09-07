@@ -3,7 +3,7 @@
 CS 1:1문의의 **분류 · 유사추천 · 월간집계 · 재배정 피드백** 을 처리하는 Python FastAPI 서비스.
 **로컬 Ollama** 로만 모델 추론 (외부 API 호출 0).
 
-관련 플랜: `Claude-Opus-bluevlad/services/academy/CS_INQUIRY_AI_PLAN.md` (메타 repo, private)
+관련 플랜: `Ai-Legacy-bluevlad/services/academy/CS_INQUIRY_AI_PLAN.md` (메타 repo, private)
 
 ## 아키텍처
 

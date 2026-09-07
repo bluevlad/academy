@@ -1,6 +1,6 @@
 # academy-integrated — 개발 가이드 (Claude Code 용)
 
-> 3-머신 작업 환경(MacBook 편집·운영 / Desktop 터미널·AutoQA / Notebook TIPAIP2 격리) 규칙: [WORKSTATION_GUIDE.md](https://github.com/bluevlad/Claude-Opus-bluevlad/blob/main/infrastructure/environments/WORKSTATION_GUIDE.md) — 개인 서비스 편집은 MacBook 에서만, Desktop 은 pull-only
+> 3-머신 작업 환경(MacBook 편집·운영 / Desktop 터미널·AutoQA / Notebook TIPAIP2 격리) 규칙: [WORKSTATION_GUIDE.md](https://github.com/bluevlad/Ai-Legacy-bluevlad/blob/main/infrastructure/environments/WORKSTATION_GUIDE.md) — 개인 서비스 편집은 MacBook 에서만, Desktop 은 pull-only
 
 ## 목표
 기존 academy-admin (Spring Boot + MyBatis + React/Vite) 를 **base** 로 삼고,
@@ -32,7 +32,7 @@ academy-user 의 수강생 기능을 **user 모듈** 로 흡수하여 단일 배
 ## 포트 / 환경
 
 - backend: 9001 / admin-web: 4001 / user-web: 4002 / redis: 6379
-  (Claude-Opus-bluevlad ENVIRONMENT_STANDARD §5.2 표준 — academy.unmong.com 게이트웨이 대응)
+  (Ai-Legacy-bluevlad ENVIRONMENT_STANDARD §5.2 표준 — academy.unmong.com 게이트웨이 대응)
 - dev DB: `jdbc:mariadb://localhost:3306/acm_basic` (운영은 172.30.1.72 또는 172.30.1.78)
 
 ## Sprint 현황
@@ -40,12 +40,12 @@ academy-user 의 수강생 기능을 **user 모듈** 로 흡수하여 단일 배
 - **Sprint 0** ✅ monorepo 생성 · 통합 pom · docker-compose · Flyway baseline · shared/user 패키지 skeleton
 - **Sprint 1** 🔜 academy-user 22 모듈 → `com.academy.user.*` 로 흡수 (HttpServletRequest → JWT 전환)
 - **Sprint 2** 🔜 user-web CRA → Vite + MUI v6 현대화
-- **Sprint 3~6** 🔜 MVP 11기능 완성 (`Claude-Opus-bluevlad/services/academy/SPRINTS.md` 참고)
+- **Sprint 3~6** 🔜 MVP 11기능 완성 (`Ai-Legacy-bluevlad/services/academy/SPRINTS.md` 참고)
 
 ## 문서 위치
 
 프로젝트 설계·운영 문서는 모두 **메타 repo** 로 이관되었습니다:
-`/Users/rainend/GIT/Claude-Opus-bluevlad/services/academy/`
+`/Users/rainend/GIT/Ai-Legacy-bluevlad/services/academy/`
 (ADR / SPRINTS / DEPLOYMENT_CHECKLIST / CI_CD_SETUP / api/ / db/).
 `./docs/` 폴더에는 포인터 [`README.md`](docs/README.md) 만 있습니다.
 
