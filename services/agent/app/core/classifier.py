@@ -47,7 +47,7 @@ def _rule_based(title: str, body: str) -> tuple[str, float] | None:
 async def classify_inquiry(title: str, body: str) -> ClassifyResult:
     """제목+본문을 ACADEMIC/ORDER/SYSTEM/OTHER 중 하나로 분류.
 
-    1. qwen2.5:7b 호출 (JSON 모드)
+    1. settings.classifier_model(gemma4:12b-mlx) 호출 (JSON 모드)
     2. 파싱 실패/카테고리 이상 → rule fallback
     3. OTHER 이면서 rule match 있으면 rule 우선 (LLM 의 OTHER 는 분류 포기)
     """

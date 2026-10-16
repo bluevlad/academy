@@ -13,7 +13,8 @@ class Settings(BaseSettings):
 
     # Ollama (host machine)
     ollama_base_url: str = "http://host.docker.internal:11434"
-    classifier_model: str = "qwen2.5:7b"
+    # 2026-10-16 qwen2.5 퇴출 — 운영 LLM gemma4 / exaone3.5 2종 중 분류(JSON)는 gemma4
+    classifier_model: str = "gemma4:12b-mlx"
     embedding_model: str = "nomic-embed-text"
 
     # LLM 호출 파라미터

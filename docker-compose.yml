@@ -106,7 +106,7 @@ services:
     container_name: academy-agent
     environment:
       OLLAMA_BASE_URL: ${ACADEMY_OLLAMA_BASE_URL:-http://host.docker.internal:11434}
-      CLASSIFIER_MODEL: ${ACADEMY_AGENT_CLASSIFIER_MODEL:-qwen2.5:7b}
+      CLASSIFIER_MODEL: ${ACADEMY_AGENT_CLASSIFIER_MODEL:-gemma4:12b-mlx}
       EMBEDDING_MODEL: ${ACADEMY_AGENT_EMBEDDING_MODEL:-nomic-embed-text}
       DB_HOST: ${ACADEMY_AGENT_DB_HOST:-host.docker.internal}
       DB_PORT: ${ACADEMY_AGENT_DB_PORT:-3306}

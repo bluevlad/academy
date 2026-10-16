@@ -37,6 +37,9 @@ async def generate(
     }
     if format_:
         payload["format"] = format_
+    # gemma4 계열 thinking 억제 — reasoning 이 응답 대신 토큰을 소진하는 것 방지
+    if model.startswith("gemma4"):
+        payload["think"] = False
 
     t0 = time.monotonic()
     async with httpx.AsyncClient(timeout=settings.llm_timeout_sec) as client:

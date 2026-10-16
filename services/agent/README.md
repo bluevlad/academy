@@ -15,7 +15,7 @@ backend (Spring :9001) ─HTTP→ academy-agent (:9011)
                                 └─ /route-feedback   (재배정 기록)
                                     │
                                     ├─ Ollama (host :11434)
-                                    │    - qwen2.5:7b    (분류)
+                                    │    - gemma4:12b-mlx (분류)
                                     │    - nomic-embed-text (임베딩)
                                     └─ MariaDB (host :3306)
                                          - acm_board_cs
@@ -34,7 +34,7 @@ Ollama 서버 연결 + 설치 모델 목록.
 ```json
 { "title": "환불 문의", "body": "강의를 한번만 들었는데…", "cs_seq": 123 }
 → { "category": "ORDER", "confidence": 0.95, "reasoning": "환불은 결제 영역",
-    "model": "qwen2.5:7b", "latency_ms": 1800, "used_fallback": false }
+    "model": "gemma4:12b-mlx", "latency_ms": 1800, "used_fallback": false }
 ```
 
 ### POST /suggest-related
@@ -78,7 +78,7 @@ uvicorn app.main:app --host 0.0.0.0 --port 9011 --reload
 호스트에 Ollama 모델이 설치돼 있어야:
 
 ```bash
-ollama pull qwen2.5:7b
+ollama pull gemma4:12b-mlx
 ollama pull nomic-embed-text
 ```
 
@@ -101,7 +101,7 @@ acm_board_cs 데이터가 이관돼 있어야 함 (Phase A ETL 완료 조건).
 python scripts/build_embeddings.py --limit 100 --dry-run
 python scripts/build_embeddings.py
 
-# 분류 (5,430건 기준 ~2-3시간 예상, qwen2.5:7b)
+# 분류 (5,430건 기준 ~2-3시간 예상, gemma4:12b-mlx)
 python scripts/batch_classify.py --limit 100 --dry-run
 python scripts/batch_classify.py
 ```
@@ -110,7 +110,7 @@ python scripts/batch_classify.py
 
 | 작업 | 모델 | 건당 시간 |
 |------|------|----------|
-| classify 1건 | qwen2.5:7b | 1-2초 |
+| classify 1건 | gemma4:12b-mlx | 1-2초 |
 | embed 1건 | nomic-embed-text | 0.1-0.3초 |
 | suggest-related (5,430건 코사인) | numpy | < 100ms |
 
